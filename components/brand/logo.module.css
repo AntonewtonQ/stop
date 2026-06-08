@@ -1,0 +1,52 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--petroleum);
+}
+
+.symbol {
+  width: 3.2rem;
+  height: 3.2rem;
+  flex: none;
+  overflow: visible;
+}
+
+.letterBox {
+  fill: var(--amber);
+  stroke: none;
+}
+
+.wordmark {
+  font-size: 2rem;
+  font-weight: 850;
+  letter-spacing: -0.09em;
+  line-height: 1;
+}
+
+.wordmark span {
+  display: inline-block;
+  margin: 0 0.04em;
+  color: var(--amber);
+  font-size: 1.08em;
+}
+
+.compact .symbol {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.light {
+  color: white;
+}
+
+@media (max-width: 560px) {
+  .symbol {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .wordmark {
+    font-size: 1.75rem;
+  }
+}
