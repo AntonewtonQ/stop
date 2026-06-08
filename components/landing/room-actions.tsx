@@ -1,44 +1,61 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  createPlayerSession,
+  createRoom as createGameRoom,
+  joinRoom as addPlayerToRoom,
+  makeRoomCode,
+  normalizeRoomCode,
+  readRoom,
+  savePlayerSession,
+  saveRoom,
+} from "@/lib/game/storage";
 import styles from "./room-actions.module.css";
 
-function makeRoomCode() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from({ length: 5 }, () =>
-    alphabet.charAt(Math.floor(Math.random() * alphabet.length)),
-  ).join("");
-}
-
 export function RoomActions() {
+  const router = useRouter();
+  const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  const [createdCode, setCreatedCode] = useState("");
   const [message, setMessage] = useState("");
 
-  function createRoom() {
-    const code = makeRoomCode();
-    const feedback = `Sala ${code} preparada. O multiplayer será ligado a seguir.`;
+  function validateName() {
+    const name = playerName.trim();
+    if (name.length >= 2) return name;
 
-    setCreatedCode(code);
+    const feedback = "Escreve o teu nome antes de continuar.";
     setMessage(feedback);
-    toast.success("Sala preparada", { description: `Código: ${code}` });
+    toast.error("Falta o teu nome", { description: feedback });
+    return null;
+  }
+
+  function createRoom() {
+    const name = validateName();
+    if (!name) return;
+
+    const code = makeRoomCode();
+    const session = createPlayerSession(name, code);
+    const room = createGameRoom(code, session);
+
+    savePlayerSession(session);
+    saveRoom(room);
+    toast.success("Sala criada", { description: `Código: ${code}` });
+    router.push(`/sala/${code}`);
   }
 
   function joinRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const code = roomCode.trim().toUpperCase();
+    const name = validateName();
+    if (!name) return;
 
+    const code = normalizeRoomCode(roomCode);
     if (code.length < 4) {
       const feedback = "Insere um código válido para entrar na sala.";
       setMessage(feedback);
@@ -46,44 +63,51 @@ export function RoomActions() {
       return;
     }
 
-    const feedback = `Código ${code} reconhecido. A ligação da sala vem na próxima etapa.`;
-    setMessage(feedback);
-    toast.info("Código reconhecido", { description: `Sala ${code}` });
-  }
+    const room = readRoom(code);
+    if (!room) {
+      const feedback =
+        "Esta sala não existe neste navegador. Confirma o código ou cria uma nova.";
+      setMessage(feedback);
+      toast.error("Sala não encontrada", { description: feedback });
+      return;
+    }
 
-  async function copyCode() {
-    if (!createdCode) return;
+    if (room.status !== "lobby") {
+      const feedback = "A partida desta sala já começou.";
+      setMessage(feedback);
+      toast.error("Sala em jogo", { description: feedback });
+      return;
+    }
 
-    await navigator.clipboard?.writeText(createdCode);
-    setMessage(`Código ${createdCode} copiado.`);
-    toast.success("Código copiado", { description: createdCode });
+    const session = createPlayerSession(name, code);
+    savePlayerSession(session);
+    addPlayerToRoom(room, session);
+    toast.success("Entraste na sala", { description: code });
+    router.push(`/sala/${code}`);
   }
 
   return (
     <div className={styles.actions}>
+      <label className={styles.nameField} htmlFor="player-name">
+        <span>Como te chamamos?</span>
+        <div>
+          <UserRound aria-hidden="true" />
+          <Input
+            id="player-name"
+            value={playerName}
+            onChange={(event) => setPlayerName(event.target.value)}
+            placeholder="O teu nome"
+            maxLength={24}
+            autoComplete="nickname"
+          />
+        </div>
+      </label>
+
       <div className={styles.mainAction}>
         <Button className={styles.createButton} type="button" onClick={createRoom}>
           <Plus data-icon="inline-start" />
           Criar uma sala
         </Button>
-
-        {createdCode && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className={styles.roomCode}
-                variant="outline"
-                type="button"
-                onClick={copyCode}
-              >
-                <span>Sala criada</span>
-                <strong>{createdCode}</strong>
-                <small>Clica para copiar</small>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Copiar código da sala</TooltipContent>
-          </Tooltip>
-        )}
       </div>
 
       <div className={styles.divider}>

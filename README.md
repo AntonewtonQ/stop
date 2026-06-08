@@ -30,6 +30,17 @@ reutilizável está em `components/brand/logo.tsx`.
 O shadcn/ui está configurado com Radix, preset Nova e Tailwind CSS v4. A
 identidade visual do `stop.ao` continua definida pelos tokens da marca.
 
+## Fluxo jogável actual
+
+1. O jogador escreve o nome e cria uma sala ou entra com um código.
+2. O anfitrião partilha o convite e configura categorias e tempo.
+3. Ao iniciar, todos os jogadores ligados avançam para a primeira rodada.
+4. Cada jogador preenche as respostas e pode guardar com o botão STOP.
+
+Nesta fase, salas e sessões usam `localStorage` e `sessionStorage`. Abas do
+mesmo navegador sincronizam o lobby e o início da rodada, permitindo testar o
+fluxo antes da integração do backend realtime.
+
 ## Desenvolvimento
 
 ```bash
