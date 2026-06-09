@@ -1,4 +1,4 @@
-export type RoomStatus = "lobby" | "round";
+export type RoomStatus = "lobby" | "round" | "results" | "finished";
 
 export type Player = {
   id: string;
@@ -12,6 +12,33 @@ export type Player = {
 export type RoomSettings = {
   categories: string[];
   roundDuration: number;
+  roundsToPlay: number;
+};
+
+export type RoundAnswers = Record<string, string>;
+
+export type AnswerScoreStatus =
+  | "invalid"
+  | "duplicate"
+  | "correct"
+  | "unique";
+
+export type AnswerScore = {
+  answer: string;
+  points: 0 | 5 | 10 | 20;
+  status: AnswerScoreStatus;
+};
+
+export type PlayerRoundScore = {
+  playerId: string;
+  answers: Record<string, AnswerScore>;
+  total: number;
+};
+
+export type RoundResult = {
+  endedAt: number;
+  stoppedBy: string | null;
+  players: Record<string, PlayerRoundScore>;
 };
 
 export type RoundState = {
@@ -19,6 +46,10 @@ export type RoundState = {
   letter: string;
   startedAt: number;
   duration: number;
+  stoppedAt: number | null;
+  stoppedBy: string | null;
+  answers: Record<string, RoundAnswers>;
+  result: RoundResult | null;
 };
 
 export type Room = {
@@ -28,11 +59,10 @@ export type Room = {
   players: Player[];
   settings: RoomSettings;
   round: RoundState | null;
+  history: RoundState[];
   updatedAt: number;
 };
 
 export type PlayerSession = Pick<Player, "id" | "name" | "initials" | "color"> & {
   roomCode: string;
 };
-
-export type RoundAnswers = Record<string, string>;

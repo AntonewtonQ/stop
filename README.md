@@ -15,15 +15,23 @@ O projecto já possui um MVP local jogável:
 - lobby sincronizado entre abas do mesmo navegador;
 - lista de jogadores e identificação do anfitrião;
 - configuração de categorias e duração pelo anfitrião;
-- início sincronizado da primeira rodada;
+- configuração de `3`, `5` ou `7` rodadas;
+- início sincronizado das rodadas;
 - sorteio da letra inicial;
 - relógio regressivo e barra de progresso;
-- preenchimento e validação visual das respostas;
-- botão STOP para guardar as respostas;
+- persistência das respostas por jogador;
+- botão STOP que termina a rodada para todos;
+- encerramento automático quando o tempo termina;
+- comparação automática de respostas;
+- cálculo de `0`, `5`, `10` e `20` pontos;
+- resultados por categoria e jogador;
+- classificação acumulada entre rodadas;
+- início da rodada seguinte;
+- classificação final e opção de jogar novamente;
 - estados para sala inexistente, entrada tardia e espera pelo anfitrião.
 
-As respostas ainda não são comparadas entre jogadores e a pontuação ainda não é
-calculada no final da rodada.
+As respostas são validadas apenas pela letra inicial. A validação linguística e
+a votação de respostas duvidosas ainda não foram implementadas.
 
 ## Fluxo jogável
 
@@ -33,7 +41,9 @@ calculada no final da rodada.
 4. Outros jogadores entram através do código ou convite.
 5. O anfitrião inicia a primeira rodada.
 6. Todos preenchem as respostas antes do tempo terminar.
-7. O jogador pode guardar as respostas com o botão STOP.
+7. Qualquer jogador pode gritar STOP e encerrar a rodada para todos.
+8. As respostas são comparadas e a classificação é actualizada.
+9. O anfitrião inicia a rodada seguinte ou termina a partida.
 
 ## Testar localmente
 
@@ -52,7 +62,8 @@ Depois:
 4. Abre o convite noutra aba e entra com outro nome.
 5. Configura a sala como anfitrião e inicia a rodada.
 
-As abas sincronizam jogadores, configurações e o início da rodada.
+As abas sincronizam jogadores, configurações, respostas, STOP, resultados e
+mudanças de rodada.
 
 ## Persistência actual
 
@@ -68,8 +79,9 @@ Este MVP ainda não utiliza backend:
 Esta camada local foi isolada para ser substituída posteriormente por base de
 dados e comunicação realtime.
 
-## Regras de pontuação planeadas
+## Regras de pontuação
 
+- `0` — resposta vazia ou que não começa pela letra da rodada;
 - `+20` — resposta correcta e única na categoria;
 - `+10` — resposta correcta, com palavras diferentes das restantes;
 - `+5` — resposta repetida por dois ou mais jogadores.
@@ -104,6 +116,7 @@ components/
 
 lib/
   game/constants.ts        Categorias, tempos, letras e cores
+  game/scoring.ts          Comparação e cálculo de pontuação
   game/storage.ts          Persistência e operações locais da sala
   game/types.ts            Tipos do domínio
   game/use-room.ts         Sincronização reactiva da sala
@@ -135,12 +148,12 @@ npx tsc --noEmit  # validação TypeScript
 Transformar o protótipo local num jogo multiplayer real:
 
 1. adicionar backend, base de dados e realtime;
-2. persistir respostas por jogador e rodada;
-3. parar a rodada para todos quando alguém gritar STOP;
-4. comparar e validar respostas;
-5. calcular `+5`, `+10` e `+20`;
-6. mostrar resultados, classificação e iniciar novas rodadas;
-7. suportar reconexão e mudança de anfitrião.
+2. substituir a sincronização entre abas por eventos realtime;
+3. validar palavras e permitir votação de respostas duvidosas;
+4. persistir partidas, resultados e classificação;
+5. suportar reconexão e mudança de anfitrião;
+6. adicionar autenticação opcional e perfis;
+7. publicar a primeira versão jogável entre dispositivos.
 
 ## Nota sobre Next.js
 

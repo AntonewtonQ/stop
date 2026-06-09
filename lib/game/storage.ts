@@ -3,13 +3,61 @@ import {
   PLAYABLE_LETTERS,
   PLAYER_COLORS,
 } from "./constants";
-import type { Player, PlayerSession, Room, RoomSettings } from "./types";
+import { scoreRound } from "./scoring";
+import type {
+  Player,
+  PlayerSession,
+  Room,
+  RoomSettings,
+  RoundAnswers,
+  RoundState,
+} from "./types";
 
 const ROOM_PREFIX = "stop.ao:room:";
 const SESSION_PREFIX = "stop.ao:player:";
 
 function randomFrom<T>(items: readonly T[]) {
   return items[Math.floor(Math.random() * items.length)];
+}
+
+function makeRound(room: Room, number: number): RoundState {
+  const usedLetters = room.history.map((round) => round.letter);
+  const availableLetters = PLAYABLE_LETTERS.filter(
+    (letter) => !usedLetters.includes(letter),
+  );
+
+  return {
+    number,
+    letter: randomFrom(availableLetters.length ? availableLetters : PLAYABLE_LETTERS),
+    startedAt: Date.now(),
+    duration: room.settings.roundDuration,
+    stoppedAt: null,
+    stoppedBy: null,
+    answers: {},
+    result: null,
+  };
+}
+
+function normalizeRoom(room: Room): Room {
+  return {
+    ...room,
+    status: room.status ?? "lobby",
+    settings: {
+      categories: room.settings?.categories ?? DEFAULT_CATEGORIES,
+      roundDuration: room.settings?.roundDuration ?? 60,
+      roundsToPlay: room.settings?.roundsToPlay ?? 3,
+    },
+    history: room.history ?? [],
+    round: room.round
+      ? {
+          ...room.round,
+          stoppedAt: room.round.stoppedAt ?? null,
+          stoppedBy: room.round.stoppedBy ?? null,
+          answers: room.round.answers ?? {},
+          result: room.round.result ?? null,
+        }
+      : null,
+  };
 }
 
 export function normalizeRoomCode(code: string) {
@@ -70,8 +118,10 @@ export function createRoom(
     settings: {
       categories: settings?.categories ?? DEFAULT_CATEGORIES,
       roundDuration: settings?.roundDuration ?? 60,
+      roundsToPlay: settings?.roundsToPlay ?? 3,
     },
     round: null,
+    history: [],
     updatedAt: Date.now(),
   };
 }
@@ -83,7 +133,7 @@ export function readRoom(code: string): Room | null {
   if (!rawRoom) return null;
 
   try {
-    return JSON.parse(rawRoom) as Room;
+    return normalizeRoom(JSON.parse(rawRoom) as Room);
   } catch {
     return null;
   }
@@ -118,13 +168,81 @@ export function startFirstRound(room: Room) {
   return saveRoom({
     ...room,
     status: "round",
-    round: {
-      number: 1,
-      letter: randomFrom(PLAYABLE_LETTERS),
-      startedAt: Date.now(),
-      duration: room.settings.roundDuration,
-    },
+    round: makeRound(room, 1),
   });
+}
+
+export function saveRoundAnswers(
+  code: string,
+  playerId: string,
+  answers: RoundAnswers,
+) {
+  return updateRoom(code, (room) => {
+    if (room.status !== "round" || !room.round) return room;
+
+    return {
+      ...room,
+      round: {
+        ...room.round,
+        answers: { ...room.round.answers, [playerId]: answers },
+      },
+    };
+  });
+}
+
+export function finishRound(code: string, stoppedBy: string | null) {
+  return updateRoom(code, (room) => {
+    if (room.status !== "round" || !room.round || room.round.result) return room;
+
+    const result = scoreRound({
+      players: room.players,
+      categories: room.settings.categories,
+      letter: room.round.letter,
+      answers: room.round.answers,
+      stoppedBy,
+    });
+    const completedRound: RoundState = {
+      ...room.round,
+      stoppedAt: result.endedAt,
+      stoppedBy,
+      result,
+    };
+
+    return {
+      ...room,
+      status: "results",
+      round: completedRound,
+      history: [...room.history, completedRound],
+    };
+  });
+}
+
+export function startNextRound(code: string) {
+  return updateRoom(code, (room) => {
+    if (room.status !== "results" || !room.round) return room;
+
+    return {
+      ...room,
+      status: "round",
+      round: makeRound(room, room.round.number + 1),
+    };
+  });
+}
+
+export function finishGame(code: string) {
+  return updateRoom(code, (room) => ({
+    ...room,
+    status: "finished",
+  }));
+}
+
+export function restartGame(code: string) {
+  return updateRoom(code, (room) => ({
+    ...room,
+    status: "lobby",
+    round: null,
+    history: [],
+  }));
 }
 
 export function savePlayerSession(session: PlayerSession) {

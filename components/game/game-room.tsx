@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { normalizeRoomCode } from "@/lib/game/storage";
 import { useRoom } from "@/lib/game/use-room";
 import { JoinRoomGate } from "./join-room-gate";
+import { FinalResults } from "./final-results";
 import { LobbyRoom } from "./lobby-room";
+import { ResultsRoom } from "./results-room";
 import { RoundRoom } from "./round-room";
 import styles from "./game.module.css";
 
@@ -58,7 +60,15 @@ export function GameRoom({ code }: { code: string }) {
   }
 
   if (room.status === "round" && room.round) {
-    return <RoundRoom room={room} session={session} />;
+    return <RoundRoom key={room.round.number} room={room} session={session} />;
+  }
+
+  if (room.status === "results" && room.round?.result) {
+    return <ResultsRoom room={room} session={session} />;
+  }
+
+  if (room.status === "finished") {
+    return <FinalResults room={room} session={session} />;
   }
 
   return <LobbyRoom room={room} session={session} />;

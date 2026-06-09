@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import {
   CATEGORY_OPTIONS,
   ROUND_DURATION_OPTIONS,
+  ROUNDS_TO_PLAY_OPTIONS,
 } from "@/lib/game/constants";
 import { startFirstRound, updateRoom } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
@@ -50,6 +51,14 @@ export function LobbyRoom({
     updateRoom(room.code, (currentRoom) => ({
       ...currentRoom,
       settings: { ...currentRoom.settings, roundDuration },
+    }));
+  }
+
+  function updateRounds(roundsToPlay: number) {
+    if (!isHost) return;
+    updateRoom(room.code, (currentRoom) => ({
+      ...currentRoom,
+      settings: { ...currentRoom.settings, roundsToPlay },
     }));
   }
 
@@ -143,6 +152,30 @@ export function LobbyRoom({
                   </Label>
                 );
               })}
+            </div>
+          </div>
+
+          <div className={styles.settingGroup}>
+            <div className={styles.settingLabel}>
+              <span>Número de rodadas</span>
+              <small>{room.settings.roundsToPlay} rodadas</small>
+            </div>
+            <div className={styles.roundCountOptions}>
+              {ROUNDS_TO_PLAY_OPTIONS.map((rounds) => (
+                <Button
+                  className={
+                    rounds === room.settings.roundsToPlay
+                      ? styles.durationSelected
+                      : ""
+                  }
+                  variant="outline"
+                  disabled={!isHost}
+                  onClick={() => updateRounds(rounds)}
+                  key={rounds}
+                >
+                  {rounds}
+                </Button>
+              ))}
             </div>
           </div>
 

@@ -18,6 +18,7 @@ export const DEFAULT_CATEGORIES = [
 ];
 
 export const ROUND_DURATION_OPTIONS = [30, 45, 60, 90] as const;
+export const ROUNDS_TO_PLAY_OPTIONS = [3, 5, 7] as const;
 
 export const PLAYER_COLORS = [
   "#0F2D3D",
