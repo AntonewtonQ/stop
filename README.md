@@ -6,32 +6,44 @@ que começam pela letra sorteada antes que o tempo termine ou alguém grite STOP
 
 ## Estado actual
 
-O projecto já possui um MVP local jogável:
+O projecto já possui um MVP online jogável:
 
 - landing page responsiva alinhada à identidade visual;
 - identificação do jogador pelo nome;
 - criação de salas com código único;
 - entrada numa sala existente por código ou convite;
-- lobby sincronizado entre abas do mesmo navegador;
+- lobby sincronizado entre navegadores e dispositivos ligados ao mesmo servidor;
 - lista de jogadores e identificação do anfitrião;
 - configuração de categorias e duração pelo anfitrião;
-- configuração de `3`, `5` ou `7` rodadas;
+- ordem de comandantes definida pela entrada dos jogadores;
+- uma rodada por jogador, começando pelo criador da sala;
+- escolha manual da letra pelo comandante corrente;
+- bloqueio de letras já utilizadas;
 - início sincronizado das rodadas;
-- sorteio da letra inicial;
 - relógio regressivo e barra de progresso;
 - persistência das respostas por jogador;
-- botão STOP que termina a rodada para todos;
+- botão STOP exclusivo do comandante, que termina a rodada para todos;
 - encerramento automático quando o tempo termina;
-- comparação automática de respostas;
+- validação automática através de um léxico local por categoria;
+- identificação de respostas duvidosas;
+- votação sincronizada das respostas duvidosas pelos restantes jogadores;
+- recálculo automático da pontuação após cada decisão;
+- bloqueio da próxima rodada enquanto existirem votações pendentes;
 - cálculo de `0`, `5`, `10` e `20` pontos;
 - resultados por categoria e jogador;
 - classificação acumulada entre rodadas;
 - início da rodada seguinte;
 - classificação final e opção de jogar novamente;
-- estados para sala inexistente, entrada tardia e espera pelo anfitrião.
+- estados para sala inexistente, entrada tardia e espera pelo comandante.
+- API HTTP para todas as operações da partida;
+- actualizações realtime através de Server-Sent Events;
+- base de dados SQLite para salas, jogadores, rodadas, respostas e votos;
+- autorização das acções através de tokens privados de sessão.
 
-As respostas são validadas apenas pela letra inicial. A validação linguística e
-a votação de respostas duvidosas ainda não foram implementadas.
+O validador é deliberadamente conservador: respostas presentes no léxico local
+da categoria são aceites automaticamente; respostas que começam pela letra
+correcta, mas ainda não constam do léxico, são enviadas para votação. O léxico
+actual é uma base inicial e pode ser expandido em `lib/game/word-validation.ts`.
 
 ## Fluxo jogável
 
@@ -39,11 +51,15 @@ a votação de respostas duvidosas ainda não foram implementadas.
 2. Cria uma sala ou entra numa sala existente.
 3. No lobby, o anfitrião configura categorias e tempo.
 4. Outros jogadores entram através do código ou convite.
-5. O anfitrião inicia a primeira rodada.
-6. Todos preenchem as respostas antes do tempo terminar.
-7. Qualquer jogador pode gritar STOP e encerrar a rodada para todos.
-8. As respostas são comparadas e a classificação é actualizada.
-9. O anfitrião inicia a rodada seguinte ou termina a partida.
+5. O criador, primeiro comandante, escolhe uma letra ainda não utilizada.
+6. A escolha inicia a rodada e o relógio para todos.
+7. Todos preenchem as respostas antes do tempo terminar.
+8. O comandante corrente pode gritar STOP e encerrar a rodada para todos.
+9. As respostas conhecidas são validadas automaticamente.
+10. Os restantes jogadores votam nas respostas duvidosas.
+11. A pontuação e a classificação são recalculadas após cada decisão.
+12. O comando passa ao jogador seguinte, que escolhe uma nova letra.
+13. A partida termina depois de todos os jogadores comandarem uma rodada.
 
 ## Testar localmente
 
@@ -60,36 +76,84 @@ Depois:
 2. Escreve um nome e cria uma sala.
 3. Copia o convite no lobby.
 4. Abre o convite noutra aba e entra com outro nome.
-5. Configura a sala como anfitrião e inicia a rodada.
+5. Como criador, prepara a partida e escolhe a primeira letra.
 
-As abas sincronizam jogadores, configurações, respostas, STOP, resultados e
-mudanças de rodada.
+As salas sincronizam imediatamente jogadores, configurações, STOP, resultados,
+votos e mudanças de rodada através de Server-Sent Events. As respostas ficam
+privadas durante o relógio e são sincronizadas com os resultados após o STOP.
+Para testar entre dispositivos, abre o endereço de rede apresentado pelo
+`npm run dev`.
 
-## Persistência actual
+## Backend e persistência
 
-Este MVP ainda não utiliza backend:
+O backend utiliza Route Handlers do Next.js e SQLite nativo do Node:
 
-- as salas são guardadas em `localStorage`;
+- as salas são guardadas em `data/stop.db`;
+- jogadores, rodadas, respostas, desafios e votos possuem tabelas próprias;
+- cada mutação é validada pelo servidor e executada numa transacção;
+- tokens privados autorizam as acções e são guardados como hashes SHA-256;
 - a identidade do jogador é guardada em `sessionStorage`;
-- o evento `storage` sincroniza salas entre abas;
-- uma sala só existe no navegador onde foi criada;
-- dispositivos e navegadores diferentes ainda não conseguem jogar juntos;
-- actualizar a página mantém a sala e a sessão da aba.
+- o servidor publica notificações SSE imediatamente após cada alteração visível;
+- o cliente recupera automaticamente o estado ao reconectar;
+- cada sala suporta até `19` jogadores, um por letra jogável;
+- dispositivos e navegadores diferentes conseguem jogar através do mesmo servidor;
+- actualizar a página mantém a sala e a sessão da aba;
+- `STOP_DATABASE_PATH` permite definir outro caminho para o ficheiro SQLite.
 
-Esta camada local foi isolada para ser substituída posteriormente por base de
-dados e comunicação realtime.
+O SQLite é adequado para desenvolvimento, demonstração e uma única instância do
+servidor. Um deploy distribuído deverá migrar para PostgreSQL ou outro serviço
+de base de dados partilhado.
+
+## API
+
+- `POST /api/rooms` — cria uma sala;
+- `GET /api/rooms/[code]` — carrega o estado público da sala;
+- `POST /api/rooms/[code]/join` — adiciona um jogador;
+- `POST /api/rooms/[code]/actions` — executa acções autenticadas da partida.
+- `GET /api/rooms/[code]/events` — mantém o canal SSE realtime da sala.
+
+As acções incluem configuração, início, escolha da letra, respostas, STOP,
+votos, próxima rodada, fim da partida e reinício.
+
+## Base de dados
+
+O esquema é criado automaticamente ao iniciar a primeira operação:
+
+- `rooms` — estado e configuração das salas;
+- `players` — jogadores, ordem de entrada e tokens de sessão protegidos;
+- `rounds` — letras, comandantes, relógio e resultados;
+- `answers` — respostas e pontuação por categoria;
+- `challenges` — respostas duvidosas;
+- `votes` — votos individuais sobre respostas duvidosas.
 
 ## Regras de pontuação
 
 - `0` — resposta vazia ou que não começa pela letra da rodada;
+- `0` provisório — resposta duvidosa enquanto aguarda votação;
 - `+20` — resposta correcta e única na categoria;
 - `+10` — resposta correcta, com palavras diferentes das restantes;
 - `+5` — resposta repetida por dois ou mais jogadores.
+
+Jogadores não podem votar nas próprias respostas. A votação termina quando
+todos os jogadores elegíveis votam; a maioria aprova e um empate rejeita a
+resposta. Quando não existe nenhum jogador elegível, a resposta é aprovada
+automaticamente para não bloquear a partida.
+
+## Comandantes e letras
+
+- o criador da sala é o primeiro comandante;
+- a ordem seguinte respeita a ordem de entrada na sala;
+- cada jogador comanda exactamente uma rodada;
+- o comandante escolhe a letra e controla o botão STOP;
+- uma letra utilizada deixa de estar disponível durante a partida;
+- o número de rodadas é igual ao número de jogadores presentes ao iniciar.
 
 ## Stack
 
 - Next.js `16.2.7` com App Router
 - React `19.2.4`
+- Node.js `24` com SQLite nativo
+- SQLite
 - TypeScript
 - Tailwind CSS v4
 - shadcn/ui `4.11.0`
@@ -104,6 +168,7 @@ pelos tokens visuais do `stop.ao`.
 
 ```text
 app/
+  api/rooms/                Endpoints HTTP da partida
   page.tsx                 Página inicial
   sala/[code]/             Rota dinâmica da sala
   globals.css              Tokens globais e integração shadcn
@@ -116,10 +181,16 @@ components/
 
 lib/
   game/constants.ts        Categorias, tempos, letras e cores
+  game/engine.ts           Regras puras executadas no servidor
   game/scoring.ts          Comparação e cálculo de pontuação
-  game/storage.ts          Persistência e operações locais da sala
+  game/storage.ts          Cliente HTTP e sessão privada da aba
   game/types.ts            Tipos do domínio
-  game/use-room.ts         Sincronização reactiva da sala
+  game/use-room.ts         Sincronização reactiva via SSE
+  game/word-validation.ts  Léxico local e normalização de respostas
+  server/database.ts       Inicialização e esquema SQLite
+  server/realtime.ts       Broker SSE por sala
+  server/room-repository.ts Persistência transaccional das salas
+  server/room-view.ts      Visão pública/privada da sala
   utils.ts                 Utilitários partilhados
 ```
 
@@ -145,12 +216,12 @@ npx tsc --noEmit  # validação TypeScript
 
 ## Próximo marco
 
-Transformar o protótipo local num jogo multiplayer real:
+Evoluir o MVP online:
 
-1. adicionar backend, base de dados e realtime;
-2. substituir a sincronização entre abas por eventos realtime;
-3. validar palavras e permitir votação de respostas duvidosas;
-4. persistir partidas, resultados e classificação;
+1. adicionar presença online/offline e transferência do comandante;
+2. migrar SQLite e o broker SSE antes de usar múltiplas instâncias;
+3. substituir o léxico inicial por um serviço de validação expansível;
+4. criar histórico consultável de partidas e classificação;
 5. suportar reconexão e mudança de anfitrião;
 6. adicionar autenticação opcional e perfis;
 7. publicar a primeira versão jogável entre dispositivos.

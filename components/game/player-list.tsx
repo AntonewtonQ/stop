@@ -29,7 +29,11 @@ export function PlayerList({
               {player.name}
               {player.id === currentPlayerId ? " (tu)" : ""}
             </strong>
-            <span>{player.isHost ? "Comandante da sala" : "Pronto para jogar"}</span>
+            <span>
+              {player.isHost
+                ? "Criador e primeiro comandante"
+                : "Comandará uma rodada"}
+            </span>
           </div>
           {player.isHost ? (
             <Badge className={styles.hostBadge}>

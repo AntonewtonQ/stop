@@ -10,13 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   createPlayerSession,
-  createRoom as createGameRoom,
-  joinRoom as addPlayerToRoom,
+  createRoom,
+  joinRoom,
   makeRoomCode,
   normalizeRoomCode,
   readRoom,
   savePlayerSession,
-  saveRoom,
 } from "@/lib/game/storage";
 import styles from "./room-actions.module.css";
 
@@ -36,21 +35,26 @@ export function RoomActions() {
     return null;
   }
 
-  function createRoom() {
+  async function handleCreateRoom() {
     const name = validateName();
     if (!name) return;
 
     const code = makeRoomCode();
     const session = createPlayerSession(name, code);
-    const room = createGameRoom(code, session);
 
-    savePlayerSession(session);
-    saveRoom(room);
-    toast.success("Sala criada", { description: `Código: ${code}` });
-    router.push(`/sala/${code}`);
+    try {
+      await createRoom(code, session);
+      savePlayerSession(session);
+      toast.success("Sala criada", { description: `Código: ${code}` });
+      router.push(`/sala/${code}`);
+    } catch (error) {
+      toast.error("Não foi possível criar a sala.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
-  function joinRoom(event: FormEvent<HTMLFormElement>) {
+  async function handleJoinRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const name = validateName();
     if (!name) return;
@@ -63,10 +67,18 @@ export function RoomActions() {
       return;
     }
 
-    const room = readRoom(code);
+    let room;
+    try {
+      room = await readRoom(code);
+    } catch (error) {
+      toast.error("Não foi possível procurar a sala.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+      return;
+    }
     if (!room) {
       const feedback =
-        "Esta sala não existe neste navegador. Confirma o código ou cria uma nova.";
+        "Esta sala não existe neste servidor. Confirma o código ou cria uma nova.";
       setMessage(feedback);
       toast.error("Sala não encontrada", { description: feedback });
       return;
@@ -80,10 +92,17 @@ export function RoomActions() {
     }
 
     const session = createPlayerSession(name, code);
-    savePlayerSession(session);
-    addPlayerToRoom(room, session);
-    toast.success("Entraste na sala", { description: code });
-    router.push(`/sala/${code}`);
+
+    try {
+      await joinRoom(code, session);
+      savePlayerSession(session);
+      toast.success("Entraste na sala", { description: code });
+      router.push(`/sala/${code}`);
+    } catch (error) {
+      toast.error("Não foi possível entrar na sala.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (
@@ -104,7 +123,7 @@ export function RoomActions() {
       </label>
 
       <div className={styles.mainAction}>
-        <Button className={styles.createButton} type="button" onClick={createRoom}>
+        <Button className={styles.createButton} type="button" onClick={handleCreateRoom}>
           <Plus data-icon="inline-start" />
           Criar uma sala
         </Button>
@@ -116,7 +135,7 @@ export function RoomActions() {
         <Separator className={styles.dividerLine} />
       </div>
 
-      <form className={styles.joinForm} onSubmit={joinRoom}>
+      <form className={styles.joinForm} onSubmit={handleJoinRoom}>
         <label className={styles.srOnly} htmlFor="room-code">
           Código da sala
         </label>

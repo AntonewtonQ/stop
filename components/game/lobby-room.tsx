@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check, Copy, Play, Settings2, UsersRound } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Crown,
+  Play,
+  Settings2,
+  UsersRound,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
@@ -11,9 +19,11 @@ import { Label } from "@/components/ui/label";
 import {
   CATEGORY_OPTIONS,
   ROUND_DURATION_OPTIONS,
-  ROUNDS_TO_PLAY_OPTIONS,
 } from "@/lib/game/constants";
-import { startFirstRound, updateRoom } from "@/lib/game/storage";
+import {
+  startFirstRound,
+  updateRoomSettings,
+} from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { PlayerList } from "./player-list";
 import styles from "./game.module.css";
@@ -27,7 +37,7 @@ export function LobbyRoom({
 }) {
   const isHost = room.hostId === session.id;
 
-  function toggleCategory(category: string) {
+  async function toggleCategory(category: string) {
     if (!isHost) return;
 
     const isSelected = room.settings.categories.includes(category);
@@ -40,26 +50,24 @@ export function LobbyRoom({
       return;
     }
 
-    updateRoom(room.code, (currentRoom) => ({
-      ...currentRoom,
-      settings: { ...currentRoom.settings, categories },
-    }));
+    try {
+      await updateRoomSettings(room.code, { categories });
+    } catch (error) {
+      toast.error("Não foi possível actualizar as categorias.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
-  function updateDuration(roundDuration: number) {
+  async function updateDuration(roundDuration: number) {
     if (!isHost) return;
-    updateRoom(room.code, (currentRoom) => ({
-      ...currentRoom,
-      settings: { ...currentRoom.settings, roundDuration },
-    }));
-  }
-
-  function updateRounds(roundsToPlay: number) {
-    if (!isHost) return;
-    updateRoom(room.code, (currentRoom) => ({
-      ...currentRoom,
-      settings: { ...currentRoom.settings, roundsToPlay },
-    }));
+    try {
+      await updateRoomSettings(room.code, { roundDuration });
+    } catch (error) {
+      toast.error("Não foi possível actualizar o tempo.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   async function copyInvite() {
@@ -68,10 +76,16 @@ export function LobbyRoom({
     toast.success("Convite copiado", { description: `Sala ${room.code}` });
   }
 
-  function handleStart() {
+  async function handleStart() {
     if (!isHost) return;
-    startFirstRound(room);
-    toast.success("Primeira rodada iniciada!");
+    try {
+      await startFirstRound(room.code);
+      toast.success("Partida preparada. Escolhe a primeira letra!");
+    } catch (error) {
+      toast.error("Não foi possível preparar a partida.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (
@@ -123,7 +137,7 @@ export function LobbyRoom({
             <Settings2 />
             <div>
               <span>Configuração</span>
-              <strong>{isHost ? "Tu comandas" : "Definida pelo anfitrião"}</strong>
+              <strong>{isHost ? "Tu configuras" : "Definida pelo criador"}</strong>
             </div>
           </div>
 
@@ -155,27 +169,15 @@ export function LobbyRoom({
             </div>
           </div>
 
-          <div className={styles.settingGroup}>
-            <div className={styles.settingLabel}>
-              <span>Número de rodadas</span>
-              <small>{room.settings.roundsToPlay} rodadas</small>
-            </div>
-            <div className={styles.roundCountOptions}>
-              {ROUNDS_TO_PLAY_OPTIONS.map((rounds) => (
-                <Button
-                  className={
-                    rounds === room.settings.roundsToPlay
-                      ? styles.durationSelected
-                      : ""
-                  }
-                  variant="outline"
-                  disabled={!isHost}
-                  onClick={() => updateRounds(rounds)}
-                  key={rounds}
-                >
-                  {rounds}
-                </Button>
-              ))}
+          <div className={styles.commanderSummary}>
+            <Crown />
+            <div>
+              <span>Ordem de comando</span>
+              <strong>
+                {room.players.length} jogador{room.players.length === 1 ? "" : "es"},{" "}
+                {room.players.length} rodada{room.players.length === 1 ? "" : "s"}
+              </strong>
+              <small>O criador começa e cada jogador comanda uma vez.</small>
             </div>
           </div>
 
@@ -206,12 +208,12 @@ export function LobbyRoom({
           {isHost ? (
             <Button className={styles.startButton} onClick={handleStart}>
               <Play />
-              Iniciar primeira rodada
+              Escolher primeira letra
             </Button>
           ) : (
             <div className={styles.waitingHost}>
               <span />
-              Aguardando o anfitrião iniciar...
+              Aguardando o criador preparar...
             </div>
           )}
 

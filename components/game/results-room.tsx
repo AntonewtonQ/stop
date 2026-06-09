@@ -1,13 +1,24 @@
 "use client";
 
-import { ArrowRight, Flag, Trophy, UsersRound } from "lucide-react";
+import {
+  ArrowRight,
+  Flag,
+  Scale,
+  Trophy,
+  UsersRound,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
+import { AnswerChallengeCard } from "@/components/game/answer-challenge-card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { finishGame, startNextRound } from "@/lib/game/storage";
+import {
+  castAnswerVote,
+  finishGame,
+  prepareNextRound,
+} from "@/lib/game/storage";
 import { getPlayerTotal } from "@/lib/game/scoring";
 import type {
   AnswerScoreStatus,
@@ -18,6 +29,7 @@ import styles from "./game.module.css";
 
 const scoreLabels: Record<AnswerScoreStatus, string> = {
   invalid: "Inválida",
+  doubtful: "Duvidosa",
   duplicate: "Repetida",
   correct: "Correcta",
   unique: "Única",
@@ -32,8 +44,17 @@ export function ResultsRoom({
 }) {
   const round = room.round!;
   const result = round.result!;
-  const isHost = room.hostId === session.id;
   const isLastRound = round.number >= room.settings.roundsToPlay;
+  const nextCommanderId = room.commanderOrder[round.number];
+  const controllerId = isLastRound ? round.commanderId : nextCommanderId;
+  const isController = controllerId === session.id;
+  const nextCommander = room.players.find(
+    (player) => player.id === nextCommanderId,
+  );
+  const challenges = Object.values(result.challenges);
+  const pendingChallenges = challenges.filter(
+    (challenge) => challenge.status === "pending",
+  );
   const stoppedBy = room.players.find((player) => player.id === result.stoppedBy);
   const ranking = [...room.players]
     .map((player) => ({
@@ -46,17 +67,48 @@ export function ResultsRoom({
     (a, b) => b.roundScore - a.roundScore || b.total - a.total,
   )[0];
 
-  function continueGame() {
-    if (!isHost) return;
-
-    if (isLastRound) {
-      finishGame(room.code);
-      toast.success("Partida terminada!");
+  async function continueGame() {
+    if (!isController) return;
+    if (!result.votingComplete) {
+      toast.warning("Ainda existem respostas por validar.");
       return;
     }
 
-    startNextRound(room.code);
-    toast.success(`Rodada ${round.number + 1} iniciada!`);
+    if (isLastRound) {
+      try {
+        await finishGame(room.code);
+        toast.success("Partida terminada!");
+      } catch (error) {
+        toast.error("Não foi possível terminar a partida.", {
+          description: error instanceof Error ? error.message : undefined,
+        });
+      }
+      return;
+    }
+
+    try {
+      await prepareNextRound(room.code);
+      toast.success("É a tua vez de escolher a letra!");
+    } catch (error) {
+      toast.error("Não foi possível preparar a próxima rodada.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  async function vote(challengeId: string, choice: "approve" | "reject") {
+    try {
+      await castAnswerVote(room.code, challengeId, choice);
+      toast.success(
+        choice === "approve"
+          ? "Voto para aceitar registado."
+          : "Voto para rejeitar registado.",
+      );
+    } catch (error) {
+      toast.error("Não foi possível registar o voto.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (
@@ -87,49 +139,82 @@ export function ResultsRoom({
         </div>
 
         <aside className={styles.roundWinner}>
-          <Trophy />
-          <span>Melhor da rodada</span>
-          <strong>{roundWinner?.name}</strong>
-          <b>+{roundWinner?.roundScore ?? 0} pontos</b>
+          {result.votingComplete ? <Trophy /> : <Scale />}
+          <span>
+            {result.votingComplete ? "Melhor da rodada" : "Pontuação provisória"}
+          </span>
+          <strong>
+            {result.votingComplete
+              ? roundWinner?.name
+              : `${pendingChallenges.length} por validar`}
+          </strong>
+          <b>
+            {result.votingComplete
+              ? `+${roundWinner?.roundScore ?? 0} pontos`
+              : "Vota antes de continuar"}
+          </b>
         </aside>
       </section>
 
       <div className={styles.resultsLayout}>
         <section className={styles.categoryResults}>
-          {room.settings.categories.map((category) => (
-            <article className={styles.categoryResult} key={category}>
-              <div className={styles.categoryResultHeader}>
-                <span>{category}</span>
-                <small>Letra {round.letter}</small>
-              </div>
-              <div className={styles.categoryAnswers}>
-                {room.players.map((player) => {
-                  const score = result.players[player.id]?.answers[category];
-                  return (
-                    <div className={styles.resultAnswerRow} key={player.id}>
-                      <Avatar className={styles.resultAvatar}>
-                        <AvatarFallback style={{ background: player.color }}>
-                          {player.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <strong>{player.name}</strong>
-                        <span>{score?.answer || "Sem resposta"}</span>
+          {room.settings.categories.map((category) => {
+            const categoryChallenges = challenges.filter(
+              (challenge) => challenge.category === category,
+            );
+
+            return (
+              <article className={styles.categoryResult} key={category}>
+                <div className={styles.categoryResultHeader}>
+                  <span>{category}</span>
+                  <small>Letra {round.letter}</small>
+                </div>
+
+                {categoryChallenges.length > 0 && (
+                  <div className={styles.challengeList}>
+                    {categoryChallenges.map((challenge) => {
+                      return (
+                        <AnswerChallengeCard
+                          challenge={challenge}
+                          key={challenge.id}
+                          onVote={vote}
+                          players={room.players}
+                          sessionId={session.id}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className={styles.categoryAnswers}>
+                  {room.players.map((player) => {
+                    const score = result.players[player.id]?.answers[category];
+                    return (
+                      <div className={styles.resultAnswerRow} key={player.id}>
+                        <Avatar className={styles.resultAvatar}>
+                          <AvatarFallback style={{ background: player.color }}>
+                            {player.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <strong>{player.name}</strong>
+                          <span>{score?.answer || "Sem resposta"}</span>
+                        </div>
+                        <Badge
+                          className={`${styles.answerStatus} ${
+                            styles[`answerStatus${capitalize(score?.status ?? "invalid")}`]
+                          }`}
+                        >
+                          {scoreLabels[score?.status ?? "invalid"]}
+                        </Badge>
+                        <b className={styles.answerPoints}>+{score?.points ?? 0}</b>
                       </div>
-                      <Badge
-                        className={`${styles.answerStatus} ${
-                          styles[`answerStatus${capitalize(score?.status ?? "invalid")}`]
-                        }`}
-                      >
-                        {scoreLabels[score?.status ?? "invalid"]}
-                      </Badge>
-                      <b className={styles.answerPoints}>+{score?.points ?? 0}</b>
-                    </div>
-                  );
-                })}
-              </div>
-            </article>
-          ))}
+                    );
+                  })}
+                </div>
+              </article>
+            );
+          })}
         </section>
 
         <aside className={styles.rankingPanel}>
@@ -157,15 +242,29 @@ export function ResultsRoom({
             ))}
           </div>
 
-          {isHost ? (
-            <Button className={styles.startButton} onClick={continueGame}>
+          {isController ? (
+            <Button
+              className={styles.startButton}
+              disabled={!result.votingComplete}
+              onClick={continueGame}
+            >
               {isLastRound ? <Flag /> : <ArrowRight />}
-              {isLastRound ? "Ver classificação final" : "Iniciar próxima rodada"}
+              {!result.votingComplete
+                ? `Aguardando ${pendingChallenges.length} votação${
+                    pendingChallenges.length === 1 ? "" : "ões"
+                  }`
+                : isLastRound
+                  ? "Ver classificação final"
+                  : "Escolher letra da próxima rodada"}
             </Button>
           ) : (
             <div className={styles.waitingHost}>
               <span />
-              Aguardando o anfitrião...
+              {result.votingComplete
+                ? isLastRound
+                  ? "Aguardando o comandante finalizar..."
+                  : `Aguardando ${nextCommander?.name ?? "o próximo comandante"}...`
+                : "Aguardando as votações..."}
             </div>
           )}
         </aside>

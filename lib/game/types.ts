@@ -1,4 +1,9 @@
-export type RoomStatus = "lobby" | "round" | "results" | "finished";
+export type RoomStatus =
+  | "lobby"
+  | "letter-selection"
+  | "round"
+  | "results"
+  | "finished";
 
 export type Player = {
   id: string;
@@ -19,14 +24,38 @@ export type RoundAnswers = Record<string, string>;
 
 export type AnswerScoreStatus =
   | "invalid"
+  | "doubtful"
   | "duplicate"
   | "correct"
   | "unique";
+
+export type AnswerValidationStatus =
+  | "invalid"
+  | "automatic"
+  | "doubtful"
+  | "approved"
+  | "rejected";
+
+export type AnswerVote = "approve" | "reject";
+
+export type AnswerChallengeStatus = "pending" | "approved" | "rejected";
+
+export type AnswerChallenge = {
+  id: string;
+  category: string;
+  answer: string;
+  normalizedAnswer: string;
+  playerIds: string[];
+  votes: Record<string, AnswerVote>;
+  status: AnswerChallengeStatus;
+};
 
 export type AnswerScore = {
   answer: string;
   points: 0 | 5 | 10 | 20;
   status: AnswerScoreStatus;
+  validation: AnswerValidationStatus;
+  challengeId: string | null;
 };
 
 export type PlayerRoundScore = {
@@ -39,10 +68,13 @@ export type RoundResult = {
   endedAt: number;
   stoppedBy: string | null;
   players: Record<string, PlayerRoundScore>;
+  challenges: Record<string, AnswerChallenge>;
+  votingComplete: boolean;
 };
 
 export type RoundState = {
   number: number;
+  commanderId: string;
   letter: string;
   startedAt: number;
   duration: number;
@@ -57,6 +89,7 @@ export type Room = {
   hostId: string;
   status: RoomStatus;
   players: Player[];
+  commanderOrder: string[];
   settings: RoomSettings;
   round: RoundState | null;
   history: RoundState[];
@@ -65,4 +98,5 @@ export type Room = {
 
 export type PlayerSession = Pick<Player, "id" | "name" | "initials" | "color"> & {
   roomCode: string;
+  token: string;
 };

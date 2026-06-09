@@ -28,10 +28,16 @@ export function FinalResults({
     .sort((a, b) => b.total - a.total);
   const winner = ranking[0];
 
-  function playAgain() {
+  async function playAgain() {
     if (!isHost) return;
-    restartGame(room.code);
-    toast.success("Nova partida preparada!");
+    try {
+      await restartGame(room.code);
+      toast.success("Nova partida preparada!");
+    } catch (error) {
+      toast.error("Não foi possível preparar a nova partida.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (

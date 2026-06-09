@@ -9,6 +9,7 @@ import { normalizeRoomCode } from "@/lib/game/storage";
 import { useRoom } from "@/lib/game/use-room";
 import { JoinRoomGate } from "./join-room-gate";
 import { FinalResults } from "./final-results";
+import { LetterSelectionRoom } from "./letter-selection-room";
 import { LobbyRoom } from "./lobby-room";
 import { ResultsRoom } from "./results-room";
 import { RoundRoom } from "./round-room";
@@ -61,6 +62,10 @@ export function GameRoom({ code }: { code: string }) {
 
   if (room.status === "round" && room.round) {
     return <RoundRoom key={room.round.number} room={room} session={session} />;
+  }
+
+  if (room.status === "letter-selection" && room.round) {
+    return <LetterSelectionRoom room={room} session={session} />;
   }
 
   if (room.status === "results" && room.round?.result) {

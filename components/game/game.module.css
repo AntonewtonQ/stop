@@ -1,5 +1,6 @@
 .gamePage,
-.roundPage {
+.roundPage,
+.commanderPage {
   min-height: 100vh;
   color: var(--petroleum);
 }
@@ -329,30 +330,62 @@
   color: var(--petroleum);
 }
 
-.durationOptions,
-.roundCountOptions {
+.durationOptions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.35rem;
 }
 
-.roundCountOptions {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.durationOptions button,
-.roundCountOptions button {
+.durationOptions button {
   padding: 0;
   border-color: rgb(15 45 61 / 10%);
   color: var(--brand-muted);
   font-size: 0.65rem;
 }
 
-.durationOptions .durationSelected,
-.roundCountOptions .durationSelected {
+.durationOptions .durationSelected {
   border-color: var(--petroleum);
   background: var(--petroleum);
   color: white;
+}
+
+.commanderSummary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: center;
+  margin-top: 1.25rem;
+  padding: 0.8rem;
+  border-radius: 0.9rem;
+  background: var(--warm-white);
+}
+
+.commanderSummary > svg {
+  width: 1.25rem;
+  color: var(--amber-deep);
+}
+
+.commanderSummary div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.commanderSummary span {
+  color: var(--amber-deep);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.commanderSummary strong {
+  font-size: 0.7rem;
+}
+
+.commanderSummary small {
+  color: var(--brand-muted);
+  font-size: 0.55rem;
+  font-weight: 650;
 }
 
 .startButton,
@@ -514,6 +547,175 @@
     radial-gradient(circle at 90% 15%, rgb(240 178 74 / 15%), transparent 24rem),
     var(--petroleum);
   color: white;
+}
+
+.commanderPage {
+  padding: 1.25rem 1.25rem 5rem;
+  background:
+    radial-gradient(circle at 50% 12%, rgb(240 178 74 / 20%), transparent 25rem),
+    var(--petroleum);
+  color: white;
+}
+
+.commanderHero {
+  display: grid;
+  width: min(100%, 46rem);
+  justify-items: center;
+  margin: 4rem auto 2rem;
+  text-align: center;
+}
+
+.commanderKicker {
+  margin-top: 1.5rem;
+  color: var(--amber);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.commanderAvatar {
+  width: 4.8rem;
+  height: 4.8rem;
+  margin-top: 0.8rem;
+  border: 0.3rem solid rgb(255 255 255 / 14%);
+  box-shadow: 0 0.5rem 0 rgb(0 0 0 / 18%);
+}
+
+.commanderAvatar span {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.commanderHero h1 {
+  margin-top: 1rem;
+  font-size: clamp(2.7rem, 6vw, 5.4rem);
+  font-weight: 900;
+  letter-spacing: -0.075em;
+  line-height: 0.95;
+}
+
+.commanderHero p {
+  max-width: 48ch;
+  margin-top: 0.8rem;
+  color: rgb(255 255 255 / 55%);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+.letterPicker {
+  width: min(100%, 58rem);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 1.7rem);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 1.6rem;
+  background: rgb(255 255 255 / 7%);
+  box-shadow: 0 2rem 5rem rgb(0 0 0 / 18%);
+}
+
+.letterPickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.letterPickerHeader > div:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.letterPickerHeader strong {
+  font-size: 0.9rem;
+}
+
+.commanderRule {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgb(255 255 255 / 52%);
+  font-size: 0.6rem;
+  font-weight: 750;
+}
+
+.commanderRule svg {
+  width: 1rem;
+  color: var(--amber);
+}
+
+.letterGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 1.2rem;
+}
+
+.letterChoice {
+  display: grid;
+  height: 4.5rem;
+  gap: 0;
+  border-color: rgb(255 255 255 / 12%);
+  border-radius: 0.9rem;
+  background: rgb(255 255 255 / 7%);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.letterChoice:hover {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--petroleum);
+}
+
+.letterChoice small {
+  color: rgb(255 255 255 / 42%);
+  font-size: 0.46rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.letterChoice:hover small {
+  color: var(--petroleum);
+}
+
+.letterChoiceUsed,
+.letterChoice:disabled {
+  border-color: rgb(255 255 255 / 5%);
+  background: rgb(0 0 0 / 12%);
+  color: rgb(255 255 255 / 25%);
+  opacity: 1;
+}
+
+.commanderNotice,
+.commanderClockNotice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 3.2rem;
+  margin-top: 1rem;
+  border-radius: 0.9rem;
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.commanderNotice {
+  background: rgb(240 178 74 / 12%);
+  color: var(--amber);
+}
+
+.commanderNotice svg,
+.commanderClockNotice svg {
+  width: 1rem;
+}
+
+.commanderClockNotice {
+  background: var(--warm-white);
+  color: var(--brand-muted);
 }
 
 .roundHeader {
@@ -942,6 +1144,11 @@
   color: var(--brand-muted);
 }
 
+.answerStatusDoubtful {
+  background: rgb(217 108 77 / 13%);
+  color: #a4432c;
+}
+
 .answerStatusDuplicate {
   background: rgb(240 178 74 / 16%);
   color: var(--amber-deep);
@@ -962,6 +1169,96 @@
   color: var(--petroleum);
   font-size: 0.75rem;
   text-align: right;
+}
+
+.challengeList {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border-bottom: 1px solid rgb(15 45 61 / 7%);
+  background: rgb(240 178 74 / 7%);
+}
+
+.challengeCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.7rem;
+  border: 1px solid rgb(240 178 74 / 32%);
+  border-radius: 0.85rem;
+  background: white;
+}
+
+.challengeCard > svg {
+  width: 1.25rem;
+  color: var(--amber-deep);
+}
+
+.challengeApproved {
+  border-color: rgb(42 168 118 / 25%);
+  background: rgb(42 168 118 / 5%);
+}
+
+.challengeApproved > svg {
+  color: #177854;
+}
+
+.challengeRejected {
+  border-color: rgb(217 108 77 / 25%);
+  background: rgb(217 108 77 / 5%);
+}
+
+.challengeRejected > svg {
+  color: #a4432c;
+}
+
+.challengeCopy {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.challengeCopy span,
+.challengeCopy small {
+  color: var(--brand-muted);
+  font-size: 0.52rem;
+  font-weight: 750;
+}
+
+.challengeCopy span {
+  color: var(--amber-deep);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.challengeCopy strong {
+  overflow: hidden;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voteActions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.voteActions button {
+  height: 2rem;
+  padding-inline: 0.6rem;
+  font-size: 0.55rem;
+}
+
+.voteActions svg {
+  width: 0.8rem;
+}
+
+.challengeDecision {
+  background: var(--petroleum);
+  color: white;
+  font-size: 0.52rem;
 }
 
 .rankingPanel {
@@ -1214,6 +1511,7 @@
 @media (max-width: 640px) {
   .gamePage,
   .roundPage,
+  .commanderPage,
   .resultsPage,
   .finalPage {
     padding: 0.8rem;
@@ -1245,7 +1543,8 @@
   .sectionTitle,
   .answerBoardHeader,
   .roundHero,
-  .resultsHero {
+  .resultsHero,
+  .letterPickerHeader {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -1270,6 +1569,10 @@
 
   .roundTimer {
     width: 100%;
+  }
+
+  .letterGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .answerBoard {
@@ -1300,6 +1603,19 @@
 
   .resultAnswerRow {
     grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .challengeCard {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .voteActions,
+  .challengeDecision {
+    grid-column: 1 / -1;
+  }
+
+  .voteActions button {
+    flex: 1;
   }
 
   .answerStatus {

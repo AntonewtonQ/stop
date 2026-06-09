@@ -21,6 +21,10 @@ export function RoundRoom({
   session: PlayerSession;
 }) {
   const round = room.round!;
+  const commander = room.players.find(
+    (player) => player.id === round.commanderId,
+  )!;
+  const isCommander = commander.id === session.id;
   const [answers, setAnswers] = useState<RoundAnswers>(
     round.answers[session.id] ?? {},
   );
@@ -42,21 +46,42 @@ export function RoundRoom({
   );
 
   useEffect(() => {
-    if (remaining === 0) finishRound(room.code, null);
+    if (remaining === 0) {
+      void finishRound(room.code, true).catch(() => {
+        // Another client may have already ended the round.
+      });
+    }
   }, [remaining, room.code]);
 
   function updateAnswer(category: string, answer: string) {
-    const nextAnswers = { ...answers, [category]: answer };
-    setAnswers(nextAnswers);
-    saveRoundAnswers(room.code, session.id, nextAnswers);
+    setAnswers((currentAnswers) => ({
+      ...currentAnswers,
+      [category]: answer,
+    }));
   }
 
-  function submitAnswers() {
-    saveRoundAnswers(room.code, session.id, answers);
-    finishRound(room.code, session.id);
-    toast.success("STOP!", {
-      description: `${answeredCount} de ${room.settings.categories.length} categorias preenchidas.`,
-    });
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void saveRoundAnswers(room.code, answers).catch(() => {
+        // The final save is retried when the commander presses STOP.
+      });
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [answers, room.code]);
+
+  async function submitAnswers() {
+    try {
+      await saveRoundAnswers(room.code, answers);
+      await finishRound(room.code);
+      toast.success("STOP!", {
+        description: `${answeredCount} de ${room.settings.categories.length} categorias preenchidas.`,
+      });
+    } catch (error) {
+      toast.error("Não foi possível terminar a rodada.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (
@@ -76,7 +101,9 @@ export function RoundRoom({
       <section className={styles.roundHero}>
         <div>
           <Badge className={styles.roundBadge}>Rodada {round.number}</Badge>
-          <span className={styles.roundKicker}>Tudo começa com</span>
+          <span className={styles.roundKicker}>
+            {commander.name} escolheu
+          </span>
           <strong className={styles.roundLetter}>{round.letter}</strong>
         </div>
         <div className={`${styles.roundTimer} ${remaining <= 10 ? styles.timerDanger : ""}`}>
@@ -132,10 +159,17 @@ export function RoundRoom({
           })}
         </div>
 
-        <Button className={styles.stopRoundButton} onClick={submitAnswers}>
-          <Send />
-          STOP! Terminar para todos
-        </Button>
+        {isCommander ? (
+          <Button className={styles.stopRoundButton} onClick={submitAnswers}>
+            <Send />
+            STOP! Terminar para todos
+          </Button>
+        ) : (
+          <div className={styles.commanderClockNotice}>
+            <Clock3 />
+            Só {commander.name}, comandante desta rodada, pode parar o relógio.
+          </div>
+        )}
       </section>
     </main>
   );

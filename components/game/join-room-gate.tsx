@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PLAYABLE_LETTERS } from "@/lib/game/constants";
 import {
   createPlayerSession,
   joinRoom,
@@ -21,11 +22,11 @@ export function JoinRoomGate({
   onJoined,
 }: {
   room: Room;
-  onJoined: () => void;
+  onJoined: () => void | Promise<void>;
 }) {
   const [name, setName] = useState("");
 
-  function handleJoin(event: FormEvent<HTMLFormElement>) {
+  async function handleJoin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (name.trim().length < 2) {
@@ -38,11 +39,23 @@ export function JoinRoomGate({
       return;
     }
 
+    if (room.players.length >= PLAYABLE_LETTERS.length) {
+      toast.error("Esta sala já atingiu o limite de jogadores.");
+      return;
+    }
+
     const session = createPlayerSession(name, room.code);
-    savePlayerSession(session);
-    joinRoom(room, session);
-    toast.success("Entraste na sala", { description: room.code });
-    onJoined();
+
+    try {
+      await joinRoom(room.code, session);
+      savePlayerSession(session);
+      toast.success("Entraste na sala", { description: room.code });
+      await onJoined();
+    } catch (error) {
+      toast.error("Não foi possível entrar na sala.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (
