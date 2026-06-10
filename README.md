@@ -42,6 +42,8 @@ O projecto já possui um MVP online jogável:
 - actualizações realtime através de Server-Sent Events;
 - base de dados SQLite para salas, jogadores, rodadas, respostas e votos;
 - autorização das acções através de tokens privados de sessão.
+- testes automatizados das regras, SQLite, APIs, SSE e fluxo multiplayer.
+- Blueprint Render e health check preparados para publicação gratuita.
 
 O validador é deliberadamente conservador: respostas presentes no léxico local
 da categoria são aceites automaticamente; respostas que começam pela letra
@@ -112,6 +114,38 @@ O SQLite é adequado para desenvolvimento, demonstração e uma única instânci
 servidor. Um deploy distribuído deverá migrar para PostgreSQL ou outro serviço
 de base de dados partilhado.
 
+## Publicar gratuitamente
+
+A primeira beta pública pode ser publicada no **Render Free** como um único Web
+Service Node.js. Esta opção é compatível com o broker SSE em memória porque não
+escala para múltiplas instâncias.
+
+1. Envia o repositório para o GitHub.
+2. Cria uma conta em [Render](https://render.com/).
+3. No dashboard, escolhe **New → Blueprint**.
+4. Liga o repositório do `stop.ao`.
+5. Confirma o serviço definido em `render.yaml` e escolhe o plano **Free**.
+6. Depois do deploy, abre a URL `https://stop-ao.onrender.com` atribuída pelo
+   Render.
+7. Confirma o estado do servidor em `/api/health`.
+
+O Blueprint executa `npm ci && npm run build`, inicia `npm run start`, utiliza
+Node.js `24.14.1` e guarda o SQLite temporário em `/tmp/stop.db`.
+
+### Limitações da beta gratuita
+
+- o serviço pode adormecer depois de `15` minutos sem pedidos;
+- o primeiro acesso após adormecer pode demorar cerca de um minuto;
+- o filesystem gratuito é temporário: reinícios, novos deploys ou suspensão
+  apagam salas e partidas guardadas;
+- partidas activas mantêm pedidos de presença, reduzindo a possibilidade de o
+  serviço adormecer durante o jogo;
+- o broker realtime funciona apenas numa instância.
+
+Para produção durável ainda gratuita, o próximo passo é migrar o SQLite para
+PostgreSQL no Neon Free. Para múltiplas instâncias, também será necessário
+migrar o broker SSE em memória para Redis/Pub/Sub, como Upstash Redis.
+
 ## API
 
 - `POST /api/rooms` — cria uma sala;
@@ -120,6 +154,7 @@ de base de dados partilhado.
 - `POST /api/rooms/[code]/actions` — executa acções autenticadas da partida.
 - `POST /api/rooms/[code]/presence` — actualiza presença e reconcilia liderança;
 - `GET /api/rooms/[code]/events` — mantém o canal SSE realtime da sala.
+- `GET /api/health` — valida o processo Node e a ligação à base de dados.
 
 As acções incluem configuração, início, escolha da letra, respostas, STOP,
 votos, próxima rodada, fim da partida e reinício.
@@ -170,6 +205,8 @@ automaticamente para não bloquear a partida.
 - Radix UI
 - Lucide React
 - Sonner
+- Vitest
+- Playwright
 
 O shadcn/ui utiliza o preset Nova. As primitivas acessíveis são personalizadas
 pelos tokens visuais do `stop.ao`.
@@ -202,6 +239,8 @@ lib/
   server/room-repository.ts Persistência transaccional das salas
   server/room-view.ts      Visão pública/privada da sala
   utils.ts                 Utilitários partilhados
+
+render.yaml                Blueprint gratuito para Render
 ```
 
 ## Identidade visual
@@ -219,22 +258,40 @@ está em `components/brand/logo.tsx`.
 ```bash
 npm run dev       # servidor de desenvolvimento
 npm run lint      # ESLint
+npm run test      # testes unitários e de integração com Vitest
+npm run test:e2e  # fluxo multiplayer real em Chromium com Playwright
+npm run test:all  # executa toda a suíte automatizada
 npm run build     # build de produção com Webpack
 npm run start     # executar o build de produção
 npx tsc --noEmit  # validação TypeScript
+```
+
+## Testes automatizados
+
+A suíte utiliza bases SQLite temporárias e nunca altera `data/stop.db`:
+
+- `tests/game/` cobre pontuação, validação, letras, rodadas e comandantes;
+- `tests/server/` cobre persistência, tokens, presença, Route Handlers e SSE;
+- `e2e/` abre dois contextos de navegador e valida entrada por convite,
+  sincronização realtime, transferência de anfitrião e início da rodada.
+
+Antes da primeira execução E2E, instala o navegador do Playwright:
+
+```bash
+npx playwright install chromium
 ```
 
 ## Próximo marco
 
 Evoluir o MVP online:
 
-1. criar testes automatizados das regras, API e fluxos multiplayer;
-2. migrar SQLite e o broker SSE antes de usar múltiplas instâncias;
-3. substituir o léxico inicial por um serviço de validação expansível;
-4. criar histórico consultável de partidas e classificação;
-5. permitir recuperar uma sessão noutro dispositivo;
-6. adicionar autenticação opcional e perfis;
-7. publicar a primeira versão jogável entre dispositivos.
+1. adicionar rate limiting, limites de payload e limpeza de salas antigas;
+2. migrar SQLite para PostgreSQL no Neon;
+3. migrar o broker SSE para Redis/Pub/Sub antes de usar múltiplas instâncias;
+4. substituir o léxico inicial por um serviço de validação expansível;
+5. criar histórico consultável de partidas e classificação;
+6. permitir recuperar uma sessão noutro dispositivo;
+7. adicionar autenticação opcional e perfis.
 
 ## Nota sobre Next.js
 

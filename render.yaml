@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: stop-ao
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.1
+      - key: STOP_DATABASE_PATH
+        value: /tmp/stop.db

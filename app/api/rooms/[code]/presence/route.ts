@@ -20,7 +20,7 @@ export async function POST(
   try {
     const { code: rawCode } = await params;
     const code = normalizeRoomCode(rawCode);
-    const body = (await request.json()) as PresenceBody;
+    const body = await parseBody(request);
     const actor = parseActor(body.actor);
     const { room, changed } = updateStoredPresence(
       code,
@@ -39,6 +39,14 @@ export async function POST(
 
     console.error(error);
     return Response.json({ error: "Erro interno do servidor." }, { status: 500 });
+  }
+}
+
+async function parseBody(request: Request) {
+  try {
+    return (await request.json()) as PresenceBody;
+  } catch {
+    throw new RoomRepositoryError("Pedido de presença inválido.", 400);
   }
 }
 
