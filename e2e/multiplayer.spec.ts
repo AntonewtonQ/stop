@@ -9,7 +9,7 @@ test("dois jogadores entram e a liderança offline é transferida", async ({
   const guest = await guestContext.newPage();
 
   await host.goto("/");
-  await host.getByLabel("Como te chamamos?").fill("Ana");
+  await host.getByLabel("Qual é o teu nome?").fill("Ana");
   await host.getByRole("button", { name: "Criar uma sala" }).click();
   await expect(host).toHaveURL(/\/sala\/[A-Z0-9]{5}$/);
   const code = host.url().split("/").at(-1)!;
@@ -36,13 +36,17 @@ test("dois jogadores entram e a liderança offline é transferida", async ({
     { roomCode: code, actor: session },
   );
 
-  await expect(guest.getByText("Tu configuras", { exact: true })).toBeVisible();
-  await guest.getByRole("button", { name: "Escolher primeira letra" }).click();
-  await expect(guest.getByRole("heading", { name: "Tu comandas agora." })).toBeVisible();
+  await expect(guest.getByText("Tu decides", { exact: true })).toBeVisible();
+  await guest.getByRole("button", { name: "Preparar primeira rodada" }).click();
+  await expect(
+    guest.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
   await guest.getByRole("button", { name: /^A/ }).click();
 
-  await expect(guest.getByText("STOP! Terminar para todos")).toBeVisible();
-  await expect(host.getByRole("heading", { name: "Escreve antes do tempo acabar." })).toBeVisible();
+  await expect(guest.getByText("Gritar STOP")).toBeVisible();
+  await expect(
+    host.getByRole("heading", { name: "Preenche tudo antes do STOP." }),
+  ).toBeVisible();
 
   await hostContext.close();
   await guestContext.close();

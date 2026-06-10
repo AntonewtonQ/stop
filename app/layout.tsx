@@ -13,7 +13,7 @@ const geistSans = localFont({
 export const metadata: Metadata = {
   title: "stop.ao — Pensa rápido. Marca grande.",
   description:
-    "O jogo de palavras online para desafiar os teus amigos, pensar rápido e marcar grande.",
+    "Cria uma sala, desafia os teus e grita STOP antes dos outros.",
   icons: {
     icon: "/icon.svg",
   },

@@ -29,7 +29,7 @@ export function RoomActions() {
     const name = playerName.trim();
     if (name.length >= 2) return name;
 
-    const feedback = "Escreve o teu nome antes de continuar.";
+    const feedback = "Escreve o teu nome para começar.";
     setMessage(feedback);
     toast.error("Falta o teu nome", { description: feedback });
     return null;
@@ -48,7 +48,7 @@ export function RoomActions() {
       toast.success("Sala criada", { description: `Código: ${code}` });
       router.push(`/sala/${code}`);
     } catch (error) {
-      toast.error("Não foi possível criar a sala.", {
+      toast.error("Não conseguimos criar a sala.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -61,7 +61,7 @@ export function RoomActions() {
 
     const code = normalizeRoomCode(roomCode);
     if (code.length < 4) {
-      const feedback = "Insere um código válido para entrar na sala.";
+      const feedback = "Escreve um código de sala válido.";
       setMessage(feedback);
       toast.error("Código inválido", { description: feedback });
       return;
@@ -71,23 +71,22 @@ export function RoomActions() {
     try {
       room = await readRoom(code);
     } catch (error) {
-      toast.error("Não foi possível procurar a sala.", {
+      toast.error("Não conseguimos encontrar a sala.", {
         description: error instanceof Error ? error.message : undefined,
       });
       return;
     }
     if (!room) {
-      const feedback =
-        "Esta sala não existe neste servidor. Confirma o código ou cria uma nova.";
+      const feedback = "Confirma o código ou cria uma nova sala.";
       setMessage(feedback);
-      toast.error("Sala não encontrada", { description: feedback });
+      toast.error("Sala indisponível", { description: feedback });
       return;
     }
 
     if (room.status !== "lobby") {
-      const feedback = "A partida desta sala já começou.";
+      const feedback = "Esta partida já começou.";
       setMessage(feedback);
-      toast.error("Sala em jogo", { description: feedback });
+      toast.error("Partida em curso", { description: feedback });
       return;
     }
 
@@ -99,7 +98,7 @@ export function RoomActions() {
       toast.success("Entraste na sala", { description: code });
       router.push(`/sala/${code}`);
     } catch (error) {
-      toast.error("Não foi possível entrar na sala.", {
+      toast.error("Não conseguimos entrar na sala.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -108,7 +107,7 @@ export function RoomActions() {
   return (
     <div className={styles.actions}>
       <label className={styles.nameField} htmlFor="player-name">
-        <span>Como te chamamos?</span>
+        <span>Qual é o teu nome?</span>
         <div>
           <UserRound aria-hidden="true" />
           <Input
@@ -131,7 +130,7 @@ export function RoomActions() {
 
       <div className={styles.divider}>
         <Separator className={styles.dividerLine} />
-        <span>ou entra com um código</span>
+        <span>ou entra numa sala</span>
         <Separator className={styles.dividerLine} />
       </div>
 
@@ -147,11 +146,11 @@ export function RoomActions() {
           maxLength={8}
           autoComplete="off"
         />
-        <Button type="submit">Entrar</Button>
+        <Button type="submit">Entrar na sala</Button>
       </form>
 
       <p className={styles.feedback} aria-live="polite">
-        {message || "Sem instalação. Cria uma sala e chama os teus amigos."}
+        {message || "Sem instalação. Cria uma sala e chama os teus."}
       </p>
     </div>
   );

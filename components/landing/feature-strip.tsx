@@ -3,8 +3,8 @@ import { GridIcon, PeopleIcon, StopwatchIcon } from "./icons";
 
 const features = [
   {
-    title: "Pensa depressa",
-    description: "O relógio não espera por ninguém.",
+    title: "Pensa rápido",
+    description: "O relógio corre. Tu também.",
     icon: <StopwatchIcon />,
   },
   {
@@ -13,8 +13,8 @@ const features = [
     icon: <GridIcon />,
   },
   {
-    title: "Joga em grupo",
-    description: "Cria uma sala e desafia os teus.",
+    title: "Joga com os teus",
+    description: "Partilha o código e começa a disputa.",
     icon: <PeopleIcon />,
   },
 ];

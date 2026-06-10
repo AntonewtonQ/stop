@@ -39,7 +39,7 @@ async function requestRoom(url: string, init?: RequestInit) {
 
   if (!response.ok || !data.room) {
     throw new GameApiError(
-      data.error ?? "Não foi possível comunicar com a sala.",
+      data.error ?? "A ligação à sala falhou. Tenta novamente.",
       response.status,
     );
   }
@@ -52,7 +52,9 @@ async function requestRoom(url: string, init?: RequestInit) {
 
 function getActor(code: string) {
   const session = readPlayerSession(code);
-  if (!session) throw new GameApiError("Sessão do jogador inválida.", 401);
+  if (!session) {
+    throw new GameApiError("A tua sessão expirou. Volta a entrar na sala.", 401);
+  }
   return { id: session.id, token: session.token };
 }
 
@@ -90,7 +92,7 @@ export async function readRoom(code: string) {
   const data = (await response.json()) as { room?: Room; error?: string };
   if (!response.ok || !data.room) {
     throw new GameApiError(
-      data.error ?? "Não foi possível carregar a sala.",
+      data.error ?? "Não conseguimos carregar a sala. Tenta novamente.",
       response.status,
     );
   }

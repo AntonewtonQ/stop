@@ -19,7 +19,10 @@ export async function POST(request: Request) {
     const host = parseSession(body.host, code);
 
     if (code.length !== 5) {
-      return Response.json({ error: "Código de sala inválido." }, { status: 400 });
+      return Response.json(
+        { error: "Este código de sala não é válido." },
+        { status: 400 },
+      );
     }
 
     const room = createStoredRoom(createRoom(code, host), host.token);
@@ -41,7 +44,10 @@ function parseSession(value: unknown, roomCode: string): PlayerSession {
     typeof session.color !== "string" ||
     session.name.trim().length < 2
   ) {
-    throw new RoomRepositoryError("Dados do jogador inválidos.", 400);
+    throw new RoomRepositoryError(
+      "Confirma o teu nome e tenta novamente.",
+      400,
+    );
   }
 
   return { ...session, roomCode } as PlayerSession;
@@ -53,5 +59,8 @@ function handleError(error: unknown) {
   }
 
   console.error(error);
-  return Response.json({ error: "Erro interno do servidor." }, { status: 500 });
+  return Response.json(
+    { error: "Algo correu mal. Tenta novamente." },
+    { status: 500 },
+  );
 }

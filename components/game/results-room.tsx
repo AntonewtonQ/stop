@@ -71,16 +71,16 @@ export function ResultsRoom({
   async function continueGame() {
     if (!isController) return;
     if (!result.votingComplete) {
-      toast.warning("Ainda existem respostas por validar.");
+      toast.warning("A votação ainda não terminou.");
       return;
     }
 
     if (isLastRound) {
       try {
         await finishGame(room.code);
-        toast.success("Partida terminada!");
+        toast.success("Fim de jogo!");
       } catch (error) {
-        toast.error("Não foi possível terminar a partida.", {
+        toast.error("Não conseguimos terminar a partida.", {
           description: error instanceof Error ? error.message : undefined,
         });
       }
@@ -89,9 +89,9 @@ export function ResultsRoom({
 
     try {
       await prepareNextRound(room.code);
-      toast.success("É a tua vez de escolher a letra!");
+      toast.success("O comando é teu. Escolhe a letra!");
     } catch (error) {
-      toast.error("Não foi possível preparar a próxima rodada.", {
+      toast.error("Não conseguimos preparar a próxima rodada.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -102,11 +102,11 @@ export function ResultsRoom({
       await castAnswerVote(room.code, challengeId, choice);
       toast.success(
         choice === "approve"
-          ? "Voto para aceitar registado."
-          : "Voto para rejeitar registado.",
+          ? "Votaste para aceitar."
+          : "Votaste para rejeitar.",
       );
     } catch (error) {
-      toast.error("Não foi possível registar o voto.", {
+      toast.error("Não conseguimos registar o voto.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -128,15 +128,15 @@ export function ResultsRoom({
 
       <section className={styles.resultsHero}>
         <div>
-          <span className={styles.eyebrow}>Resultados da rodada</span>
+          <span className={styles.eyebrow}>Fim da rodada</span>
           <h1>
-            Hora de contar
-            <span>os pontos.</span>
+            Palavras na mesa.
+            <span>Pontos a contar.</span>
           </h1>
           <p>
             {stoppedBy
-              ? `${stoppedBy.name} gritou STOP e encerrou a rodada.`
-              : "O tempo terminou e encerrou a rodada."}
+              ? `${stoppedBy.name} gritou STOP primeiro.`
+              : "O relógio chegou ao fim."}
           </p>
         </div>
 
@@ -153,7 +153,7 @@ export function ResultsRoom({
           <b>
             {result.votingComplete
               ? `+${roundWinner?.roundScore ?? 0} pontos`
-              : "Vota antes de continuar"}
+              : "A sala decide"}
           </b>
         </aside>
       </section>
@@ -252,8 +252,10 @@ export function ResultsRoom({
             >
               {isLastRound ? <Flag /> : <ArrowRight />}
               {!result.votingComplete
-                ? `Aguardando ${pendingChallenges.length} votação${
-                    pendingChallenges.length === 1 ? "" : "ões"
+                ? `${pendingChallenges.length} votação${
+                    pendingChallenges.length === 1
+                      ? " por concluir"
+                      : "ões por concluir"
                   }`
                 : isLastRound
                   ? "Ver classificação final"
@@ -264,9 +266,11 @@ export function ResultsRoom({
               <span />
               {result.votingComplete
                 ? isLastRound
-                  ? "Aguardando o comandante finalizar..."
-                  : `Aguardando ${nextCommander?.name ?? "o próximo comandante"}...`
-                : "Aguardando as votações..."}
+                  ? "O comandante está a fechar a partida..."
+                  : nextCommander
+                    ? `${nextCommander.name} escolhe a próxima letra...`
+                    : "O próximo comandante escolhe a letra..."
+                : "A votação está a decorrer..."}
             </div>
           )}
         </aside>

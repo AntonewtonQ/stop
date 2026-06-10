@@ -53,7 +53,7 @@ export function LobbyRoom({
     try {
       await updateRoomSettings(room.code, { categories });
     } catch (error) {
-      toast.error("Não foi possível actualizar as categorias.", {
+      toast.error("Não conseguimos actualizar as categorias.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -64,7 +64,7 @@ export function LobbyRoom({
     try {
       await updateRoomSettings(room.code, { roundDuration });
     } catch (error) {
-      toast.error("Não foi possível actualizar o tempo.", {
+      toast.error("Não conseguimos actualizar o tempo.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -80,9 +80,9 @@ export function LobbyRoom({
     if (!isHost) return;
     try {
       await startFirstRound(room.code);
-      toast.success("Partida preparada. Escolhe a primeira letra!");
+      toast.success("Tudo pronto. Escolhe a primeira letra!");
     } catch (error) {
-      toast.error("Não foi possível preparar a partida.", {
+      toast.error("Não conseguimos preparar a partida.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -106,8 +106,8 @@ export function LobbyRoom({
         <section className={styles.lobbyMain}>
           <div className={styles.sectionTitle}>
             <div>
-              <span className={styles.eyebrow}>Lobby da partida</span>
-              <h1>Junta os teus e prepara o STOP.</h1>
+              <span className={styles.eyebrow}>Antes do STOP</span>
+              <h1>Chama os teus. O jogo começa já.</h1>
             </div>
             <BadgeCounter count={room.players.length} />
           </div>
@@ -119,15 +119,15 @@ export function LobbyRoom({
               <UsersRound />
             </div>
             <div>
-              <strong>Jogar noutra aba</strong>
+              <strong>Chama os teus</strong>
               <p>
-                Copia o convite, abre-o noutra aba e entra com outro nome para
-                testar a sincronização local.
+                Partilha o convite. Quem entrar aparece aqui e fica pronto para
+                jogar.
               </p>
             </div>
             <Button variant="outline" onClick={copyInvite}>
               <Copy />
-              Copiar
+              Copiar convite
             </Button>
           </aside>
         </section>
@@ -136,8 +136,8 @@ export function LobbyRoom({
           <div className={styles.panelTitle}>
             <Settings2 />
             <div>
-              <span>Configuração</span>
-              <strong>{isHost ? "Tu configuras" : "Definida pelo anfitrião"}</strong>
+              <span>Regras da partida</span>
+              <strong>{isHost ? "Tu decides" : "O anfitrião decide"}</strong>
             </div>
           </div>
 
@@ -177,7 +177,10 @@ export function LobbyRoom({
                 {room.players.length} jogador{room.players.length === 1 ? "" : "es"},{" "}
                 {room.players.length} rodada{room.players.length === 1 ? "" : "s"}
               </strong>
-              <small>O anfitrião começa e cada jogador comanda uma vez.</small>
+              <small>
+                O anfitrião começa. Depois, o comando passa de jogador em
+                jogador.
+              </small>
             </div>
           </div>
 
@@ -208,12 +211,12 @@ export function LobbyRoom({
           {isHost ? (
             <Button className={styles.startButton} onClick={handleStart}>
               <Play />
-              Escolher primeira letra
+              Preparar primeira rodada
             </Button>
           ) : (
             <div className={styles.waitingHost}>
               <span />
-              Aguardando o anfitrião preparar...
+              O anfitrião está a preparar a partida...
             </div>
           )}
 

@@ -39,8 +39,8 @@ export function GameRoom({ code }: { code: string }) {
             <RotateCcw />
           </div>
           <span className={styles.eyebrow}>Sala {normalizedCode}</span>
-          <h1>Esta sala já não está disponível.</h1>
-          <p>Confirma o código ou cria uma nova sala para continuar.</p>
+          <h1>Não encontramos esta sala.</h1>
+          <p>Confirma o código ou cria uma nova para continuar.</p>
           <Button asChild className={styles.primaryButton}>
             <Link href="/">
               <ArrowLeft />

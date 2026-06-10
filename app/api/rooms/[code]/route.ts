@@ -16,7 +16,10 @@ export async function GET(
   const room = getRoom(normalizeRoomCode(code));
 
   if (!room) {
-    return Response.json({ error: "Sala não encontrada." }, { status: 404 });
+    return Response.json(
+      { error: "Não encontramos esta sala." },
+      { status: 404 },
+    );
   }
 
   const playerId = request.headers.get("x-stop-player-id");

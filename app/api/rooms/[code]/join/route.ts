@@ -28,7 +28,10 @@ export async function POST(
     }
 
     console.error(error);
-    return Response.json({ error: "Erro interno do servidor." }, { status: 500 });
+    return Response.json(
+      { error: "Algo correu mal. Tenta novamente." },
+      { status: 500 },
+    );
   }
 }
 
@@ -43,7 +46,10 @@ function parseSession(value: unknown, roomCode: string): PlayerSession {
     typeof session.color !== "string" ||
     session.name.trim().length < 2
   ) {
-    throw new RoomRepositoryError("Dados do jogador inválidos.", 400);
+    throw new RoomRepositoryError(
+      "Confirma o teu nome e tenta novamente.",
+      400,
+    );
   }
 
   return { ...session, roomCode } as PlayerSession;

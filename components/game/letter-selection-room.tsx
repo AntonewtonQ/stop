@@ -33,7 +33,7 @@ export function LetterSelectionRoom({
       await chooseRoundLetter(room.code, letter);
       toast.success(`Letra ${letter} escolhida. O relógio começou!`);
     } catch (error) {
-      toast.error("Não foi possível escolher esta letra.", {
+      toast.error("Não conseguimos escolher esta letra.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -55,7 +55,7 @@ export function LetterSelectionRoom({
       </header>
 
       <section className={styles.commanderHero}>
-        <Badge className={styles.roundBadge}>Escolha da letra</Badge>
+        <Badge className={styles.roundBadge}>Escolher a letra</Badge>
         <span className={styles.commanderKicker}>Comandante da rodada</span>
         <Avatar className={styles.commanderAvatar}>
           <AvatarFallback style={{ background: commander.color }}>
@@ -63,12 +63,12 @@ export function LetterSelectionRoom({
           </AvatarFallback>
         </Avatar>
         <h1>
-          {isCommander ? "Tu comandas agora." : `${commander.name} comanda agora.`}
+          {isCommander ? "O comando é teu." : `${commander.name} está no comando.`}
         </h1>
         <p>
           {isCommander
-            ? "Escolhe uma letra disponível. A rodada e o relógio começam imediatamente."
-            : `Aguarda ${commander.name} escolher a letra e iniciar o relógio.`}
+            ? "Escolhe a letra. Assim que escolheres, o relógio começa para todos."
+            : `${commander.name} vai escolher a letra e iniciar o relógio.`}
         </p>
       </section>
 
@@ -82,7 +82,7 @@ export function LetterSelectionRoom({
           </div>
           <div className={styles.commanderRule}>
             <Crown />
-            Cada jogador comanda uma rodada
+            Cada jogador comanda uma vez
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export function LetterSelectionRoom({
           <Play />
           {isCommander
             ? "A tua escolha inicia a rodada para todos."
-            : "A rodada começa assim que o comandante escolher."}
+            : "A rodada começa assim que a letra for escolhida."}
         </div>
       </section>
     </main>

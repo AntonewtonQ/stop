@@ -89,7 +89,7 @@ export function GamePreview() {
             <div className={styles.progressFill} />
           </div>
           <Button className={styles.stopButton} type="button">
-            STOP!
+            Gritar STOP
           </Button>
         </div>
       </article>

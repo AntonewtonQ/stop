@@ -31,8 +31,8 @@ export function PlayerList({
             </strong>
             <span>
               {player.isHost
-                ? "Anfitrião atual e comandante"
-                : "Comandará uma rodada"}
+                ? "Anfitrião actual"
+                : "Vai comandar uma rodada"}
             </span>
           </div>
           <div className={styles.playerPresence}>

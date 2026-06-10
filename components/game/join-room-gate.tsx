@@ -30,7 +30,7 @@ export function JoinRoomGate({
     event.preventDefault();
 
     if (name.trim().length < 2) {
-      toast.error("Escreve o teu nome para entrar.");
+      toast.error("Escreve o teu nome para entrar na sala.");
       return;
     }
 
@@ -52,7 +52,7 @@ export function JoinRoomGate({
       toast.success("Entraste na sala", { description: room.code });
       await onJoined();
     } catch (error) {
-      toast.error("Não foi possível entrar na sala.", {
+      toast.error("Não conseguimos entrar na sala.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -63,8 +63,8 @@ export function JoinRoomGate({
       <div className={styles.centeredCard}>
         <Logo />
         <span className={styles.eyebrow}>Sala {room.code}</span>
-        <h1>Entra na roda.</h1>
-        <p>Escolhe o nome que os outros jogadores vão ver nesta partida.</p>
+        <h1>Entra no jogo.</h1>
+        <p>Escolhe o nome que vai aparecer nesta partida.</p>
 
         <form className={styles.joinGateForm} onSubmit={handleJoin}>
           <label htmlFor="guest-name">O teu nome</label>

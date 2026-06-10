@@ -5,20 +5,18 @@ const scoringRules = [
   {
     value: "+20",
     title: "Resposta única",
-    description: "Só tu acertaste ou preencheste correctamente a categoria.",
+    description: "Só tu deste uma resposta correcta nessa categoria.",
     featured: true,
   },
   {
     value: "+10",
     title: "Resposta correcta",
-    description:
-      "A resposta é válida e outros jogadores também acertaram com palavras diferentes.",
+    description: "Acertaste, mas outros jogadores também deram respostas válidas.",
   },
   {
     value: "+5",
     title: "Resposta repetida",
-    description:
-      "Dois ou mais jogadores escreveram a mesma resposta na categoria.",
+    description: "Dois ou mais jogadores escreveram a mesma resposta.",
   },
 ];
 
@@ -27,12 +25,12 @@ export function ScoringSection() {
     <section className={styles.section} id="pontuacao">
       <div className={styles.sectionHeading}>
         <div>
-          <span className={styles.kicker}>Cada palavra conta</span>
-          <h2>Quanto mais original, melhor.</h2>
+          <span className={styles.kicker}>Cada resposta conta</span>
+          <h2>Ser original vale mais.</h2>
         </div>
         <p>
-          Respostas correctas dão pontos. As respostas únicas valem o dobro,
-          por isso vale a pena pensar para além do óbvio.
+          Uma resposta correcta vale 10. Se for repetida, vale 5. Se só tu
+          acertares, levas 20.
         </p>
       </div>
 

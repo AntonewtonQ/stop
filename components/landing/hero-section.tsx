@@ -6,14 +6,14 @@ export function HeroSection() {
   return (
     <section className={styles.hero} id="jogar">
       <div className={styles.heroCopy}>
-        <div className={styles.eyebrow}>O clássico agora online</div>
+        <div className={styles.eyebrow}>O STOP feito para jogar online</div>
         <h1>
           Pensa rápido.
           <span>Marca grande.</span>
         </h1>
         <p className={styles.lead}>
-          Escolhe uma letra, desafia os teus amigos e encontra as melhores
-          respostas antes que alguém grite STOP.
+          Escolhe a letra, preenche as categorias e grita STOP antes dos
+          outros.
         </p>
         <RoomActions />
       </div>

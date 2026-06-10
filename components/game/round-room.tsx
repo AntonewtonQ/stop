@@ -79,7 +79,7 @@ export function RoundRoom({
         description: `${answeredCount} de ${room.settings.categories.length} categorias preenchidas.`,
       });
     } catch (error) {
-      toast.error("Não foi possível terminar a rodada.", {
+      toast.error("Não conseguimos terminar a rodada.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -120,7 +120,7 @@ export function RoundRoom({
         <div className={styles.answerBoardHeader}>
           <div>
             <span className={styles.eyebrow}>{session.name}, é a tua vez</span>
-            <h1>Escreve antes do tempo acabar.</h1>
+            <h1>Preenche tudo antes do STOP.</h1>
           </div>
           <div className={styles.answerCounter}>
             <strong>{answeredCount}</strong>
@@ -163,12 +163,12 @@ export function RoundRoom({
         {isCommander ? (
           <Button className={styles.stopRoundButton} onClick={submitAnswers}>
             <Send />
-            STOP! Terminar para todos
+            Gritar STOP
           </Button>
         ) : (
           <div className={styles.commanderClockNotice}>
             <Clock3 />
-            Só {commander.name}, comandante desta rodada, pode parar o relógio.
+            {commander.name} controla o STOP nesta rodada.
           </div>
         )}
       </section>

@@ -32,9 +32,9 @@ export function FinalResults({
     if (!isHost) return;
     try {
       await restartGame(room.code);
-      toast.success("Nova partida preparada!");
+      toast.success("Nova partida pronta!");
     } catch (error) {
-      toast.error("Não foi possível preparar a nova partida.", {
+      toast.error("Não conseguimos preparar a nova partida.", {
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -52,14 +52,14 @@ export function FinalResults({
           <Crown />
           <Trophy />
         </div>
-        <span className={styles.finalKicker}>Partida terminada</span>
+        <span className={styles.finalKicker}>Fim de jogo</span>
         <h1>
           {winner.name}
           <span>marcou grande.</span>
         </h1>
         <p>
-          {room.settings.roundsToPlay} rodadas completas. Eis a classificação
-          final da sala.
+          {room.settings.roundsToPlay} rodadas depois, esta é a classificação
+          final.
         </p>
       </section>
 
@@ -98,7 +98,7 @@ export function FinalResults({
         ) : (
           <div className={styles.waitingHost}>
             <span />
-            Aguardando nova partida...
+            O anfitrião decide a próxima partida...
           </div>
         )}
         <Button asChild variant="outline">

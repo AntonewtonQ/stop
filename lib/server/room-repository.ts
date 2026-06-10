@@ -207,7 +207,10 @@ function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {
       ? hashToken(sessionTokens[player.id])
       : existingTokens[player.id];
     if (!token) {
-      throw new RoomRepositoryError("Sessão do jogador inválida.", 401);
+      throw new RoomRepositoryError(
+        "A tua sessão expirou. Volta a entrar na sala.",
+        401,
+      );
     }
 
     insertPlayer.run(
@@ -317,7 +320,10 @@ function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {
 export function createStoredRoom(room: Room, hostToken: string) {
   return withTransaction(() => {
     if (getRoom(room.code)) {
-      throw new RoomRepositoryError("Este código de sala já está em uso.", 409);
+      throw new RoomRepositoryError(
+        "Este código já pertence a outra sala. Tenta novamente.",
+        409,
+      );
     }
 
     return persistRoom(room, { [room.hostId]: hostToken });
@@ -331,7 +337,7 @@ export function joinStoredRoom(
 ) {
   return withTransaction(() => {
     const room = getRoom(code);
-    if (!room) throw new RoomRepositoryError("Sala não encontrada.", 404);
+    if (!room) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
 
     const existingPlayer = room.players.find((player) => player.id === session.id);
     if (existingPlayer) {
@@ -341,7 +347,7 @@ export function joinStoredRoom(
 
     const nextRoom = join(room, session);
     if (nextRoom === room) {
-      throw new RoomRepositoryError("Não foi possível entrar nesta sala.", 409);
+      throw new RoomRepositoryError("Não podes entrar nesta sala agora.", 409);
     }
 
     return persistRoom(nextRoom, { [session.id]: session.token });
@@ -357,11 +363,11 @@ export function mutateStoredRoom(
   return withTransaction(() => {
     authenticatePlayer(code, playerId, token);
     const room = getRoom(code);
-    if (!room) throw new RoomRepositoryError("Sala não encontrada.", 404);
+    if (!room) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
 
     const nextRoom = mutate(room, playerId);
     if (nextRoom === room) {
-      throw new RoomRepositoryError("Acção não permitida neste momento.", 409);
+      throw new RoomRepositoryError("Esta acção já não está disponível.", 409);
     }
 
     return persistRoom(nextRoom);
@@ -376,7 +382,10 @@ export function authenticatePlayer(code: string, playerId: string, token: string
     .get(code, playerId, hashToken(token));
 
   if (!player) {
-    throw new RoomRepositoryError("Sessão do jogador inválida.", 401);
+    throw new RoomRepositoryError(
+      "A tua sessão expirou. Volta a entrar na sala.",
+      401,
+    );
   }
 
   return true;
@@ -414,7 +423,7 @@ export function updateStoredPresence(
       .run(code, now - PRESENCE_OFFLINE_AFTER);
 
     const room = getRoom(code);
-    if (!room) throw new RoomRepositoryError("Sala não encontrada.", 404);
+    if (!room) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
 
     const reconciledRoom = reconcileRoomPresence(room);
     const leadershipChanged = reconciledRoom !== room;

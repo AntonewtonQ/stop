@@ -38,7 +38,10 @@ export async function POST(
     }
 
     console.error(error);
-    return Response.json({ error: "Erro interno do servidor." }, { status: 500 });
+    return Response.json(
+      { error: "Algo correu mal. Tenta novamente." },
+      { status: 500 },
+    );
   }
 }
 
@@ -46,7 +49,10 @@ async function parseBody(request: Request) {
   try {
     return (await request.json()) as PresenceBody;
   } catch {
-    throw new RoomRepositoryError("Pedido de presença inválido.", 400);
+    throw new RoomRepositoryError(
+      "Não conseguimos actualizar a tua presença.",
+      400,
+    );
   }
 }
 
@@ -56,7 +62,10 @@ function parseActor(actor: PresenceBody["actor"]) {
     typeof actor.id !== "string" ||
     typeof actor.token !== "string"
   ) {
-    throw new RoomRepositoryError("Sessão do jogador inválida.", 401);
+    throw new RoomRepositoryError(
+      "A tua sessão expirou. Volta a entrar na sala.",
+      401,
+    );
   }
 
   return { id: actor.id, token: actor.token };

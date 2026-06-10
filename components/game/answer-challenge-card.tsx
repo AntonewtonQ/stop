@@ -45,7 +45,7 @@ export function AnswerChallengeCard({
       <div className={styles.challengeCopy}>
         <span>
           {challenge.status === "pending"
-            ? "Resposta duvidosa"
+            ? "Resposta em votação"
             : challenge.status === "approved"
               ? "Aprovada pela sala"
               : "Rejeitada pela sala"}
@@ -80,7 +80,7 @@ export function AnswerChallengeCard({
         <Badge className={styles.challengeDecision}>
           {challenge.status === "pending"
             ? challenge.playerIds.includes(sessionId)
-              ? "A tua resposta"
+              ? "A tua resposta está em votação"
               : "Voto registado"
             : challenge.status === "approved"
               ? "Aceite"

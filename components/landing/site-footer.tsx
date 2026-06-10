@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className={styles.footer}>
       <Separator className={styles.footerSeparator} />
       <Logo compact />
-      <p>Feito em Angola para quem pensa depressa.</p>
+      <p>Feito em Angola para quem pensa rápido.</p>
     </footer>
   );
 }

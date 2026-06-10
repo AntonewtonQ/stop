@@ -19,7 +19,10 @@ export async function GET(
   const room = getRoom(code);
 
   if (!room) {
-    return Response.json({ error: "Sala não encontrada." }, { status: 404 });
+    return Response.json(
+      { error: "Não encontramos esta sala." },
+      { status: 404 },
+    );
   }
 
   const encoder = new TextEncoder();
