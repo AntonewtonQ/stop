@@ -13,10 +13,12 @@ O projecto já possui um MVP online jogável:
 - criação de salas com código único;
 - entrada numa sala existente por código ou convite;
 - lobby sincronizado entre navegadores e dispositivos ligados ao mesmo servidor;
+- presença online/offline sincronizada entre jogadores;
 - lista de jogadores e identificação do anfitrião;
+- transferência automática do anfitrião e comandante quando ficam offline;
 - configuração de categorias e duração pelo anfitrião;
 - ordem de comandantes definida pela entrada dos jogadores;
-- uma rodada por jogador, começando pelo criador da sala;
+- número de rodadas igual ao de jogadores, começando pelo anfitrião actual;
 - escolha manual da letra pelo comandante corrente;
 - bloqueio de letras já utilizadas;
 - início sincronizado das rodadas;
@@ -27,6 +29,7 @@ O projecto já possui um MVP online jogável:
 - validação automática através de um léxico local por categoria;
 - identificação de respostas duvidosas;
 - votação sincronizada das respostas duvidosas pelos restantes jogadores;
+- jogadores offline deixam de bloquear votações pendentes;
 - recálculo automático da pontuação após cada decisão;
 - bloqueio da próxima rodada enquanto existirem votações pendentes;
 - cálculo de `0`, `5`, `10` e `20` pontos;
@@ -51,7 +54,7 @@ actual é uma base inicial e pode ser expandido em `lib/game/word-validation.ts`
 2. Cria uma sala ou entra numa sala existente.
 3. No lobby, o anfitrião configura categorias e tempo.
 4. Outros jogadores entram através do código ou convite.
-5. O criador, primeiro comandante, escolhe uma letra ainda não utilizada.
+5. O anfitrião, primeiro comandante activo, escolhe uma letra ainda não utilizada.
 6. A escolha inicia a rodada e o relógio para todos.
 7. Todos preenchem as respostas antes do tempo terminar.
 8. O comandante corrente pode gritar STOP e encerrar a rodada para todos.
@@ -59,7 +62,7 @@ actual é uma base inicial e pode ser expandido em `lib/game/word-validation.ts`
 10. Os restantes jogadores votam nas respostas duvidosas.
 11. A pontuação e a classificação são recalculadas após cada decisão.
 12. O comando passa ao jogador seguinte, que escolhe uma nova letra.
-13. A partida termina depois de todos os jogadores comandarem uma rodada.
+13. A partida termina depois de completar uma rodada por jogador inicial.
 
 ## Testar localmente
 
@@ -76,7 +79,7 @@ Depois:
 2. Escreve um nome e cria uma sala.
 3. Copia o convite no lobby.
 4. Abre o convite noutra aba e entra com outro nome.
-5. Como criador, prepara a partida e escolhe a primeira letra.
+5. Como anfitrião, prepara a partida e escolhe a primeira letra.
 
 As salas sincronizam imediatamente jogadores, configurações, STOP, resultados,
 votos e mudanças de rodada através de Server-Sent Events. As respostas ficam
@@ -95,6 +98,11 @@ O backend utiliza Route Handlers do Next.js e SQLite nativo do Node:
 - a identidade do jogador é guardada em `sessionStorage`;
 - o servidor publica notificações SSE imediatamente após cada alteração visível;
 - o cliente recupera automaticamente o estado ao reconectar;
+- cada sessão envia um heartbeat autenticado e fica offline após `35` segundos
+  sem actividade;
+- a janela de presença permite actualizar a página sem perder o comando;
+- se o anfitrião ou comandante ficar offline, a liderança passa ao próximo
+  jogador online sem devolver o controlo automaticamente ao reconectar;
 - cada sala suporta até `19` jogadores, um por letra jogável;
 - dispositivos e navegadores diferentes conseguem jogar através do mesmo servidor;
 - actualizar a página mantém a sala e a sessão da aba;
@@ -110,6 +118,7 @@ de base de dados partilhado.
 - `GET /api/rooms/[code]` — carrega o estado público da sala;
 - `POST /api/rooms/[code]/join` — adiciona um jogador;
 - `POST /api/rooms/[code]/actions` — executa acções autenticadas da partida.
+- `POST /api/rooms/[code]/presence` — actualiza presença e reconcilia liderança;
 - `GET /api/rooms/[code]/events` — mantém o canal SSE realtime da sala.
 
 As acções incluem configuração, início, escolha da letra, respostas, STOP,
@@ -135,15 +144,16 @@ O esquema é criado automaticamente ao iniciar a primeira operação:
 - `+5` — resposta repetida por dois ou mais jogadores.
 
 Jogadores não podem votar nas próprias respostas. A votação termina quando
-todos os jogadores elegíveis votam; a maioria aprova e um empate rejeita a
-resposta. Quando não existe nenhum jogador elegível, a resposta é aprovada
+todos os jogadores online elegíveis votam; a maioria aprova e um empate rejeita
+a resposta. Quando não existe nenhum jogador elegível, a resposta é aprovada
 automaticamente para não bloquear a partida.
 
 ## Comandantes e letras
 
-- o criador da sala é o primeiro comandante;
+- o criador da sala é o primeiro comandante enquanto permanecer online;
 - a ordem seguinte respeita a ordem de entrada na sala;
-- cada jogador comanda exactamente uma rodada;
+- cada jogador online comanda uma rodada sempre que a ordem permitir;
+- jogadores offline são movidos na ordem ou substituídos por alguém online;
 - o comandante escolhe a letra e controla o botão STOP;
 - uma letra utilizada deixa de estar disponível durante a partida;
 - o número de rodadas é igual ao número de jogadores presentes ao iniciar.
@@ -209,7 +219,7 @@ está em `components/brand/logo.tsx`.
 ```bash
 npm run dev       # servidor de desenvolvimento
 npm run lint      # ESLint
-npm run build     # build de produção com Turbopack
+npm run build     # build de produção com Webpack
 npm run start     # executar o build de produção
 npx tsc --noEmit  # validação TypeScript
 ```
@@ -218,11 +228,11 @@ npx tsc --noEmit  # validação TypeScript
 
 Evoluir o MVP online:
 
-1. adicionar presença online/offline e transferência do comandante;
+1. criar testes automatizados das regras, API e fluxos multiplayer;
 2. migrar SQLite e o broker SSE antes de usar múltiplas instâncias;
 3. substituir o léxico inicial por um serviço de validação expansível;
 4. criar histórico consultável de partidas e classificação;
-5. suportar reconexão e mudança de anfitrião;
+5. permitir recuperar uma sessão noutro dispositivo;
 6. adicionar autenticação opcional e perfis;
 7. publicar a primeira versão jogável entre dispositivos.
 

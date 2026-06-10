@@ -25,6 +25,7 @@ export function RoundRoom({
     (player) => player.id === round.commanderId,
   )!;
   const isCommander = commander.id === session.id;
+  const onlinePlayers = room.players.filter((player) => player.isOnline).length;
   const [answers, setAnswers] = useState<RoundAnswers>(
     round.answers[session.id] ?? {},
   );
@@ -94,7 +95,7 @@ export function RoundRoom({
         </div>
         <div className={styles.roundPlayers}>
           <UsersRound />
-          {room.players.length} {room.players.length === 1 ? "jogador" : "jogadores"}
+          {onlinePlayers} online de {room.players.length}
         </div>
       </header>
 

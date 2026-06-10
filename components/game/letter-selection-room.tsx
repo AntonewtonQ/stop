@@ -25,6 +25,7 @@ export function LetterSelectionRoom({
   )!;
   const isCommander = commander.id === session.id;
   const usedLetters = new Set(room.history.map((item) => item.letter));
+  const onlinePlayers = room.players.filter((player) => player.isOnline).length;
 
   async function selectLetter(letter: string) {
     if (!isCommander || usedLetters.has(letter)) return;
@@ -48,7 +49,8 @@ export function LetterSelectionRoom({
         </div>
         <div className={styles.roundPlayers}>
           <UsersRound />
-          Rodada {round.number} de {room.settings.roundsToPlay}
+          {onlinePlayers} online · Rodada {round.number} de{" "}
+          {room.settings.roundsToPlay}
         </div>
       </header>
 

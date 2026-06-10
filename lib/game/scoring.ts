@@ -22,7 +22,10 @@ function resolveChallenge(
   players: Player[],
 ): AnswerChallengeStatus {
   const eligibleVoterIds = players
-    .filter((player) => !challenge.playerIds.includes(player.id))
+    .filter(
+      (player) =>
+        player.isOnline && !challenge.playerIds.includes(player.id),
+    )
     .map((player) => player.id);
 
   if (eligibleVoterIds.length === 0) return "approved";

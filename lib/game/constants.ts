@@ -19,6 +19,9 @@ export const DEFAULT_CATEGORIES = [
 
 export const ROUND_DURATION_OPTIONS = [30, 45, 60, 90] as const;
 
+export const PRESENCE_HEARTBEAT_INTERVAL = 10_000;
+export const PRESENCE_OFFLINE_AFTER = 35_000;
+
 export const PLAYER_COLORS = [
   "#0F2D3D",
   "#F0B24A",

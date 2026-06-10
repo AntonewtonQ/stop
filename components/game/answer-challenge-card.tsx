@@ -27,7 +27,8 @@ export function AnswerChallengeCard({
     .map((player) => player.name)
     .join(", ");
   const eligibleVoters = players.filter(
-    (player) => !challenge.playerIds.includes(player.id),
+    (player) =>
+      player.isOnline && !challenge.playerIds.includes(player.id),
   );
   const canVote =
     challenge.status === "pending" &&

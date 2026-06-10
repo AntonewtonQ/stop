@@ -155,6 +155,20 @@ export function restartGame(code: string) {
   return sendAction(code, "restart-game");
 }
 
+export function syncPlayerPresence(
+  code: string,
+  online = true,
+) {
+  const normalizedCode = normalizeRoomCode(code);
+  return requestRoom(`/api/rooms/${normalizedCode}/presence`, {
+    method: "POST",
+    body: JSON.stringify({
+      actor: getActor(normalizedCode),
+      online,
+    }),
+  });
+}
+
 export function savePlayerSession(session: PlayerSession) {
   window.sessionStorage.setItem(
     `${SESSION_PREFIX}${session.roomCode}`,

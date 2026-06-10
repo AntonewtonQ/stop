@@ -11,6 +11,8 @@ export type Player = {
   initials: string;
   color: string;
   isHost: boolean;
+  isOnline: boolean;
+  lastSeenAt: number;
   joinedAt: number;
 };
 

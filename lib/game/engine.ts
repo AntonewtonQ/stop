@@ -90,6 +90,11 @@ export function normalizeRoom(room: Room): Room {
 
   return {
     ...room,
+    players: room.players.map((player) => ({
+      ...player,
+      isOnline: player.isOnline ?? true,
+      lastSeenAt: player.lastSeenAt ?? player.joinedAt,
+    })),
     status: room.status ?? "lobby",
     commanderOrder,
     settings: {
@@ -141,13 +146,17 @@ export function createPlayerSession(name: string, roomCode: string): PlayerSessi
 }
 
 function asRoomPlayer(session: PlayerSession, isHost: boolean): Player {
+  const now = Date.now();
+
   return {
     id: session.id,
     name: session.name,
     initials: session.initials,
     color: session.color,
     isHost,
-    joinedAt: Date.now(),
+    isOnline: true,
+    lastSeenAt: now,
+    joinedAt: now,
   };
 }
 
@@ -218,7 +227,12 @@ export function updateRoomSettings(
 export function startFirstRound(room: Room, requesterId: string) {
   if (room.hostId !== requesterId || room.status !== "lobby") return room;
 
-  const commanderOrder = room.players.map((player) => player.id);
+  const commanderOrder = [
+    room.hostId,
+    ...room.players
+      .filter((player) => player.id !== room.hostId)
+      .map((player) => player.id),
+  ];
   const preparedRoom = {
     ...room,
     commanderOrder,
@@ -329,7 +343,7 @@ export function castAnswerVote(
   const challenge = room.round.result.challenges[challengeId];
   const canVote =
     challenge?.status === "pending" &&
-    room.players.some((player) => player.id === voterId) &&
+    room.players.some((player) => player.id === voterId && player.isOnline) &&
     !challenge.playerIds.includes(voterId);
 
   if (!canVote) return room;
@@ -402,4 +416,132 @@ export function restartGame(room: Room, requesterId: string) {
     commanderOrder: [],
     settings: { ...room.settings, roundsToPlay: room.players.length },
   };
+}
+
+function replaceRoundCommander(room: Room, commanderId: string) {
+  if (!room.round || room.round.commanderId === commanderId) return room;
+
+  const round = { ...room.round, commanderId };
+  return {
+    ...room,
+    round,
+    history: room.history.map((item) =>
+      item.number === round.number ? { ...item, commanderId } : item,
+    ),
+  };
+}
+
+function transferCommanderAt(room: Room, targetIndex: number) {
+  const currentCommanderId = room.commanderOrder[targetIndex];
+  const currentCommander = room.players.find(
+    (player) => player.id === currentCommanderId,
+  );
+  if (currentCommander?.isOnline) return room;
+
+  const candidateId = [
+    ...room.commanderOrder.slice(targetIndex + 1),
+    ...room.commanderOrder.slice(0, targetIndex),
+  ].find((playerId) =>
+    room.players.some((player) => player.id === playerId && player.isOnline),
+  );
+  if (!candidateId) return room;
+
+  const candidateIndex = room.commanderOrder.indexOf(candidateId);
+  const commanderOrder = [...room.commanderOrder];
+  commanderOrder[targetIndex] = candidateId;
+  if (candidateIndex >= 0) {
+    commanderOrder[candidateIndex] = currentCommanderId;
+  }
+
+  return { ...room, commanderOrder };
+}
+
+function transferHost(room: Room) {
+  const host = room.players.find((player) => player.id === room.hostId);
+  if (host?.isOnline) return room;
+
+  const nextHost = room.players.find((player) => player.isOnline);
+  if (!nextHost) return room;
+
+  return {
+    ...room,
+    hostId: nextHost.id,
+    players: room.players.map((player) => ({
+      ...player,
+      isHost: player.id === nextHost.id,
+    })),
+  };
+}
+
+function recalculatePendingVotes(room: Room) {
+  if (
+    room.status !== "results" ||
+    !room.round?.result ||
+    room.round.result.votingComplete
+  ) {
+    return room;
+  }
+
+  const result = scoreRound({
+    players: room.players,
+    categories: room.settings.categories,
+    letter: room.round.letter,
+    answers: room.round.answers,
+    stoppedBy: room.round.result.stoppedBy,
+    endedAt: room.round.result.endedAt,
+    existingChallenges: room.round.result.challenges,
+  });
+  const resultChanged =
+    result.votingComplete !== room.round.result.votingComplete ||
+    Object.values(result.challenges).some(
+      (challenge) =>
+        challenge.status !==
+        room.round?.result?.challenges[challenge.id]?.status,
+    );
+  if (!resultChanged) return room;
+
+  const round = { ...room.round, result };
+
+  return {
+    ...room,
+    round,
+    history: room.history.map((item) =>
+      item.number === round.number ? round : item,
+    ),
+  };
+}
+
+export function reconcileRoomPresence(room: Room) {
+  if (!room.players.some((player) => player.isOnline)) return room;
+
+  let nextRoom = transferHost(room);
+
+  if (
+    (nextRoom.status === "letter-selection" || nextRoom.status === "round") &&
+    nextRoom.round
+  ) {
+    const targetIndex = nextRoom.round.number - 1;
+    nextRoom = transferCommanderAt(nextRoom, targetIndex);
+    nextRoom = replaceRoundCommander(
+      nextRoom,
+      nextRoom.commanderOrder[targetIndex],
+    );
+  } else if (nextRoom.status === "results" && nextRoom.round) {
+    const isLastRound =
+      nextRoom.round.number >= nextRoom.settings.roundsToPlay;
+    const targetIndex = isLastRound
+      ? nextRoom.round.number - 1
+      : nextRoom.round.number;
+
+    nextRoom = transferCommanderAt(nextRoom, targetIndex);
+    if (isLastRound) {
+      nextRoom = replaceRoundCommander(
+        nextRoom,
+        nextRoom.commanderOrder[targetIndex],
+      );
+    }
+    nextRoom = recalculatePendingVotes(nextRoom);
+  }
+
+  return nextRoom;
 }

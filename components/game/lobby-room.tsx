@@ -137,7 +137,7 @@ export function LobbyRoom({
             <Settings2 />
             <div>
               <span>Configuração</span>
-              <strong>{isHost ? "Tu configuras" : "Definida pelo criador"}</strong>
+              <strong>{isHost ? "Tu configuras" : "Definida pelo anfitrião"}</strong>
             </div>
           </div>
 
@@ -177,7 +177,7 @@ export function LobbyRoom({
                 {room.players.length} jogador{room.players.length === 1 ? "" : "es"},{" "}
                 {room.players.length} rodada{room.players.length === 1 ? "" : "s"}
               </strong>
-              <small>O criador começa e cada jogador comanda uma vez.</small>
+              <small>O anfitrião começa e cada jogador comanda uma vez.</small>
             </div>
           </div>
 
@@ -213,7 +213,7 @@ export function LobbyRoom({
           ) : (
             <div className={styles.waitingHost}>
               <span />
-              Aguardando o criador preparar...
+              Aguardando o anfitrião preparar...
             </div>
           )}
 

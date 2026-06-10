@@ -52,6 +52,7 @@ export function ResultsRoom({
     (player) => player.id === nextCommanderId,
   );
   const challenges = Object.values(result.challenges);
+  const onlinePlayers = room.players.filter((player) => player.isOnline).length;
   const pendingChallenges = challenges.filter(
     (challenge) => challenge.status === "pending",
   );
@@ -120,7 +121,8 @@ export function ResultsRoom({
           <strong>{room.code}</strong>
         </div>
         <div className={styles.resultsRoundLabel}>
-          Rodada {round.number} de {room.settings.roundsToPlay}
+          {onlinePlayers} online · Rodada {round.number} de{" "}
+          {room.settings.roundsToPlay}
         </div>
       </header>
 

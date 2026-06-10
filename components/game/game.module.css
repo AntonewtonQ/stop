@@ -187,13 +187,36 @@
   font-weight: 850;
 }
 
-.onlineDot {
-  width: 0.6rem;
-  height: 0.6rem;
-  margin-right: 0.5rem;
+.playerPresence {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 0.55rem;
+}
+
+.presenceStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--brand-muted);
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.presenceStatus i {
+  width: 0.55rem;
+  height: 0.55rem;
   border-radius: 50%;
+}
+
+.presenceStatusOnline i {
   background: #2aa876;
   box-shadow: 0 0 0 0.25rem rgb(42 168 118 / 12%);
+}
+
+.presenceStatusOffline i {
+  background: #9aa6ac;
+  box-shadow: 0 0 0 0.25rem rgb(154 166 172 / 12%);
 }
 
 .inviteCallout {
@@ -1636,8 +1659,12 @@
     grid-template-columns: auto 1fr;
   }
 
-  .hostBadge,
-  .onlineDot {
+  .hostBadge {
     display: none;
+  }
+
+  .playerPresence {
+    grid-column: 2;
+    justify-content: start;
   }
 }

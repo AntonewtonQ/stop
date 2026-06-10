@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { PRESENCE_HEARTBEAT_INTERVAL } from "./constants";
 import {
   readPlayerSession,
   readRoom,
+  syncPlayerPresence,
 } from "./storage";
 import type { PlayerSession, Room } from "./types";
 
@@ -76,6 +78,34 @@ export function useRoom(code: string) {
       events.removeEventListener("room-updated", handleRealtimeUpdate);
     };
   }, [refresh, room?.code]);
+
+  useEffect(() => {
+    if (!room?.code || !session) return;
+
+    const roomCode = room.code;
+
+    function markOnline() {
+      void syncPlayerPresence(roomCode).catch(() => {
+        // The next heartbeat or reconnect will restore presence.
+      });
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") markOnline();
+    }
+
+    markOnline();
+    const heartbeat = window.setInterval(
+      markOnline,
+      PRESENCE_HEARTBEAT_INTERVAL,
+    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(heartbeat);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [room?.code, session]);
 
   return { room, session, isLoading, refresh };
 }

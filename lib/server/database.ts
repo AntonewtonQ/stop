@@ -41,6 +41,8 @@ export function getDatabase() {
       initials TEXT NOT NULL,
       color TEXT NOT NULL,
       is_host INTEGER NOT NULL,
+      is_online INTEGER NOT NULL DEFAULT 0,
+      last_seen_at INTEGER NOT NULL DEFAULT 0,
       joined_at INTEGER NOT NULL,
       position INTEGER NOT NULL,
       UNIQUE(room_code, position)
@@ -104,6 +106,28 @@ export function getDatabase() {
     CREATE INDEX IF NOT EXISTS answers_round_idx ON answers(room_code, round_number);
     CREATE INDEX IF NOT EXISTS votes_round_idx ON votes(room_code, round_number);
   `);
+
+  const playerColumns = new Set(
+    (
+      database.prepare("PRAGMA table_info(players)").all() as Array<{
+        name: string;
+      }>
+    ).map((column) => column.name),
+  );
+
+  if (!playerColumns.has("is_online")) {
+    database.exec(
+      "ALTER TABLE players ADD COLUMN is_online INTEGER NOT NULL DEFAULT 0",
+    );
+  }
+  if (!playerColumns.has("last_seen_at")) {
+    database.exec(
+      "ALTER TABLE players ADD COLUMN last_seen_at INTEGER NOT NULL DEFAULT 0",
+    );
+    database.exec(
+      "UPDATE players SET last_seen_at = joined_at WHERE last_seen_at = 0",
+    );
+  }
 
   globalDatabase.stopDatabase = database;
   return database;

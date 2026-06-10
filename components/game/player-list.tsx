@@ -31,18 +31,28 @@ export function PlayerList({
             </strong>
             <span>
               {player.isHost
-                ? "Criador e primeiro comandante"
+                ? "Anfitrião atual e comandante"
                 : "Comandará uma rodada"}
             </span>
           </div>
-          {player.isHost ? (
-            <Badge className={styles.hostBadge}>
-              <Crown />
-              Anfitrião
-            </Badge>
-          ) : (
-            <span className={styles.onlineDot} aria-label="Online" />
-          )}
+          <div className={styles.playerPresence}>
+            {player.isHost && (
+              <Badge className={styles.hostBadge}>
+                <Crown />
+                Anfitrião
+              </Badge>
+            )}
+            <span
+              className={`${styles.presenceStatus} ${
+                player.isOnline
+                  ? styles.presenceStatusOnline
+                  : styles.presenceStatusOffline
+              }`}
+            >
+              <i aria-hidden />
+              {player.isOnline ? "Online" : "Offline"}
+            </span>
+          </div>
         </article>
       ))}
     </div>
