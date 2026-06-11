@@ -4,6 +4,7 @@ import { HowToSection } from "@/components/landing/how-to-section";
 import { ScoringSection } from "@/components/landing/scoring-section";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <ScoringSection />
       <HowToSection />
       <SiteFooter />
+      <InstallPrompt />
     </main>
   );
 }

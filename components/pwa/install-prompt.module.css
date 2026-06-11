@@ -1,0 +1,95 @@
+.prompt {
+  position: fixed;
+  z-index: 115;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: max(1rem, env(safe-area-inset-left));
+  display: grid;
+  width: min(calc(100% - 2rem), 24rem);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid rgb(240 178 74 / 35%);
+  border-radius: 1.1rem;
+  background: rgb(15 45 61 / 97%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 24%);
+  color: white;
+  backdrop-filter: blur(14px);
+}
+
+.icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--amber);
+  color: var(--petroleum);
+}
+
+.icon svg {
+  width: 1.15rem;
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.copy strong {
+  font-size: 0.72rem;
+}
+
+.copy span {
+  color: rgb(255 255 255 / 64%);
+  font-size: 0.58rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.installButton {
+  min-height: 2.2rem;
+  background: var(--amber);
+  color: var(--petroleum);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.installButton:hover {
+  background: var(--amber-light);
+  color: var(--petroleum);
+}
+
+.dismissButton {
+  color: rgb(255 255 255 / 65%);
+}
+
+@media (max-width: 640px) {
+  .prompt {
+    right: 0.8rem;
+    bottom: calc(4.4rem + env(safe-area-inset-bottom));
+    left: 0.8rem;
+    width: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .prompt {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+  }
+
+  .installButton {
+    flex: 1;
+  }
+}

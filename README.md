@@ -10,6 +10,10 @@ O projecto já possui um MVP online jogável:
 
 - landing page responsiva alinhada à identidade visual;
 - interface disponível em português, inglês e francês;
+- PWA instalável em Android, iPhone e computadores compatíveis;
+- manifesto, ícones próprios e modo standalone;
+- service worker com cache da interface e fallback offline;
+- aviso de instalação adaptado para Android e iPhone;
 - idioma escolhido individualmente e persistido no navegador;
 - identificação do jogador pelo nome;
 - criação de salas com código único;
@@ -100,6 +104,22 @@ votos e mudanças de rodada através de Server-Sent Events. As respostas ficam
 privadas durante o relógio e são sincronizadas com os resultados após o STOP.
 Para testar entre dispositivos, abre o endereço de rede apresentado pelo
 `npm run dev`.
+
+## Instalar no telemóvel
+
+Em produção, o `stop.ao` pode ser instalado como aplicação:
+
+- no Android/Chrome, usa o botão **Instalar** apresentado pela aplicação ou a
+  opção **Instalar aplicação** do navegador;
+- no iPhone/Safari, toca em **Partilhar** e depois em
+  **Adicionar ao ecrã principal**;
+- depois da instalação, o jogo abre em modo standalone, sem a barra do
+  navegador.
+
+O service worker guarda apenas a interface pública e recursos estáticos. As
+APIs, salas e respostas nunca são guardadas em cache, preservando o estado
+realtime da partida. Quando não existe ligação, a interface instalada abre e
+mostra o estado de reconexão até a internet voltar.
 
 ## Backend e persistência
 

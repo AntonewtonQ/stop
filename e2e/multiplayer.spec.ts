@@ -187,3 +187,69 @@ test("mantém acções e controlos flutuantes separados em ecrãs compactos", as
   expect(resumeRoom).not.toBeNull();
   expect(resumeRoom!.y).toBeGreaterThan(createRoom!.y + createRoom!.height + 8);
 });
+
+test("expõe PWA instalável e regista o service worker", async ({
+  page,
+  request,
+}) => {
+  const manifestResponse = await request.get("/manifest.webmanifest");
+  const manifest = (await manifestResponse.json()) as {
+    name: string;
+    short_name: string;
+    display: string;
+    icons: Array<{ src: string; sizes: string; purpose: string }>;
+  };
+
+  expect(manifestResponse.ok()).toBe(true);
+  expect(manifest).toMatchObject({
+    name: "stop.ao - Jogo Stop Online",
+    short_name: "stop.ao",
+    display: "standalone",
+  });
+  expect(manifest.icons).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ sizes: "192x192" }),
+      expect.objectContaining({ sizes: "512x512", purpose: "maskable" }),
+    ]),
+  );
+
+  const workerResponse = await request.get("/sw.js");
+  expect(workerResponse.ok()).toBe(true);
+  expect(workerResponse.headers()["cache-control"]).toContain("no-cache");
+  expect(workerResponse.headers()["service-worker-allowed"]).toBe("/");
+
+  await page.goto("/");
+  const workerUrl = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    return registration.active?.scriptURL;
+  });
+  expect(workerUrl).toContain("/sw.js");
+
+  await page.evaluate(() => {
+    const installEvent = new Event("beforeinstallprompt", { cancelable: true });
+    Object.defineProperties(installEvent, {
+      prompt: {
+        value: async () => {
+          window.sessionStorage.setItem("test:pwa-prompted", "1");
+        },
+      },
+      userChoice: {
+        value: Promise.resolve({ outcome: "accepted", platform: "web" }),
+      },
+    });
+    window.dispatchEvent(installEvent);
+  });
+
+  await page.getByRole("button", { name: "Instalar", exact: true }).click();
+  expect(await page.evaluate(() => sessionStorage.getItem("test:pwa-prompted"))).toBe(
+    "1",
+  );
+
+  await expect
+    .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+    .toBe(true);
+  await page.context().setOffline(true);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /Pensa rápido/ })).toBeVisible();
+  await page.context().setOffline(false);
+});
