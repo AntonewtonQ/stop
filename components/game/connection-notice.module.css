@@ -8,9 +8,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.7rem 0.8rem;
-  border: 1px solid rgb(240 178 74 / 45%);
+  border: 1px solid rgb(var(--accent-rgb) / 45%);
   border-radius: 1rem;
-  background: rgb(15 45 61 / 96%);
+  background: rgb(var(--primary-rgb) / 96%);
   box-shadow: 0 1rem 3rem rgb(0 0 0 / 24%);
   color: white;
   transform: translateX(-50%);

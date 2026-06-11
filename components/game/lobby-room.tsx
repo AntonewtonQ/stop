@@ -28,6 +28,7 @@ import {
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import { PlayerList } from "./player-list";
+import { ThemePicker } from "./theme-picker";
 import styles from "./game.module.css";
 
 export function LobbyRoom({
@@ -218,6 +219,10 @@ export function LobbyRoom({
               </strong>
               <small>{t("lobby.commandRule")}</small>
             </div>
+          </div>
+
+          <div className={styles.settingGroup}>
+            <ThemePicker />
           </div>
 
           <div className={styles.settingGroup}>

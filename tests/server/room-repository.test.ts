@@ -34,11 +34,38 @@ describe("RoomRepository", () => {
       .get(code) as { session_token: string };
 
     expect(getRoom(code)?.players[0].name).toBe("Ana");
+    expect(getRoom(code)?.players[0].avatarId).toBe("spark");
     expect(row.session_token).not.toBe(sessions[0].token);
     expect(row.session_token).toHaveLength(64);
     expect(() =>
       authenticatePlayer(code, sessions[0].id, "token-errado"),
     ).toThrowError(RoomRepositoryError);
+  });
+
+  it("migra e normaliza avatares de jogadores guardados", () => {
+    const { code, room, sessions } = makeRoomWithPlayers(["Ana"]);
+    const withAvatar = {
+      ...room,
+      players: [{ ...room.players[0], avatarId: "rocket" as const }],
+    };
+    createStoredRoom(withAvatar, sessions[0].token);
+
+    expect(getRoom(code)?.players[0].avatarId).toBe("rocket");
+    expect(
+      getDatabase()
+        .prepare("SELECT avatar_id FROM players WHERE room_code = ?")
+        .get(code),
+    ).toEqual({ avatar_id: "rocket" });
+  });
+
+  it("normaliza cores de perfil antigas fora da paleta", () => {
+    const { code, room, sessions } = makeRoomWithPlayers(["Ana"]);
+    createStoredRoom(room, sessions[0].token);
+    getDatabase()
+      .prepare("UPDATE players SET color = ? WHERE room_code = ?")
+      .run("invalid", code);
+
+    expect(getRoom(code)?.players[0].color).toBe("#0F2D3D");
   });
 
   it("persiste entrada, rodada e respostas em transações", () => {

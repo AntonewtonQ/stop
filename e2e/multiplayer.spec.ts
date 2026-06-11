@@ -10,15 +10,33 @@ test("dois jogadores entram e completam uma rodada sincronizada", async ({
 
   await host.goto("/");
   await host.getByLabel("Qual é o teu nome?").fill("Ana");
+  await host.getByRole("button", { name: "Foguete" }).click();
+  await host.getByRole("button", { name: "Coral" }).click();
+  await host.getByRole("button", { name: "Atlântico" }).click();
+  await expect(host.locator("html")).toHaveAttribute("data-theme", "atlantic");
   await host.getByRole("button", { name: "Criar uma sala" }).click();
   await expect(host).toHaveURL(/\/sala\/[A-Z0-9]{5}$/);
   const code = host.url().split("/").at(-1)!;
 
   await guest.goto(`/sala/${code}`);
   await guest.getByLabel("O teu nome").fill("Beto");
+  await guest.getByRole("button", { name: "Coroa" }).click();
   await guest.getByRole("button", { name: "Entrar na sala" }).click();
   await expect(guest).toHaveURL(new RegExp(`/sala/${code}$`));
   await expect(host.getByText("Beto", { exact: true })).toBeVisible();
+  await expect(host.locator('[data-avatar-id="rocket"]').first()).toBeVisible();
+  await expect(host.locator('[data-avatar-id="crown"]').first()).toBeVisible();
+  expect(
+    await host.evaluate((roomCode) => {
+      const session = JSON.parse(
+        localStorage.getItem(`stop.ao:player:${roomCode}`) ?? "{}",
+      ) as { color?: string };
+      return session.color;
+    }, code),
+  ).toBe("#D96C4D");
+  expect(await host.evaluate(() => localStorage.getItem("stop.ao:theme"))).toBe(
+    "atlantic",
+  );
 
   await expect(host.getByText("Tu decides", { exact: true })).toBeVisible();
   await host.getByRole("button", { name: "Preparar primeira rodada" }).click();
@@ -75,6 +93,7 @@ test("recupera a partida após fechar e reabrir o navegador", async ({
 
   await page.goto("/");
   await page.getByLabel("Qual é o teu nome?").fill("Dina");
+  await page.getByRole("button", { name: "Chama" }).click();
   await page.getByRole("button", { name: "Criar uma sala" }).click();
   await expect(page).toHaveURL(/\/sala\/[A-Z0-9]{5}$/);
   const code = page.url().split("/").at(-1)!;
@@ -88,6 +107,7 @@ test("recupera a partida após fechar e reabrir o navegador", async ({
   const reopened = await context.newPage();
   await reopened.goto(`/sala/${code}`);
   await expect(reopened.getByText("Tu decides", { exact: true })).toBeVisible();
+  await expect(reopened.locator('[data-avatar-id="flame"]').first()).toBeVisible();
   await expect(reopened.getByLabel("O teu nome")).toHaveCount(0);
 
   await context.setOffline(true);

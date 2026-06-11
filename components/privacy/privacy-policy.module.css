@@ -2,8 +2,8 @@
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 8% 8%, rgb(240 178 74 / 20%), transparent 23rem),
-    radial-gradient(circle at 95% 35%, rgb(15 45 61 / 9%), transparent 27rem),
+    radial-gradient(circle at 8% 8%, rgb(var(--accent-rgb) / 20%), transparent 23rem),
+    radial-gradient(circle at 95% 35%, rgb(var(--primary-rgb) / 9%), transparent 27rem),
     linear-gradient(180deg, #fffefa 0%, #f7faf9 100%);
   color: var(--petroleum);
 }
@@ -33,7 +33,7 @@
 .backButton {
   min-height: 2.6rem;
   padding: 0 1rem;
-  border-color: rgb(15 45 61 / 14%);
+  border-color: rgb(var(--primary-rgb) / 14%);
   border-radius: 0.8rem;
   background: rgb(255 255 255 / 76%);
   color: var(--petroleum);
@@ -49,9 +49,9 @@
   height: auto;
   gap: 0.45rem;
   padding: 0.5rem 0.75rem;
-  border-color: rgb(15 45 61 / 10%);
+  border-color: rgb(var(--primary-rgb) / 10%);
   background: rgb(255 255 255 / 70%);
-  box-shadow: 0 0.7rem 2rem rgb(15 45 61 / 6%);
+  box-shadow: 0 0.7rem 2rem rgb(var(--primary-rgb) / 6%);
   color: var(--petroleum);
   font-size: 0.68rem;
   font-weight: 850;
@@ -100,10 +100,10 @@
 
 .overview article {
   padding: 1.5rem;
-  border: 1px solid rgb(15 45 61 / 10%);
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
   border-radius: 1.35rem;
   background: rgb(255 255 255 / 82%);
-  box-shadow: 0 1rem 2.5rem rgb(15 45 61 / 6%);
+  box-shadow: 0 1rem 2.5rem rgb(var(--primary-rgb) / 6%);
 }
 
 .overview article > div {
@@ -146,7 +146,7 @@
   position: sticky;
   top: 2rem;
   padding: 1.3rem;
-  border: 1px solid rgb(15 45 61 / 9%);
+  border: 1px solid rgb(var(--primary-rgb) / 9%);
   border-radius: 1.2rem;
   background: rgb(255 255 255 / 78%);
 }
@@ -186,9 +186,9 @@
   gap: 1rem;
   margin-bottom: 2.8rem;
   padding: 1.25rem;
-  border: 1px solid rgb(240 178 74 / 34%);
+  border: 1px solid rgb(var(--accent-rgb) / 34%);
   border-radius: 1.2rem;
-  background: rgb(240 178 74 / 13%);
+  background: rgb(var(--accent-rgb) / 13%);
 }
 
 .note > svg {
@@ -218,7 +218,7 @@
 
 .policy section + section {
   padding-top: 2.8rem;
-  border-top: 1px solid rgb(15 45 61 / 9%);
+  border-top: 1px solid rgb(var(--primary-rgb) / 9%);
 }
 
 .policy h2 {

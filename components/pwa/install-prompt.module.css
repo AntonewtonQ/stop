@@ -9,9 +9,9 @@
   gap: 0.75rem;
   align-items: center;
   padding: 0.8rem;
-  border: 1px solid rgb(240 178 74 / 35%);
+  border: 1px solid rgb(var(--accent-rgb) / 35%);
   border-radius: 1.1rem;
-  background: rgb(15 45 61 / 97%);
+  background: rgb(var(--primary-rgb) / 97%);
   box-shadow: 0 1rem 3rem rgb(0 0 0 / 24%);
   color: white;
   backdrop-filter: blur(14px);

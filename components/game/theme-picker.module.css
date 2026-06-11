@@ -1,0 +1,106 @@
+.picker {
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.picker legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+  color: var(--brand-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.picker legend svg {
+  width: 0.9rem;
+}
+
+.picker > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.picker button {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  justify-items: center;
+  padding: 0.45rem 0.3rem;
+  border: 2px solid transparent;
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 62%);
+  color: var(--brand-muted);
+  font-size: 0.55rem;
+  font-weight: 800;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.picker button:hover {
+  background: rgb(255 255 255 / 90%);
+  transform: translateY(-2px);
+}
+
+.picker button[aria-pressed="true"] {
+  border-color: var(--amber);
+  background: white;
+  color: var(--petroleum);
+}
+
+.picker button > span {
+  display: grid;
+  width: 100%;
+  height: 1.35rem;
+  grid-template-columns: 1fr 0.55fr;
+  overflow: hidden;
+  border-radius: 0.45rem;
+  background: #0f2d3d;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 16%);
+}
+
+.picker button i:first-child {
+  background: #0f2d3d;
+}
+
+.picker button i:last-child {
+  background: #f0b24a;
+}
+
+.picker button[data-theme-preview="atlantic"] i:first-child {
+  background: #06384b;
+}
+
+.picker button[data-theme-preview="atlantic"] i:last-child {
+  background: #27b8aa;
+}
+
+.picker button[data-theme-preview="kizomba"] i:first-child {
+  background: #4b2435;
+}
+
+.picker button[data-theme-preview="kizomba"] i:last-child {
+  background: #ef8453;
+}
+
+.picker button[data-theme-preview="neon"] i:first-child {
+  background: #29264e;
+}
+
+.picker button[data-theme-preview="neon"] i:last-child {
+  background: #9b80f7;
+}
+
+@media (max-width: 420px) {
+  .picker > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

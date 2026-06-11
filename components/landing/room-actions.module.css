@@ -31,7 +31,7 @@
 .nameField input {
   min-height: 3.25rem;
   padding-left: 2.7rem;
-  border: 1px solid rgb(15 45 61 / 16%);
+  border: 1px solid rgb(var(--primary-rgb) / 16%);
   border-radius: 0.9rem;
   background: rgb(255 255 255 / 75%);
   color: var(--petroleum);
@@ -56,7 +56,7 @@
   border: 0;
   border-radius: 1rem;
   background: var(--amber);
-  box-shadow: 0 0.65rem 0 #c9810f, 0 1rem 2rem rgb(15 45 61 / 16%);
+  box-shadow: 0 0.65rem 0 var(--amber-deep), 0 1rem 2rem rgb(var(--primary-rgb) / 16%);
   color: var(--petroleum);
   font-size: 1rem;
   font-weight: 850;
@@ -65,13 +65,13 @@
 
 .createButton:hover {
   background: var(--amber-light);
-  box-shadow: 0 0.5rem 0 #c9810f, 0 0.9rem 1.7rem rgb(15 45 61 / 18%);
+  box-shadow: 0 0.5rem 0 var(--amber-deep), 0 0.9rem 1.7rem rgb(var(--primary-rgb) / 18%);
   color: var(--petroleum);
   transform: translateY(0.15rem);
 }
 
 .createButton:active {
-  box-shadow: 0 0.2rem 0 #c9810f;
+  box-shadow: 0 0.2rem 0 var(--amber-deep);
   transform: translateY(0.45rem);
 }
 
@@ -80,7 +80,7 @@
   max-width: 100%;
   min-height: 2.65rem;
   margin-top: 1.35rem;
-  border-color: rgb(15 45 61 / 14%);
+  border-color: rgb(var(--primary-rgb) / 14%);
   border-radius: 0.8rem;
   background: rgb(255 255 255 / 78%);
   color: var(--petroleum);
@@ -88,8 +88,8 @@
 }
 
 .resumeButton:hover {
-  border-color: rgb(240 178 74 / 55%);
-  background: rgb(240 178 74 / 10%);
+  border-color: rgb(var(--accent-rgb) / 55%);
+  background: rgb(var(--accent-rgb) / 10%);
   color: var(--petroleum);
 }
 
@@ -107,7 +107,7 @@
 
 .dividerLine {
   flex: 1;
-  background: rgb(15 45 61 / 14%);
+  background: rgb(var(--primary-rgb) / 14%);
 }
 
 .joinForm {
@@ -120,7 +120,7 @@
   min-width: 0;
   min-height: 3.25rem;
   padding: 0 1rem;
-  border: 1px solid rgb(15 45 61 / 16%);
+  border: 1px solid rgb(var(--primary-rgb) / 16%);
   border-radius: 0.9rem;
   outline: 0;
   background: rgb(255 255 255 / 75%);
@@ -134,11 +134,11 @@
 
 .joinForm input:focus {
   border-color: var(--amber);
-  box-shadow: 0 0 0 4px rgb(240 178 74 / 18%);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 18%);
 }
 
 .joinForm input::placeholder {
-  color: rgb(15 45 61 / 35%);
+  color: rgb(var(--primary-rgb) / 35%);
   letter-spacing: 0.02em;
   text-transform: none;
 }

@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
 import { AnswerChallengeCard } from "@/components/game/answer-challenge-card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -201,11 +201,11 @@ export function ResultsRoom({
                     const score = result.players[player.id]?.answers[category];
                     return (
                       <div className={styles.resultAnswerRow} key={player.id}>
-                        <Avatar className={styles.resultAvatar}>
-                          <AvatarFallback style={{ background: player.color }}>
-                            {player.initials}
-                          </AvatarFallback>
-                        </Avatar>
+                        <PlayerAvatar
+                          avatarId={player.avatarId}
+                          className={styles.resultAvatar}
+                          color={player.color}
+                        />
                         <div>
                           <strong>{player.name}</strong>
                           <span>{score?.answer || t("common.noAnswer")}</span>
@@ -242,6 +242,11 @@ export function ResultsRoom({
             {ranking.map((player, index) => (
               <div className={styles.rankingRow} key={player.id}>
                 <span className={styles.rankingPosition}>{index + 1}</span>
+                <PlayerAvatar
+                  avatarId={player.avatarId}
+                  className={styles.rankingAvatar}
+                  color={player.color}
+                />
                 <div>
                   <strong>
                     {player.name}

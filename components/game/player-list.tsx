@@ -1,6 +1,6 @@
-import { Crown, UserRound } from "lucide-react";
+import { Crown } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import type { Player } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
@@ -19,14 +19,11 @@ export function PlayerList({
     <div className={styles.playerList}>
       {players.map((player) => (
         <article className={styles.playerCard} key={player.id}>
-          <Avatar className={styles.playerAvatar}>
-            <AvatarFallback
-              className={styles.playerAvatarFallback}
-              style={{ background: player.color }}
-            >
-              {player.initials || <UserRound />}
-            </AvatarFallback>
-          </Avatar>
+          <PlayerAvatar
+            avatarId={player.avatarId}
+            className={styles.playerAvatar}
+            color={player.color}
+          />
           <div>
             <strong>
               {player.name}

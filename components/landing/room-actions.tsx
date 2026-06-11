@@ -8,6 +8,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { AvatarPicker } from "@/components/game/avatar-picker";
+import { ProfileColorPicker } from "@/components/game/profile-color-picker";
+import { ThemePicker } from "@/components/game/theme-picker";
+import { DEFAULT_AVATAR_ID, type AvatarId } from "@/lib/game/avatars";
+import {
+  DEFAULT_PROFILE_COLOR,
+  type ProfileColor,
+} from "@/lib/game/profile-colors";
 import {
   createPlayerSession,
   createRoom,
@@ -26,6 +34,9 @@ export function RoomActions() {
   const { errorMessage, t } = useLanguage();
   const router = useRouter();
   const [playerName, setPlayerName] = useState("");
+  const [avatarId, setAvatarId] = useState<AvatarId>(DEFAULT_AVATAR_ID);
+  const [profileColor, setProfileColor] =
+    useState<ProfileColor>(DEFAULT_PROFILE_COLOR);
   const [roomCode, setRoomCode] = useState("");
   const [message, setMessage] = useState("");
   const [recentSession, setRecentSession] = useState<PlayerSession | null>(null);
@@ -53,7 +64,7 @@ export function RoomActions() {
     if (!name) return;
 
     const code = makeRoomCode();
-    const session = createPlayerSession(name, code);
+    const session = createPlayerSession(name, code, avatarId, profileColor);
 
     try {
       await createRoom(code, session);
@@ -105,7 +116,7 @@ export function RoomActions() {
       return;
     }
 
-    const session = createPlayerSession(name, code);
+    const session = createPlayerSession(name, code, avatarId, profileColor);
 
     try {
       await joinRoom(code, session);
@@ -135,6 +146,14 @@ export function RoomActions() {
           />
         </div>
       </label>
+
+      <AvatarPicker
+        value={avatarId}
+        color={profileColor}
+        onChange={setAvatarId}
+      />
+      <ProfileColorPicker value={profileColor} onChange={setProfileColor} />
+      <ThemePicker />
 
       <div className={styles.mainAction}>
         <Button className={styles.createButton} type="button" onClick={handleCreateRoom}>

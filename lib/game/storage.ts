@@ -5,6 +5,8 @@ import {
   makeRoomCode,
   normalizeRoomCode,
 } from "./engine";
+import { DEFAULT_AVATAR_ID, isAvatarId } from "./avatars";
+import { DEFAULT_PROFILE_COLOR, isProfileColor } from "./profile-colors";
 import type {
   AnswerVote,
   PlayerSession,
@@ -216,8 +218,16 @@ export function readPlayerSession(code: string): PlayerSession | null {
   try {
     const session = JSON.parse(rawSession) as PlayerSession;
     if (!session.token) return null;
+    session.avatarId = isAvatarId(session.avatarId)
+      ? session.avatarId
+      : DEFAULT_AVATAR_ID;
+    session.color = isProfileColor(session.color)
+      ? session.color
+      : DEFAULT_PROFILE_COLOR;
 
-    window.localStorage.setItem(key, rawSession);
+    const normalizedSession = JSON.stringify(session);
+    window.localStorage.setItem(key, normalizedSession);
+    window.sessionStorage.setItem(key, normalizedSession);
     window.localStorage.setItem(LAST_ROOM_KEY, session.roomCode);
     return session;
   } catch {

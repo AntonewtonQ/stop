@@ -7,6 +7,11 @@ import {
   reconcileRoomPresence,
 } from "@/lib/game/engine";
 import { PRESENCE_DISCONNECT_GRACE } from "@/lib/game/constants";
+import { DEFAULT_AVATAR_ID, isAvatarId } from "@/lib/game/avatars";
+import {
+  DEFAULT_PROFILE_COLOR,
+  isProfileColor,
+} from "@/lib/game/profile-colors";
 import type { PlayerSession, Room, RoundState } from "@/lib/game/types";
 import { getDatabase } from "./database";
 
@@ -27,6 +32,7 @@ type PlayerRow = {
   name: string;
   initials: string;
   color: string;
+  avatar_id: string;
   is_host: number;
   is_online: number;
   last_seen_at: number;
@@ -136,7 +142,12 @@ export function getRoom(code: string): Room | null {
       id: player.id,
       name: player.name,
       initials: player.initials,
-      color: player.color,
+      color: isProfileColor(player.color)
+        ? player.color
+        : DEFAULT_PROFILE_COLOR,
+      avatarId: isAvatarId(player.avatar_id)
+        ? player.avatar_id
+        : DEFAULT_AVATAR_ID,
       isHost: Boolean(player.is_host),
       isOnline: Boolean(player.is_online),
       lastSeenAt: player.last_seen_at,
@@ -197,9 +208,9 @@ function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {
   database.prepare("DELETE FROM players WHERE room_code = ?").run(room.code);
   const insertPlayer = database.prepare(`
     INSERT INTO players (
-      id, room_code, session_token, name, initials, color, is_host, is_online,
-      last_seen_at, joined_at, position
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, room_code, session_token, name, initials, color, avatar_id, is_host,
+      is_online, last_seen_at, joined_at, position
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   persistedRoom.players.forEach((player, position) => {
@@ -220,6 +231,7 @@ function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {
       player.name,
       player.initials,
       player.color,
+      player.avatarId,
       player.isHost ? 1 : 0,
       player.isOnline ? 1 : 0,
       player.lastSeenAt,

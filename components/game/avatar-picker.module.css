@@ -1,0 +1,55 @@
+.picker {
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.picker legend {
+  margin-bottom: 0.55rem;
+  color: var(--brand-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.picker > div {
+  display: flex;
+  gap: 0.45rem;
+  padding: 0.25rem 0.1rem 0.65rem;
+  overflow-x: auto;
+  scrollbar-color: rgb(var(--primary-rgb) / 18%) transparent;
+  scrollbar-width: thin;
+}
+
+.option {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0.18rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.option > div {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.option:hover {
+  background: rgb(var(--accent-rgb) / 12%);
+  transform: translateY(-2px);
+}
+
+.option[aria-pressed="true"] {
+  border-color: var(--amber);
+  background: rgb(var(--accent-rgb) / 16%);
+}

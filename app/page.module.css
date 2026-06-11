@@ -1,7 +1,7 @@
 .page {
   overflow: hidden;
   background:
-    radial-gradient(circle at 7% 11%, rgb(240 178 74 / 18%), transparent 20rem),
+    radial-gradient(circle at 7% 11%, rgb(var(--accent-rgb) / 18%), transparent 20rem),
     linear-gradient(180deg, #fffefa 0%, #f8faf9 52%, #fffefa 100%);
   color: var(--petroleum);
 }
@@ -56,7 +56,7 @@
 .headerCta {
   min-height: 2.6rem;
   padding: 0 1rem;
-  border: 1px solid rgb(15 45 61 / 14%);
+  border: 1px solid rgb(var(--primary-rgb) / 14%);
   border-radius: 0.8rem;
   background: white;
   color: var(--petroleum);
@@ -87,7 +87,7 @@
   height: 46rem;
   border-radius: 50%;
   background: var(--petroleum);
-  box-shadow: inset 0 0 0 1rem rgb(255 255 255 / 3%), 0 2rem 5rem rgb(15 45 61 / 15%);
+  box-shadow: inset 0 0 0 1rem rgb(255 255 255 / 3%), 0 2rem 5rem rgb(var(--primary-rgb) / 15%);
   content: "";
 }
 
@@ -102,10 +102,10 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.45rem 0.7rem 0.45rem 0.5rem;
-  border: 1px solid rgb(15 45 61 / 10%);
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
   border-radius: 999px;
   background: rgb(255 255 255 / 75%);
-  box-shadow: 0 0.5rem 1.5rem rgb(15 45 61 / 6%);
+  box-shadow: 0 0.5rem 1.5rem rgb(var(--primary-rgb) / 6%);
   font-size: 0.7rem;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -117,7 +117,7 @@
   height: 0.55rem;
   border-radius: 50%;
   background: var(--amber);
-  box-shadow: 0 0 0 0.25rem rgb(240 178 74 / 20%);
+  box-shadow: 0 0 0 0.25rem rgb(var(--accent-rgb) / 20%);
   content: "";
 }
 
@@ -133,7 +133,7 @@
 .hero h1 span {
   display: block;
   color: var(--amber);
-  text-shadow: 0 0.09em 0 #d78e19;
+  text-shadow: 0 0.09em 0 var(--amber-deep);
 }
 
 .lead {
@@ -222,7 +222,7 @@
   padding: 0.9rem;
   border-radius: 1.3rem;
   background:
-    linear-gradient(135deg, rgb(240 178 74 / 17%), transparent 50%),
+    linear-gradient(135deg, rgb(var(--accent-rgb) / 17%), transparent 50%),
     var(--warm-white);
 }
 
@@ -294,7 +294,7 @@
   gap: 0.7rem;
   align-items: center;
   padding: 0.55rem 0.65rem;
-  border: 1px solid rgb(15 45 61 / 7%);
+  border: 1px solid rgb(var(--primary-rgb) / 7%);
   border-radius: 0.85rem;
   background: white;
 }
@@ -427,7 +427,7 @@
 }
 
 .scoreCard span {
-  color: rgb(15 45 61 / 65%);
+  color: rgb(var(--primary-rgb) / 65%);
 }
 
 .spark {
@@ -469,10 +469,10 @@
   gap: 0.9rem;
   align-items: center;
   padding: 1rem;
-  border: 1px solid rgb(15 45 61 / 8%);
+  border: 1px solid rgb(var(--primary-rgb) / 8%);
   border-radius: 1.25rem;
   background: rgb(255 255 255 / 93%);
-  box-shadow: 0 1rem 2.5rem rgb(15 45 61 / 8%);
+  box-shadow: 0 1rem 2.5rem rgb(var(--primary-rgb) / 8%);
 }
 
 .featureIcon {
@@ -558,7 +558,7 @@
   padding: 1.5rem;
   border-radius: 1.5rem;
   background: white;
-  box-shadow: inset 0 0 0 1px rgb(15 45 61 / 8%), 0 1.2rem 3rem rgb(15 45 61 / 7%);
+  box-shadow: inset 0 0 0 1px rgb(var(--primary-rgb) / 8%), 0 1.2rem 3rem rgb(var(--primary-rgb) / 7%);
 }
 
 .scoreRule::after {
@@ -575,7 +575,7 @@
 .scoreRuleFeatured {
   background: var(--petroleum);
   color: white;
-  box-shadow: 0 1.5rem 3.5rem rgb(15 45 61 / 20%);
+  box-shadow: 0 1.5rem 3.5rem rgb(var(--primary-rgb) / 20%);
   transform: translateY(-1rem);
 }
 
@@ -627,7 +627,7 @@
   padding: 4rem;
   border-radius: 2rem;
   background:
-    radial-gradient(circle at 82% 10%, rgb(240 178 74 / 16%), transparent 18rem),
+    radial-gradient(circle at 82% 10%, rgb(var(--accent-rgb) / 16%), transparent 18rem),
     var(--petroleum);
   color: white;
 }
@@ -711,7 +711,7 @@
   top: 0;
   right: 0;
   left: 0;
-  background: rgb(15 45 61 / 10%);
+  background: rgb(var(--primary-rgb) / 10%);
 }
 
 .footer p {

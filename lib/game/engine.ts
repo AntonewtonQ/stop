@@ -2,9 +2,17 @@ import {
   CATEGORY_OPTIONS,
   DEFAULT_CATEGORIES,
   PLAYABLE_LETTERS,
-  PLAYER_COLORS,
   ROUND_DURATION_OPTIONS,
 } from "./constants";
+import {
+  AVATAR_IDS,
+  DEFAULT_AVATAR_ID,
+  type AvatarId,
+} from "./avatars";
+import {
+  PROFILE_COLOR_VALUES,
+  type ProfileColor,
+} from "./profile-colors";
 import { scoreRound } from "./scoring";
 import type {
   AnswerScore,
@@ -92,6 +100,7 @@ export function normalizeRoom(room: Room): Room {
     ...room,
     players: room.players.map((player) => ({
       ...player,
+      avatarId: player.avatarId ?? DEFAULT_AVATAR_ID,
       isOnline: player.isOnline ?? true,
       lastSeenAt: player.lastSeenAt ?? player.joinedAt,
     })),
@@ -134,12 +143,18 @@ export function getInitials(name: string) {
     .join("");
 }
 
-export function createPlayerSession(name: string, roomCode: string): PlayerSession {
+export function createPlayerSession(
+  name: string,
+  roomCode: string,
+  avatarId: AvatarId = randomFrom(AVATAR_IDS),
+  color: ProfileColor = randomFrom(PROFILE_COLOR_VALUES),
+): PlayerSession {
   return {
     id: crypto.randomUUID(),
     name: name.trim(),
     initials: getInitials(name),
-    color: randomFrom(PLAYER_COLORS),
+    color,
+    avatarId,
     roomCode,
     token: crypto.randomUUID(),
   };
@@ -153,6 +168,7 @@ function asRoomPlayer(session: PlayerSession, isHost: boolean): Player {
     name: session.name,
     initials: session.initials,
     color: session.color,
+    avatarId: session.avatarId,
     isHost,
     isOnline: true,
     lastSeenAt: now,

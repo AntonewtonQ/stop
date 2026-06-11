@@ -4,7 +4,7 @@ import { Crown, Play, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PLAYABLE_LETTERS } from "@/lib/game/constants";
@@ -62,11 +62,11 @@ export function LetterSelectionRoom({
       <section className={styles.commanderHero}>
         <Badge className={styles.roundBadge}>{t("letter.chooseBadge")}</Badge>
         <span className={styles.commanderKicker}>{t("letter.commander")}</span>
-        <Avatar className={styles.commanderAvatar}>
-          <AvatarFallback style={{ background: commander.color }}>
-            {commander.initials}
-          </AvatarFallback>
-        </Avatar>
+        <PlayerAvatar
+          avatarId={commander.avatarId}
+          className={styles.commanderAvatar}
+          color={commander.color}
+        />
         <h1>
           {isCommander
             ? t("letter.yourCommand")

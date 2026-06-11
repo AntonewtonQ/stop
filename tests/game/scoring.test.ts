@@ -10,6 +10,7 @@ function player(id: string, isOnline = true): Player {
     name: id,
     initials: id,
     color: "#0F2D3D",
+    avatarId: "spark",
     isHost: id === "a",
     isOnline,
     lastSeenAt: 1,

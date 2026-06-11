@@ -5,7 +5,7 @@ import { Crown, Home, RotateCcw, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Button } from "@/components/ui/button";
 import { getPlayerTotal } from "@/lib/game/scoring";
 import { startRematch } from "@/lib/game/storage";
@@ -73,11 +73,11 @@ export function FinalResults({
             key={player.id}
           >
             <span className={styles.finalPosition}>{index + 1}</span>
-            <Avatar className={styles.finalAvatar}>
-              <AvatarFallback style={{ background: player.color }}>
-                {player.initials}
-              </AvatarFallback>
-            </Avatar>
+            <PlayerAvatar
+              avatarId={player.avatarId}
+              className={styles.finalAvatar}
+              color={player.color}
+            />
             <div>
               <strong>
                 {player.name}

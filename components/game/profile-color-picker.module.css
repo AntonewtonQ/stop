@@ -1,0 +1,46 @@
+.picker {
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.picker legend {
+  margin-bottom: 0.55rem;
+  color: var(--brand-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.picker > div {
+  display: flex;
+  gap: 0.48rem;
+  padding: 0.2rem 0.1rem 0.45rem;
+  overflow-x: auto;
+  scrollbar-color: rgb(var(--primary-rgb) / 18%) transparent;
+  scrollbar-width: thin;
+}
+
+.picker button {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  border: 3px solid white;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgb(var(--primary-rgb) / 14%);
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.picker button:hover {
+  transform: translateY(-2px);
+}
+
+.picker button[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--amber),
+    0 0.4rem 0.8rem rgb(var(--primary-rgb) / 18%);
+}

@@ -6,10 +6,10 @@
   width: 2.75rem;
   height: 2.75rem;
   padding: 0;
-  border-color: rgb(15 45 61 / 14%);
+  border-color: rgb(var(--primary-rgb) / 14%);
   border-radius: 50%;
   background: rgb(255 255 255 / 92%);
-  box-shadow: 0 0.7rem 2rem rgb(15 45 61 / 15%);
+  box-shadow: 0 0.7rem 2rem rgb(var(--primary-rgb) / 15%);
   color: var(--petroleum);
   backdrop-filter: blur(12px);
 }

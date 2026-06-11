@@ -40,6 +40,7 @@ export function getDatabase() {
       name TEXT NOT NULL,
       initials TEXT NOT NULL,
       color TEXT NOT NULL,
+      avatar_id TEXT NOT NULL DEFAULT 'spark',
       is_host INTEGER NOT NULL,
       is_online INTEGER NOT NULL DEFAULT 0,
       last_seen_at INTEGER NOT NULL DEFAULT 0,
@@ -118,6 +119,11 @@ export function getDatabase() {
   if (!playerColumns.has("is_online")) {
     database.exec(
       "ALTER TABLE players ADD COLUMN is_online INTEGER NOT NULL DEFAULT 0",
+    );
+  }
+  if (!playerColumns.has("avatar_id")) {
+    database.exec(
+      "ALTER TABLE players ADD COLUMN avatar_id TEXT NOT NULL DEFAULT 'spark'",
     );
   }
   if (!playerColumns.has("last_seen_at")) {

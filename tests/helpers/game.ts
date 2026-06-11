@@ -15,6 +15,7 @@ export function makeSession(name: string, roomCode: string): PlayerSession {
     name,
     initials: name.slice(0, 2).toUpperCase(),
     color: "#0F2D3D",
+    avatarId: "spark",
     roomCode,
     token: `${id}-token`,
   };

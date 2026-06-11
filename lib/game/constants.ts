@@ -23,15 +23,6 @@ export const PRESENCE_HEARTBEAT_INTERVAL = 10_000;
 export const PRESENCE_OFFLINE_AFTER = 35_000;
 export const PRESENCE_DISCONNECT_GRACE = PRESENCE_OFFLINE_AFTER;
 
-export const PLAYER_COLORS = [
-  "#0F2D3D",
-  "#F0B24A",
-  "#5A8293",
-  "#D96C4D",
-  "#6C63A8",
-  "#2E8B71",
-];
-
 export const PLAYABLE_LETTERS = [
   "A",
   "B",

@@ -6,9 +6,17 @@ import { ArrowLeft, LogIn, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
+import { AvatarPicker } from "@/components/game/avatar-picker";
+import { ProfileColorPicker } from "@/components/game/profile-color-picker";
+import { ThemePicker } from "@/components/game/theme-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PLAYABLE_LETTERS } from "@/lib/game/constants";
+import { DEFAULT_AVATAR_ID, type AvatarId } from "@/lib/game/avatars";
+import {
+  DEFAULT_PROFILE_COLOR,
+  type ProfileColor,
+} from "@/lib/game/profile-colors";
 import {
   createPlayerSession,
   joinRoom,
@@ -27,6 +35,9 @@ export function JoinRoomGate({
 }) {
   const { errorMessage, t } = useLanguage();
   const [name, setName] = useState("");
+  const [avatarId, setAvatarId] = useState<AvatarId>(DEFAULT_AVATAR_ID);
+  const [profileColor, setProfileColor] =
+    useState<ProfileColor>(DEFAULT_PROFILE_COLOR);
 
   async function handleJoin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,7 +57,12 @@ export function JoinRoomGate({
       return;
     }
 
-    const session = createPlayerSession(name, room.code);
+    const session = createPlayerSession(
+      name,
+      room.code,
+      avatarId,
+      profileColor,
+    );
 
     try {
       await joinRoom(room.code, session);
@@ -83,6 +99,13 @@ export function JoinRoomGate({
               autoFocus
             />
           </div>
+          <AvatarPicker
+            value={avatarId}
+            color={profileColor}
+            onChange={setAvatarId}
+          />
+          <ProfileColorPicker value={profileColor} onChange={setProfileColor} />
+          <ThemePicker />
           <Button type="submit" className={styles.primaryButton}>
             <LogIn />
             {t("entry.joinRoom")}

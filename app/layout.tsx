@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/i18n/language-provider";
@@ -53,7 +54,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-AO" className={`${geistSans.variable} antialiased`}>
+    <html
+      lang="pt-AO"
+      className={`${geistSans.variable} antialiased`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           async
@@ -62,12 +67,14 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <LanguageProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-          <ServiceWorkerRegister />
-          <LanguageSwitcher />
-          <Toaster position="top-center" richColors />
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+            <ServiceWorkerRegister />
+            <LanguageSwitcher />
+            <Toaster position="top-center" richColors />
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

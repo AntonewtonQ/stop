@@ -16,6 +16,9 @@ O projecto já possui um MVP online jogável:
 - aviso de instalação adaptado para Android e iPhone;
 - idioma escolhido individualmente e persistido no navegador;
 - identificação do jogador pelo nome;
+- escolha de avatar visual persistido na sessão e apresentado durante a partida;
+- escolha de cor de perfil sincronizada entre jogadores;
+- temas Clássico, Atlântico, Kizomba e Neon persistidos individualmente;
 - criação de salas com código único;
 - entrada numa sala existente por código ou convite;
 - lobby sincronizado entre navegadores e dispositivos ligados ao mesmo servidor;

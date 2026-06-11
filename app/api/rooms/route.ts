@@ -1,4 +1,6 @@
 import { createRoom, normalizeRoomCode } from "@/lib/game/engine";
+import { DEFAULT_AVATAR_ID, isAvatarId } from "@/lib/game/avatars";
+import { isProfileColor } from "@/lib/game/profile-colors";
 import type { PlayerSession } from "@/lib/game/types";
 import {
   createStoredRoom,
@@ -35,13 +37,20 @@ export async function POST(request: Request) {
 
 function parseSession(value: unknown, roomCode: string): PlayerSession {
   const session = value as Partial<PlayerSession> | null;
+  const avatarId =
+    session?.avatarId === undefined
+      ? DEFAULT_AVATAR_ID
+      : isAvatarId(session.avatarId)
+        ? session.avatarId
+        : null;
   if (
     !session ||
     typeof session.id !== "string" ||
     typeof session.token !== "string" ||
     typeof session.name !== "string" ||
     typeof session.initials !== "string" ||
-    typeof session.color !== "string" ||
+    !isProfileColor(session.color) ||
+    !avatarId ||
     session.name.trim().length < 2
   ) {
     throw new RoomRepositoryError(
@@ -50,7 +59,7 @@ function parseSession(value: unknown, roomCode: string): PlayerSession {
     );
   }
 
-  return { ...session, roomCode } as PlayerSession;
+  return { ...session, avatarId, roomCode } as PlayerSession;
 }
 
 function handleError(error: unknown) {

@@ -68,7 +68,12 @@ describe("Route Handlers", () => {
     );
 
     expect(created.status).toBe(201);
-    expect((await json(joined)).room?.players).toHaveLength(2);
+    expect((await json(joined)).room?.players).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: host.id, avatarId: "spark" }),
+        expect.objectContaining({ id: guest.id, avatarId: "spark" }),
+      ]),
+    );
     expect((await json(started)).room?.status).toBe("letter-selection");
 
     const unauthorized = await actionRoute(
@@ -80,6 +85,26 @@ describe("Route Handlers", () => {
       context(code),
     );
     expect(unauthorized.status).toBe(401);
+  });
+
+  it("recusa um avatar que não pertence ao catálogo", async () => {
+    const code = "AVT01";
+    const host = { ...makeSession("Ana", code), avatarId: "desconhecido" };
+    const response = await createRoute(
+      jsonRequest("http://stop.test/api/rooms", { code, host }),
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it("recusa uma cor de perfil fora da paleta", async () => {
+    const code = "CLR01";
+    const host = { ...makeSession("Ana", code), color: "red" };
+    const response = await createRoute(
+      jsonRequest("http://stop.test/api/rooms", { code, host }),
+    );
+
+    expect(response.status).toBe(400);
   });
 
   it("esconde respostas durante a rodada para público e outros jogadores", async () => {

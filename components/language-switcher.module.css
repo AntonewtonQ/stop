@@ -7,10 +7,10 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem 0.55rem;
-  border: 1px solid rgb(15 45 61 / 12%);
+  border: 1px solid rgb(var(--primary-rgb) / 12%);
   border-radius: 0.8rem;
   background: rgb(255 255 255 / 92%);
-  box-shadow: 0 0.8rem 2rem rgb(15 45 61 / 14%);
+  box-shadow: 0 0.8rem 2rem rgb(var(--primary-rgb) / 14%);
   color: var(--petroleum);
   backdrop-filter: blur(12px);
 }

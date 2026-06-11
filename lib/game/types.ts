@@ -1,3 +1,5 @@
+import type { AvatarId } from "./avatars";
+
 export type RoomStatus =
   | "lobby"
   | "letter-selection"
@@ -10,6 +12,7 @@ export type Player = {
   name: string;
   initials: string;
   color: string;
+  avatarId: AvatarId;
   isHost: boolean;
   isOnline: boolean;
   lastSeenAt: number;
@@ -98,7 +101,10 @@ export type Room = {
   updatedAt: number;
 };
 
-export type PlayerSession = Pick<Player, "id" | "name" | "initials" | "color"> & {
+export type PlayerSession = Pick<
+  Player,
+  "id" | "name" | "initials" | "color" | "avatarId"
+> & {
   roomCode: string;
   token: string;
 };
