@@ -1,36 +1,37 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "@/app/page.module.css";
 
-const steps = [
-  {
-    number: "01",
-    title: "Cria a sala",
-    description: "Escolhe as regras e partilha o código com os teus.",
-  },
-  {
-    number: "02",
-    title: "Escolhe a letra",
-    description: "O comandante escolhe a letra e inicia o relógio.",
-  },
-  {
-    number: "03",
-    title: "Grita STOP",
-    description: "Quem preencher tudo primeiro termina a rodada para todos.",
-  },
-];
-
 export function HowToSection() {
+  const { t } = useLanguage();
+  const steps = [
+    {
+      number: "01",
+      title: t("landing.stepCreateTitle"),
+      description: t("landing.stepCreateBody"),
+    },
+    {
+      number: "02",
+      title: t("landing.stepLetterTitle"),
+      description: t("landing.stepLetterBody"),
+    },
+    {
+      number: "03",
+      title: t("landing.stepStopTitle"),
+      description: t("landing.stepStopBody"),
+    },
+  ];
+
   return (
     <section className={styles.howTo} id="como-jogar">
       <div className={styles.howToHeader}>
         <div>
-          <span className={styles.kicker}>Três passos. Um vencedor.</span>
-          <h2>Entrar é fácil. Ganhar já é outra conversa.</h2>
+          <span className={styles.kicker}>{t("landing.howKicker")}</span>
+          <h2>{t("landing.howTitle")}</h2>
         </div>
-        <p>
-          Cada jogador comanda uma rodada e escolhe a letra. O primeiro a
-          preencher tudo grita STOP.
-        </p>
+        <p>{t("landing.howBody")}</p>
       </div>
 
       <div className={styles.steps}>

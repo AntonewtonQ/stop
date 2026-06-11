@@ -25,6 +25,7 @@ import {
   updateRoomSettings,
 } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import { PlayerList } from "./player-list";
 import styles from "./game.module.css";
 
@@ -35,6 +36,7 @@ export function LobbyRoom({
   room: Room;
   session: PlayerSession;
 }) {
+  const { category: categoryLabel, errorMessage, t } = useLanguage();
   const isHost = room.hostId === session.id;
 
   async function toggleCategory(category: string) {
@@ -46,15 +48,15 @@ export function LobbyRoom({
       : [...room.settings.categories, category];
 
     if (categories.length < 3) {
-      toast.error("Escolhe pelo menos três categorias.");
+      toast.error(t("lobby.minCategories"));
       return;
     }
 
     try {
       await updateRoomSettings(room.code, { categories });
     } catch (error) {
-      toast.error("Não conseguimos actualizar as categorias.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("lobby.categoriesFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -64,8 +66,8 @@ export function LobbyRoom({
     try {
       await updateRoomSettings(room.code, { roundDuration });
     } catch (error) {
-      toast.error("Não conseguimos actualizar o tempo.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("lobby.timeFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -73,17 +75,19 @@ export function LobbyRoom({
   async function copyInvite() {
     const inviteUrl = `${window.location.origin}/sala/${room.code}`;
     await navigator.clipboard?.writeText(inviteUrl);
-    toast.success("Convite copiado", { description: `Sala ${room.code}` });
+    toast.success(t("lobby.inviteCopied"), {
+      description: `${t("common.room")} ${room.code}`,
+    });
   }
 
   async function handleStart() {
     if (!isHost) return;
     try {
       await startFirstRound(room.code);
-      toast.success("Tudo pronto. Escolhe a primeira letra!");
+      toast.success(t("lobby.ready"));
     } catch (error) {
-      toast.error("Não conseguimos preparar a partida.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("lobby.prepareFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -93,12 +97,12 @@ export function LobbyRoom({
       <header className={styles.gameHeader}>
         <Logo />
         <div className={styles.roomIdentity}>
-          <span>Sala</span>
+          <span>{t("common.room")}</span>
           <strong>{room.code}</strong>
         </div>
         <Button variant="outline" className={styles.copyButton} onClick={copyInvite}>
           <Copy />
-          Copiar convite
+          {t("lobby.copyInvite")}
         </Button>
       </header>
 
@@ -106,8 +110,8 @@ export function LobbyRoom({
         <section className={styles.lobbyMain}>
           <div className={styles.sectionTitle}>
             <div>
-              <span className={styles.eyebrow}>Antes do STOP</span>
-              <h1>Chama os teus. O jogo começa já.</h1>
+              <span className={styles.eyebrow}>{t("lobby.eyebrow")}</span>
+              <h1>{t("lobby.title")}</h1>
             </div>
             <BadgeCounter count={room.players.length} />
           </div>
@@ -119,15 +123,12 @@ export function LobbyRoom({
               <UsersRound />
             </div>
             <div>
-              <strong>Chama os teus</strong>
-              <p>
-                Partilha o convite. Quem entrar aparece aqui e fica pronto para
-                jogar.
-              </p>
+              <strong>{t("lobby.callTitle")}</strong>
+              <p>{t("lobby.callBody")}</p>
             </div>
             <Button variant="outline" onClick={copyInvite}>
               <Copy />
-              Copiar convite
+              {t("lobby.copyInvite")}
             </Button>
           </aside>
         </section>
@@ -136,15 +137,21 @@ export function LobbyRoom({
           <div className={styles.panelTitle}>
             <Settings2 />
             <div>
-              <span>Regras da partida</span>
-              <strong>{isHost ? "Tu decides" : "O anfitrião decide"}</strong>
+              <span>{t("lobby.rules")}</span>
+              <strong>
+                {isHost ? t("lobby.youDecide") : t("lobby.hostDecides")}
+              </strong>
             </div>
           </div>
 
           <div className={styles.settingGroup}>
             <div className={styles.settingLabel}>
-              <span>Categorias</span>
-              <small>{room.settings.categories.length} seleccionadas</small>
+              <span>{t("lobby.categories")}</span>
+              <small>
+                {t("lobby.selected", {
+                  count: room.settings.categories.length,
+                })}
+              </small>
             </div>
             <div className={styles.categoryOptions}>
               {CATEGORY_OPTIONS.map((category) => {
@@ -161,7 +168,7 @@ export function LobbyRoom({
                       disabled={!isHost}
                       onCheckedChange={() => toggleCategory(category)}
                     />
-                    {category}
+                    {categoryLabel(category)}
                     {checked && <Check />}
                   </Label>
                 );
@@ -172,22 +179,23 @@ export function LobbyRoom({
           <div className={styles.commanderSummary}>
             <Crown />
             <div>
-              <span>Ordem de comando</span>
+              <span>{t("lobby.commandOrder")}</span>
               <strong>
-                {room.players.length} jogador{room.players.length === 1 ? "" : "es"},{" "}
-                {room.players.length} rodada{room.players.length === 1 ? "" : "s"}
+                {t("lobby.playersRounds", {
+                  players: room.players.length,
+                  rounds: room.players.length,
+                })}
               </strong>
-              <small>
-                O anfitrião começa. Depois, o comando passa de jogador em
-                jogador.
-              </small>
+              <small>{t("lobby.commandRule")}</small>
             </div>
           </div>
 
           <div className={styles.settingGroup}>
             <div className={styles.settingLabel}>
-              <span>Tempo da rodada</span>
-              <small>{room.settings.roundDuration} segundos</small>
+              <span>{t("lobby.roundTime")}</span>
+              <small>
+                {t("lobby.seconds", { count: room.settings.roundDuration })}
+              </small>
             </div>
             <div className={styles.durationOptions}>
               {ROUND_DURATION_OPTIONS.map((duration) => (
@@ -211,19 +219,19 @@ export function LobbyRoom({
           {isHost ? (
             <Button className={styles.startButton} onClick={handleStart}>
               <Play />
-              Preparar primeira rodada
+              {t("lobby.prepareFirst")}
             </Button>
           ) : (
             <div className={styles.waitingHost}>
               <span />
-              O anfitrião está a preparar a partida...
+              {t("lobby.hostPreparing")}
             </div>
           )}
 
           <Button asChild variant="ghost" className={styles.leaveButton}>
             <Link href="/">
               <ArrowLeft />
-              Sair da sala
+              {t("lobby.leave")}
             </Link>
           </Button>
         </aside>
@@ -233,12 +241,14 @@ export function LobbyRoom({
 }
 
 function BadgeCounter({ count }: { count: number }) {
+  const { t } = useLanguage();
+
   return (
     <div className={styles.playerCount}>
       <UsersRound />
       <div>
         <strong>{count}</strong>
-        <span>{count === 1 ? "jogador" : "jogadores"}</span>
+        <span>{t(count === 1 ? "common.player" : "common.players")}</span>
       </div>
     </div>
   );

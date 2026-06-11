@@ -66,3 +66,19 @@ test("dois jogadores entram e a liderança offline é transferida", async ({
   await hostContext.close();
   await guestContext.close();
 });
+
+test("permite alternar e persistir o idioma da interface", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByLabel("Idioma").selectOption("en");
+  await expect(page.getByRole("heading", { name: /Think fast/ })).toBeVisible();
+
+  await page.getByLabel("Language").selectOption("fr");
+  await expect(page.getByRole("heading", { name: /Pense vite/ })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /Pense vite/ })).toBeVisible();
+
+  await page.getByLabel("Langue").selectOption("pt");
+  await expect(page.getByRole("heading", { name: /Pensa rápido/ })).toBeVisible();
+});

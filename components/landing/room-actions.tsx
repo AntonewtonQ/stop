@@ -17,9 +17,11 @@ import {
   readRoom,
   savePlayerSession,
 } from "@/lib/game/storage";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./room-actions.module.css";
 
 export function RoomActions() {
+  const { errorMessage, t } = useLanguage();
   const router = useRouter();
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -29,9 +31,9 @@ export function RoomActions() {
     const name = playerName.trim();
     if (name.length >= 2) return name;
 
-    const feedback = "Escreve o teu nome para começar.";
+    const feedback = t("entry.nameFeedback");
     setMessage(feedback);
-    toast.error("Falta o teu nome", { description: feedback });
+    toast.error(t("entry.nameMissing"), { description: feedback });
     return null;
   }
 
@@ -45,11 +47,13 @@ export function RoomActions() {
     try {
       await createRoom(code, session);
       savePlayerSession(session);
-      toast.success("Sala criada", { description: `Código: ${code}` });
+      toast.success(t("entry.roomCreated"), {
+        description: t("entry.code", { code }),
+      });
       router.push(`/sala/${code}`);
     } catch (error) {
-      toast.error("Não conseguimos criar a sala.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("entry.createFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -61,9 +65,9 @@ export function RoomActions() {
 
     const code = normalizeRoomCode(roomCode);
     if (code.length < 4) {
-      const feedback = "Escreve um código de sala válido.";
+      const feedback = t("entry.invalidCodeFeedback");
       setMessage(feedback);
-      toast.error("Código inválido", { description: feedback });
+      toast.error(t("entry.invalidCode"), { description: feedback });
       return;
     }
 
@@ -71,22 +75,22 @@ export function RoomActions() {
     try {
       room = await readRoom(code);
     } catch (error) {
-      toast.error("Não conseguimos encontrar a sala.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("entry.findFailed"), {
+        description: errorMessage(error),
       });
       return;
     }
     if (!room) {
-      const feedback = "Confirma o código ou cria uma nova sala.";
+      const feedback = t("entry.roomUnavailableFeedback");
       setMessage(feedback);
-      toast.error("Sala indisponível", { description: feedback });
+      toast.error(t("entry.roomUnavailable"), { description: feedback });
       return;
     }
 
     if (room.status !== "lobby") {
-      const feedback = "Esta partida já começou.";
+      const feedback = t("entry.gameStartedFeedback");
       setMessage(feedback);
-      toast.error("Partida em curso", { description: feedback });
+      toast.error(t("entry.gameStarted"), { description: feedback });
       return;
     }
 
@@ -95,11 +99,11 @@ export function RoomActions() {
     try {
       await joinRoom(code, session);
       savePlayerSession(session);
-      toast.success("Entraste na sala", { description: code });
+      toast.success(t("entry.joined"), { description: code });
       router.push(`/sala/${code}`);
     } catch (error) {
-      toast.error("Não conseguimos entrar na sala.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("entry.joinFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -107,14 +111,14 @@ export function RoomActions() {
   return (
     <div className={styles.actions}>
       <label className={styles.nameField} htmlFor="player-name">
-        <span>Qual é o teu nome?</span>
+        <span>{t("entry.nameQuestion")}</span>
         <div>
           <UserRound aria-hidden="true" />
           <Input
             id="player-name"
             value={playerName}
             onChange={(event) => setPlayerName(event.target.value)}
-            placeholder="O teu nome"
+            placeholder={t("entry.namePlaceholder")}
             maxLength={24}
             autoComplete="nickname"
           />
@@ -124,33 +128,33 @@ export function RoomActions() {
       <div className={styles.mainAction}>
         <Button className={styles.createButton} type="button" onClick={handleCreateRoom}>
           <Plus data-icon="inline-start" />
-          Criar uma sala
+          {t("entry.createRoom")}
         </Button>
       </div>
 
       <div className={styles.divider}>
         <Separator className={styles.dividerLine} />
-        <span>ou entra numa sala</span>
+        <span>{t("entry.orJoin")}</span>
         <Separator className={styles.dividerLine} />
       </div>
 
       <form className={styles.joinForm} onSubmit={handleJoinRoom}>
         <label className={styles.srOnly} htmlFor="room-code">
-          Código da sala
+          {t("entry.roomCode")}
         </label>
         <Input
           id="room-code"
           value={roomCode}
           onChange={(event) => setRoomCode(event.target.value)}
-          placeholder="Ex.: K8M2A"
+          placeholder={t("entry.codePlaceholder")}
           maxLength={8}
           autoComplete="off"
         />
-        <Button type="submit">Entrar na sala</Button>
+        <Button type="submit">{t("entry.joinRoom")}</Button>
       </form>
 
       <p className={styles.feedback} aria-live="polite">
-        {message || "Sem instalação. Cria uma sala e chama os teus."}
+        {message || t("entry.noInstall")}
       </p>
     </div>
   );

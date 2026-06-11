@@ -1,0 +1,29 @@
+.switcher {
+  position: fixed;
+  z-index: 100;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgb(15 45 61 / 12%);
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 0.8rem 2rem rgb(15 45 61 / 14%);
+  color: var(--petroleum);
+  backdrop-filter: blur(12px);
+}
+
+.switcher svg {
+  width: 1rem;
+}
+
+.switcher select {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  outline: none;
+}

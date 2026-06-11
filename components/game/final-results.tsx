@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { getPlayerTotal } from "@/lib/game/scoring";
 import { restartGame } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
 
 export function FinalResults({
@@ -19,6 +20,7 @@ export function FinalResults({
   room: Room;
   session: PlayerSession;
 }) {
+  const { errorMessage, t } = useLanguage();
   const isHost = room.hostId === session.id;
   const ranking = [...room.players]
     .map((player) => ({
@@ -32,10 +34,10 @@ export function FinalResults({
     if (!isHost) return;
     try {
       await restartGame(room.code);
-      toast.success("Nova partida pronta!");
+      toast.success(t("final.ready"));
     } catch (error) {
-      toast.error("Não conseguimos preparar a nova partida.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("final.prepareFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -44,7 +46,9 @@ export function FinalResults({
     <main className={styles.finalPage}>
       <header className={styles.finalHeader}>
         <Logo light />
-        <span>Sala {room.code}</span>
+        <span>
+          {t("common.room")} {room.code}
+        </span>
       </header>
 
       <section className={styles.finalHero}>
@@ -52,15 +56,12 @@ export function FinalResults({
           <Crown />
           <Trophy />
         </div>
-        <span className={styles.finalKicker}>Fim de jogo</span>
+        <span className={styles.finalKicker}>{t("final.gameOver")}</span>
         <h1>
           {winner.name}
-          <span>marcou grande.</span>
+          <span>{t("final.winner")}</span>
         </h1>
-        <p>
-          {room.settings.roundsToPlay} rodadas depois, esta é a classificação
-          final.
-        </p>
+        <p>{t("final.body", { count: room.settings.roundsToPlay })}</p>
       </section>
 
       <section className={styles.finalRanking}>
@@ -80,9 +81,11 @@ export function FinalResults({
             <div>
               <strong>
                 {player.name}
-                {player.id === session.id ? " (tu)" : ""}
+                {player.id === session.id ? ` (${t("common.you")})` : ""}
               </strong>
-              <span>{index === 0 ? "Campeão da partida" : "Classificação final"}</span>
+              <span>
+                {index === 0 ? t("final.champion") : t("final.ranking")}
+              </span>
             </div>
             <b>{player.total}</b>
           </article>
@@ -93,18 +96,18 @@ export function FinalResults({
         {isHost ? (
           <Button className={styles.startButton} onClick={playAgain}>
             <RotateCcw />
-            Jogar novamente
+            {t("final.playAgain")}
           </Button>
         ) : (
           <div className={styles.waitingHost}>
             <span />
-            O anfitrião decide a próxima partida...
+            {t("final.hostDecides")}
           </div>
         )}
         <Button asChild variant="outline">
           <Link href="/">
             <Home />
-            Voltar ao início
+            {t("common.home")}
           </Link>
         </Button>
       </div>

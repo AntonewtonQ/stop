@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { finishRound, saveRoundAnswers } from "@/lib/game/storage";
 import type { PlayerSession, Room, RoundAnswers } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
 
 export function RoundRoom({
@@ -20,6 +21,7 @@ export function RoundRoom({
   room: Room;
   session: PlayerSession;
 }) {
+  const { category: categoryLabel, errorMessage, t } = useLanguage();
   const round = room.round!;
   const commander = room.players.find(
     (player) => player.id === round.commanderId,
@@ -81,12 +83,15 @@ export function RoundRoom({
     try {
       await finishRound(room.code, false, answers);
       toast.success("STOP!", {
-        description: `${answeredCount} de ${room.settings.categories.length} categorias preenchidas.`,
+        description: t("round.stopDescription", {
+          answered: answeredCount,
+          total: room.settings.categories.length,
+        }),
       });
     } catch (error) {
       setIsStopping(false);
-      toast.error("Não conseguimos terminar a rodada.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("round.finishFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -96,26 +101,31 @@ export function RoundRoom({
       <header className={styles.roundHeader}>
         <Logo light />
         <div className={styles.roundRoomCode}>
-          <span>Sala</span>
+          <span>{t("common.room")}</span>
           <strong>{room.code}</strong>
         </div>
         <div className={styles.roundPlayers}>
           <UsersRound />
-          {onlinePlayers} online de {room.players.length}
+          {t("round.onlinePlayers", {
+            online: onlinePlayers,
+            total: room.players.length,
+          })}
         </div>
       </header>
 
       <section className={styles.roundHero}>
         <div>
-          <Badge className={styles.roundBadge}>Rodada {round.number}</Badge>
+          <Badge className={styles.roundBadge}>
+            {t("common.round")} {round.number}
+          </Badge>
           <span className={styles.roundKicker}>
-            {commander.name} escolheu
+            {t("round.chosenBy", { name: commander.name })}
           </span>
           <strong className={styles.roundLetter}>{round.letter}</strong>
         </div>
         <div className={`${styles.roundTimer} ${remaining <= 10 ? styles.timerDanger : ""}`}>
           <Clock3 />
-          <span>Tempo restante</span>
+          <span>{t("round.timeLeft")}</span>
           <strong>00:{remaining.toString().padStart(2, "0")}</strong>
         </div>
       </section>
@@ -125,12 +135,18 @@ export function RoundRoom({
       <section className={styles.answerBoard}>
         <div className={styles.answerBoardHeader}>
           <div>
-            <span className={styles.eyebrow}>{session.name}, é a tua vez</span>
-            <h1>Preenche tudo antes do STOP.</h1>
+            <span className={styles.eyebrow}>
+              {t("round.yourTurn", { name: session.name })}
+            </span>
+            <h1>{t("round.title")}</h1>
           </div>
           <div className={styles.answerCounter}>
             <strong>{answeredCount}</strong>
-            <span>de {room.settings.categories.length}</span>
+            <span>
+              {t("round.answerCount", {
+                total: room.settings.categories.length,
+              })}
+            </span>
           </div>
         </div>
 
@@ -147,11 +163,11 @@ export function RoundRoom({
                   {(index + 1).toString().padStart(2, "0")}
                 </span>
                 <div>
-                  <strong>{category}</strong>
+                  <strong>{categoryLabel(category)}</strong>
                   <small>
                     {answer && !startsCorrectly
-                      ? `Deve começar com ${round.letter}`
-                      : `Resposta com a letra ${round.letter}`}
+                      ? t("round.mustStart", { letter: round.letter })
+                      : t("round.answerWith", { letter: round.letter })}
                   </small>
                 </div>
                 <Input
@@ -173,13 +189,14 @@ export function RoundRoom({
         >
           <Send />
           {isStopping
-            ? "A gritar STOP..."
+            ? t("round.stopping")
             : canStop
-              ? "Gritar STOP"
-              : "Preenche tudo para gritar STOP"}
+              ? t("round.stop")
+              : t("round.completeToStop")}
         </Button>
         <div className={styles.commanderClockNotice}>
-          <Clock3 />O primeiro a preencher tudo termina a rodada para todos.
+          <Clock3 />
+          {t("round.firstStops")}
         </div>
       </section>
     </main>

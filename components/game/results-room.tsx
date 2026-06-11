@@ -25,15 +25,8 @@ import type {
   PlayerSession,
   Room,
 } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
-
-const scoreLabels: Record<AnswerScoreStatus, string> = {
-  invalid: "Inválida",
-  doubtful: "Duvidosa",
-  duplicate: "Repetida",
-  correct: "Correcta",
-  unique: "Única",
-};
 
 export function ResultsRoom({
   room,
@@ -42,6 +35,14 @@ export function ResultsRoom({
   room: Room;
   session: PlayerSession;
 }) {
+  const { category: categoryLabel, errorMessage, t } = useLanguage();
+  const scoreLabels: Record<AnswerScoreStatus, string> = {
+    invalid: t("results.invalid"),
+    doubtful: t("results.doubtful"),
+    duplicate: t("results.duplicate"),
+    correct: t("results.correct"),
+    unique: t("results.unique"),
+  };
   const round = room.round!;
   const result = round.result!;
   const isLastRound = round.number >= room.settings.roundsToPlay;
@@ -71,17 +72,17 @@ export function ResultsRoom({
   async function continueGame() {
     if (!isController) return;
     if (!result.votingComplete) {
-      toast.warning("A votação ainda não terminou.");
+      toast.warning(t("results.votingPending"));
       return;
     }
 
     if (isLastRound) {
       try {
         await finishGame(room.code);
-        toast.success("Fim de jogo!");
+        toast.success(t("results.gameOver"));
       } catch (error) {
-        toast.error("Não conseguimos terminar a partida.", {
-          description: error instanceof Error ? error.message : undefined,
+        toast.error(t("results.finishFailed"), {
+          description: errorMessage(error),
         });
       }
       return;
@@ -89,10 +90,10 @@ export function ResultsRoom({
 
     try {
       await prepareNextRound(room.code);
-      toast.success("O comando é teu. Escolhe a letra!");
+      toast.success(t("results.yourCommand"));
     } catch (error) {
-      toast.error("Não conseguimos preparar a próxima rodada.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("results.nextFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -102,12 +103,12 @@ export function ResultsRoom({
       await castAnswerVote(room.code, challengeId, choice);
       toast.success(
         choice === "approve"
-          ? "Votaste para aceitar."
-          : "Votaste para rejeitar.",
+          ? t("results.votedAccept")
+          : t("results.votedReject"),
       );
     } catch (error) {
-      toast.error("Não conseguimos registar o voto.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("results.voteFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -117,43 +118,48 @@ export function ResultsRoom({
       <header className={styles.resultsHeader}>
         <Logo />
         <div className={styles.roomIdentity}>
-          <span>Sala</span>
+          <span>{t("common.room")}</span>
           <strong>{room.code}</strong>
         </div>
         <div className={styles.resultsRoundLabel}>
-          {onlinePlayers} online · Rodada {round.number} de{" "}
-          {room.settings.roundsToPlay}
+          {t("results.header", {
+            online: onlinePlayers,
+            round: round.number,
+            total: room.settings.roundsToPlay,
+          })}
         </div>
       </header>
 
       <section className={styles.resultsHero}>
         <div>
-          <span className={styles.eyebrow}>Fim da rodada</span>
+          <span className={styles.eyebrow}>{t("results.eyebrow")}</span>
           <h1>
-            Palavras na mesa.
-            <span>Pontos a contar.</span>
+            {t("results.title")}
+            <span>{t("results.titleAccent")}</span>
           </h1>
           <p>
             {stoppedBy
-              ? `${stoppedBy.name} gritou STOP primeiro.`
-              : "O relógio chegou ao fim."}
+              ? t("results.stoppedBy", { name: stoppedBy.name })
+              : t("results.timedOut")}
           </p>
         </div>
 
         <aside className={styles.roundWinner}>
           {result.votingComplete ? <Trophy /> : <Scale />}
           <span>
-            {result.votingComplete ? "Melhor da rodada" : "Pontuação provisória"}
+            {result.votingComplete
+              ? t("results.roundBest")
+              : t("results.provisional")}
           </span>
           <strong>
             {result.votingComplete
               ? roundWinner?.name
-              : `${pendingChallenges.length} por validar`}
+              : t("results.toValidate", { count: pendingChallenges.length })}
           </strong>
           <b>
             {result.votingComplete
-              ? `+${roundWinner?.roundScore ?? 0} pontos`
-              : "A sala decide"}
+              ? t("results.points", { count: roundWinner?.roundScore ?? 0 })
+              : t("results.roomDecides")}
           </b>
         </aside>
       </section>
@@ -168,8 +174,10 @@ export function ResultsRoom({
             return (
               <article className={styles.categoryResult} key={category}>
                 <div className={styles.categoryResultHeader}>
-                  <span>{category}</span>
-                  <small>Letra {round.letter}</small>
+                  <span>{categoryLabel(category)}</span>
+                  <small>
+                    {t("common.letter")} {round.letter}
+                  </small>
                 </div>
 
                 {categoryChallenges.length > 0 && (
@@ -200,7 +208,7 @@ export function ResultsRoom({
                         </Avatar>
                         <div>
                           <strong>{player.name}</strong>
-                          <span>{score?.answer || "Sem resposta"}</span>
+                          <span>{score?.answer || t("common.noAnswer")}</span>
                         </div>
                         <Badge
                           className={`${styles.answerStatus} ${
@@ -223,8 +231,10 @@ export function ResultsRoom({
           <div className={styles.panelTitle}>
             <UsersRound />
             <div>
-              <span>Classificação geral</span>
-              <strong>Após {round.number} rodada{round.number === 1 ? "" : "s"}</strong>
+              <span>{t("results.generalRanking")}</span>
+              <strong>
+                {t("results.afterRounds", { count: round.number })}
+              </strong>
             </div>
           </div>
 
@@ -235,9 +245,11 @@ export function ResultsRoom({
                 <div>
                   <strong>
                     {player.name}
-                    {player.id === session.id ? " (tu)" : ""}
+                    {player.id === session.id ? ` (${t("common.you")})` : ""}
                   </strong>
-                  <span>+{player.roundScore} nesta rodada</span>
+                  <span>
+                    {t("results.thisRound", { count: player.roundScore })}
+                  </span>
                 </div>
                 <b>{player.total}</b>
               </div>
@@ -252,25 +264,23 @@ export function ResultsRoom({
             >
               {isLastRound ? <Flag /> : <ArrowRight />}
               {!result.votingComplete
-                ? `${pendingChallenges.length} votação${
-                    pendingChallenges.length === 1
-                      ? " por concluir"
-                      : "ões por concluir"
-                  }`
+                ? t("results.votesRemaining", {
+                    count: pendingChallenges.length,
+                  })
                 : isLastRound
-                  ? "Ver classificação final"
-                  : "Escolher letra da próxima rodada"}
+                  ? t("results.finalRanking")
+                  : t("results.nextLetter")}
             </Button>
           ) : (
             <div className={styles.waitingHost}>
               <span />
               {result.votingComplete
                 ? isLastRound
-                  ? "O comandante está a fechar a partida..."
+                  ? t("results.commanderClosing")
                   : nextCommander
-                    ? `${nextCommander.name} escolhe a próxima letra...`
-                    : "O próximo comandante escolhe a letra..."
-                : "A votação está a decorrer..."}
+                    ? t("results.nextCommander", { name: nextCommander.name })
+                    : t("results.nextCommanderFallback")
+                : t("results.voting")}
             </div>
           )}
         </aside>

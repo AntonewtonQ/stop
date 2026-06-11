@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { PLAYABLE_LETTERS } from "@/lib/game/constants";
 import { chooseRoundLetter } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
 
 export function LetterSelectionRoom({
@@ -19,6 +20,7 @@ export function LetterSelectionRoom({
   room: Room;
   session: PlayerSession;
 }) {
+  const { errorMessage, t } = useLanguage();
   const round = room.round!;
   const commander = room.players.find(
     (player) => player.id === round.commanderId,
@@ -31,10 +33,10 @@ export function LetterSelectionRoom({
     if (!isCommander || usedLetters.has(letter)) return;
     try {
       await chooseRoundLetter(room.code, letter);
-      toast.success(`Letra ${letter} escolhida. O relógio começou!`);
+      toast.success(t("letter.chosen", { letter }));
     } catch (error) {
-      toast.error("Não conseguimos escolher esta letra.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("letter.chooseFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -44,45 +46,52 @@ export function LetterSelectionRoom({
       <header className={styles.roundHeader}>
         <Logo light />
         <div className={styles.roundRoomCode}>
-          <span>Sala</span>
+          <span>{t("common.room")}</span>
           <strong>{room.code}</strong>
         </div>
         <div className={styles.roundPlayers}>
           <UsersRound />
-          {onlinePlayers} online · Rodada {round.number} de{" "}
-          {room.settings.roundsToPlay}
+          {t("letter.onlineRound", {
+            online: onlinePlayers,
+            round: round.number,
+            total: room.settings.roundsToPlay,
+          })}
         </div>
       </header>
 
       <section className={styles.commanderHero}>
-        <Badge className={styles.roundBadge}>Escolher a letra</Badge>
-        <span className={styles.commanderKicker}>Comandante da rodada</span>
+        <Badge className={styles.roundBadge}>{t("letter.chooseBadge")}</Badge>
+        <span className={styles.commanderKicker}>{t("letter.commander")}</span>
         <Avatar className={styles.commanderAvatar}>
           <AvatarFallback style={{ background: commander.color }}>
             {commander.initials}
           </AvatarFallback>
         </Avatar>
         <h1>
-          {isCommander ? "O comando é teu." : `${commander.name} está no comando.`}
+          {isCommander
+            ? t("letter.yourCommand")
+            : t("letter.otherCommand", { name: commander.name })}
         </h1>
         <p>
           {isCommander
-            ? "Escolhe a letra. Assim que escolheres, o relógio começa para todos."
-            : `${commander.name} vai escolher a letra e iniciar o relógio.`}
+            ? t("letter.yourBody")
+            : t("letter.otherBody", { name: commander.name })}
         </p>
       </section>
 
       <section className={styles.letterPicker}>
         <div className={styles.letterPickerHeader}>
           <div>
-            <span className={styles.eyebrow}>Letras disponíveis</span>
+            <span className={styles.eyebrow}>{t("letter.available")}</span>
             <strong>
-              {PLAYABLE_LETTERS.length - usedLetters.size} por escolher
+              {t("letter.remaining", {
+                count: PLAYABLE_LETTERS.length - usedLetters.size,
+              })}
             </strong>
           </div>
           <div className={styles.commanderRule}>
             <Crown />
-            Cada jogador comanda uma vez
+            {t("letter.eachCommands")}
           </div>
         </div>
 
@@ -102,7 +111,13 @@ export function LetterSelectionRoom({
                 key={letter}
               >
                 {letter}
-                <small>{used ? "Usada" : isCommander ? "Escolher" : "Livre"}</small>
+                <small>
+                  {used
+                    ? t("letter.used")
+                    : isCommander
+                      ? t("letter.choose")
+                      : t("letter.free")}
+                </small>
               </Button>
             );
           })}
@@ -111,8 +126,8 @@ export function LetterSelectionRoom({
         <div className={styles.commanderNotice}>
           <Play />
           {isCommander
-            ? "A tua escolha inicia a rodada para todos."
-            : "A rodada começa assim que a letra for escolhida."}
+            ? t("letter.yourNotice")
+            : t("letter.otherNotice")}
         </div>
       </section>
     </main>

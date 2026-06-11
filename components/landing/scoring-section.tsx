@@ -1,37 +1,38 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "@/app/page.module.css";
 
-const scoringRules = [
-  {
-    value: "+20",
-    title: "Resposta única",
-    description: "Só tu deste uma resposta correcta nessa categoria.",
-    featured: true,
-  },
-  {
-    value: "+10",
-    title: "Resposta correcta",
-    description: "Acertaste, mas outros jogadores também deram respostas válidas.",
-  },
-  {
-    value: "+5",
-    title: "Resposta repetida",
-    description: "Dois ou mais jogadores escreveram a mesma resposta.",
-  },
-];
-
 export function ScoringSection() {
+  const { t } = useLanguage();
+  const scoringRules = [
+    {
+      value: "+20",
+      title: t("landing.uniqueTitle"),
+      description: t("landing.uniqueBody"),
+      featured: true,
+    },
+    {
+      value: "+10",
+      title: t("landing.correctTitle"),
+      description: t("landing.correctBody"),
+    },
+    {
+      value: "+5",
+      title: t("landing.duplicateTitle"),
+      description: t("landing.duplicateBody"),
+    },
+  ];
+
   return (
     <section className={styles.section} id="pontuacao">
       <div className={styles.sectionHeading}>
         <div>
-          <span className={styles.kicker}>Cada resposta conta</span>
-          <h2>Ser original vale mais.</h2>
+          <span className={styles.kicker}>{t("landing.scoreKicker")}</span>
+          <h2>{t("landing.scoreTitle")}</h2>
         </div>
-        <p>
-          Uma resposta correcta vale 10. Se for repetida, vale 5. Se só tu
-          acertares, levas 20.
-        </p>
+        <p>{t("landing.scoreBody")}</p>
       </div>
 
       <div className={styles.scoreGrid}>

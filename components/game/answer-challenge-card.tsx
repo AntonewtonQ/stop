@@ -9,6 +9,7 @@ import type {
   AnswerVote,
   Player,
 } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
 
 export function AnswerChallengeCard({
@@ -22,6 +23,7 @@ export function AnswerChallengeCard({
   sessionId: string;
   onVote: (challengeId: string, vote: AnswerVote) => void | Promise<void>;
 }) {
+  const { t } = useLanguage();
   const authors = players
     .filter((player) => challenge.playerIds.includes(player.id))
     .map((player) => player.name)
@@ -45,15 +47,18 @@ export function AnswerChallengeCard({
       <div className={styles.challengeCopy}>
         <span>
           {challenge.status === "pending"
-            ? "Resposta em votação"
+            ? t("challenge.pending")
             : challenge.status === "approved"
-              ? "Aprovada pela sala"
-              : "Rejeitada pela sala"}
+              ? t("challenge.approved")
+              : t("challenge.rejected")}
         </span>
         <strong>{challenge.answer}</strong>
         <small>
-          De {authors} · {Object.keys(challenge.votes).length} de{" "}
-          {eligibleVoters.length} votos
+          {t("challenge.votes", {
+            authors,
+            current: Object.keys(challenge.votes).length,
+            total: eligibleVoters.length,
+          })}
         </small>
       </div>
 
@@ -65,7 +70,7 @@ export function AnswerChallengeCard({
             onClick={() => onVote(challenge.id, "approve")}
           >
             <Check />
-            Aceitar
+            {t("challenge.accept")}
           </Button>
           <Button
             type="button"
@@ -73,18 +78,18 @@ export function AnswerChallengeCard({
             onClick={() => onVote(challenge.id, "reject")}
           >
             <X />
-            Rejeitar
+            {t("challenge.reject")}
           </Button>
         </div>
       ) : (
         <Badge className={styles.challengeDecision}>
           {challenge.status === "pending"
             ? challenge.playerIds.includes(sessionId)
-              ? "A tua resposta está em votação"
-              : "Voto registado"
+              ? t("challenge.yoursPending")
+              : t("challenge.voteRecorded")
             : challenge.status === "approved"
-              ? "Aceite"
-              : "Recusada"}
+              ? t("challenge.accepted")
+              : t("challenge.refused")}
         </Badge>
       )}
     </div>

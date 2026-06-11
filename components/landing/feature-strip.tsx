@@ -1,27 +1,31 @@
+"use client";
+
 import styles from "@/app/page.module.css";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import { GridIcon, PeopleIcon, StopwatchIcon } from "./icons";
 
-const features = [
-  {
-    title: "Pensa rápido",
-    description: "O relógio corre. Tu também.",
-    icon: <StopwatchIcon />,
-  },
-  {
-    title: "Categorias locais",
-    description: "Do funge ao semba, cabe tudo.",
-    icon: <GridIcon />,
-  },
-  {
-    title: "Joga com os teus",
-    description: "Partilha o código e começa a disputa.",
-    icon: <PeopleIcon />,
-  },
-];
-
 export function FeatureStrip() {
+  const { t } = useLanguage();
+  const features = [
+    {
+      title: t("landing.featureFastTitle"),
+      description: t("landing.featureFastBody"),
+      icon: <StopwatchIcon />,
+    },
+    {
+      title: t("landing.featureLocalTitle"),
+      description: t("landing.featureLocalBody"),
+      icon: <GridIcon />,
+    },
+    {
+      title: t("landing.featureGroupTitle"),
+      description: t("landing.featureGroupBody"),
+      icon: <PeopleIcon />,
+    },
+  ];
+
   return (
-    <section className={styles.featureStrip} aria-label="Destaques do jogo">
+    <section className={styles.featureStrip} aria-label={t("landing.featureAria")}>
       {features.map((feature) => (
         <article className={styles.feature} key={feature.title}>
           <span className={styles.featureIcon}>{feature.icon}</span>

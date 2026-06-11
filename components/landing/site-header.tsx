@@ -1,21 +1,26 @@
+"use client";
+
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "@/app/page.module.css";
 
 export function SiteHeader() {
+  const { t } = useLanguage();
+
   return (
     <header className={styles.header}>
-      <a href="#" aria-label="Página inicial">
+      <a href="#" aria-label={t("landing.homeAria")}>
         <Logo />
       </a>
 
-      <nav className={styles.nav} aria-label="Navegação principal">
-        <a href="#pontuacao">Pontuação</a>
-        <a href="#como-jogar">Como jogar</a>
+      <nav className={styles.nav} aria-label={t("landing.navAria")}>
+        <a href="#pontuacao">{t("landing.scoreNav")}</a>
+        <a href="#como-jogar">{t("landing.howNav")}</a>
       </nav>
 
       <Button asChild variant="outline" className={styles.headerCta}>
-        <a href="#jogar">Jogar agora</a>
+        <a href="#jogar">{t("landing.playNow")}</a>
       </Button>
     </header>
   );

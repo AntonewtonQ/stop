@@ -9,6 +9,8 @@ que começam pela letra sorteada antes que o tempo termine ou alguém grite STOP
 O projecto já possui um MVP online jogável:
 
 - landing page responsiva alinhada à identidade visual;
+- interface disponível em português, inglês e francês;
+- idioma escolhido individualmente e persistido no navegador;
 - identificação do jogador pelo nome;
 - criação de salas com código único;
 - entrada numa sala existente por código ou convite;
@@ -49,7 +51,8 @@ O projecto já possui um MVP online jogável:
 O validador é deliberadamente conservador: respostas presentes no léxico local
 da categoria são aceites automaticamente; respostas que começam pela letra
 correcta, mas ainda não constam do léxico, são enviadas para votação. O léxico
-actual é uma base inicial e pode ser expandido em `lib/game/word-validation.ts`.
+actual inclui uma base inicial em português, inglês e francês e pode ser
+expandido em `lib/game/word-validation.ts`.
 
 ## Fluxo jogável
 

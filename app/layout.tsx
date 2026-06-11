@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LanguageProvider } from "@/lib/i18n/language-provider";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -27,8 +29,11 @@ export default function RootLayout({
   return (
     <html lang="pt-AO" className={`${geistSans.variable} antialiased`}>
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
-        <Toaster position="top-center" richColors />
+        <LanguageProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+          <LanguageSwitcher />
+          <Toaster position="top-center" richColors />
+        </LanguageProvider>
       </body>
     </html>
   );

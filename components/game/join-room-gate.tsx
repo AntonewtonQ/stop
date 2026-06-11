@@ -15,6 +15,7 @@ import {
   savePlayerSession,
 } from "@/lib/game/storage";
 import type { Room } from "@/lib/game/types";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
 
 export function JoinRoomGate({
@@ -24,23 +25,24 @@ export function JoinRoomGate({
   room: Room;
   onJoined: () => void | Promise<void>;
 }) {
+  const { errorMessage, t } = useLanguage();
   const [name, setName] = useState("");
 
   async function handleJoin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (name.trim().length < 2) {
-      toast.error("Escreve o teu nome para entrar na sala.");
+      toast.error(t("join.nameRequired"));
       return;
     }
 
     if (room.status !== "lobby") {
-      toast.error("Esta partida já começou.");
+      toast.error(t("join.gameStarted"));
       return;
     }
 
     if (room.players.length >= PLAYABLE_LETTERS.length) {
-      toast.error("Esta sala já atingiu o limite de jogadores.");
+      toast.error(t("join.roomFull"));
       return;
     }
 
@@ -49,11 +51,11 @@ export function JoinRoomGate({
     try {
       await joinRoom(room.code, session);
       savePlayerSession(session);
-      toast.success("Entraste na sala", { description: room.code });
+      toast.success(t("entry.joined"), { description: room.code });
       await onJoined();
     } catch (error) {
-      toast.error("Não conseguimos entrar na sala.", {
-        description: error instanceof Error ? error.message : undefined,
+      toast.error(t("entry.joinFailed"), {
+        description: errorMessage(error),
       });
     }
   }
@@ -62,33 +64,35 @@ export function JoinRoomGate({
     <main className={styles.gamePage}>
       <div className={styles.centeredCard}>
         <Logo />
-        <span className={styles.eyebrow}>Sala {room.code}</span>
-        <h1>Entra no jogo.</h1>
-        <p>Escolhe o nome que vai aparecer nesta partida.</p>
+        <span className={styles.eyebrow}>
+          {t("common.room")} {room.code}
+        </span>
+        <h1>{t("join.title")}</h1>
+        <p>{t("join.body")}</p>
 
         <form className={styles.joinGateForm} onSubmit={handleJoin}>
-          <label htmlFor="guest-name">O teu nome</label>
+          <label htmlFor="guest-name">{t("join.nameLabel")}</label>
           <div className={styles.iconInput}>
             <UserRound />
             <Input
               id="guest-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Ex.: Ana Manuel"
+              placeholder={t("join.namePlaceholder")}
               maxLength={24}
               autoFocus
             />
           </div>
           <Button type="submit" className={styles.primaryButton}>
             <LogIn />
-            Entrar na sala
+            {t("entry.joinRoom")}
           </Button>
         </form>
 
         <Button asChild variant="ghost">
           <Link href="/">
             <ArrowLeft />
-            Voltar ao início
+            {t("common.home")}
           </Link>
         </Button>
       </div>

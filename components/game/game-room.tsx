@@ -7,6 +7,7 @@ import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { normalizeRoomCode } from "@/lib/game/storage";
 import { useRoom } from "@/lib/game/use-room";
+import { useLanguage } from "@/lib/i18n/language-provider";
 import { JoinRoomGate } from "./join-room-gate";
 import { FinalResults } from "./final-results";
 import { LetterSelectionRoom } from "./letter-selection-room";
@@ -16,6 +17,7 @@ import { RoundRoom } from "./round-room";
 import styles from "./game.module.css";
 
 export function GameRoom({ code }: { code: string }) {
+  const { t } = useLanguage();
   const normalizedCode = normalizeRoomCode(code);
   const { room, session, isLoading, refresh } = useRoom(normalizedCode);
 
@@ -24,7 +26,7 @@ export function GameRoom({ code }: { code: string }) {
       <main className={styles.gamePage}>
         <div className={styles.loadingCard}>
           <span />
-          <p>A preparar a sala...</p>
+          <p>{t("common.loadingRoom")}</p>
         </div>
       </main>
     );
@@ -38,13 +40,15 @@ export function GameRoom({ code }: { code: string }) {
           <div className={styles.emptyIcon}>
             <RotateCcw />
           </div>
-          <span className={styles.eyebrow}>Sala {normalizedCode}</span>
-          <h1>Não encontramos esta sala.</h1>
-          <p>Confirma o código ou cria uma nova para continuar.</p>
+          <span className={styles.eyebrow}>
+            {t("common.room")} {normalizedCode}
+          </span>
+          <h1>{t("game.roomNotFoundTitle")}</h1>
+          <p>{t("game.roomNotFoundBody")}</p>
           <Button asChild className={styles.primaryButton}>
             <Link href="/">
               <ArrowLeft />
-              Voltar ao início
+              {t("common.home")}
             </Link>
           </Button>
         </div>

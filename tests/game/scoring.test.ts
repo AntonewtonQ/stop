@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { scoreRound } from "@/lib/game/scoring";
 import type { Player } from "@/lib/game/types";
+import { isKnownAnswer } from "@/lib/game/word-validation";
 
 function player(id: string, isOnline = true): Player {
   return {
@@ -18,6 +19,12 @@ function player(id: string, isOnline = true): Player {
 
 describe("scoreRound", () => {
   const players = [player("a"), player("b"), player("c")];
+
+  it("reconhece respostas conhecidas em português, inglês e francês", () => {
+    expect(isKnownAnswer("Animal", "Cão")).toBe(true);
+    expect(isKnownAnswer("Animal", "Dog")).toBe(true);
+    expect(isKnownAnswer("Animal", "Chien")).toBe(true);
+  });
 
   it("aplica 5 para repetidas e 10 para uma resposta diferente", () => {
     const result = scoreRound({
