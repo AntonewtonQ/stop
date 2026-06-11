@@ -1,6 +1,7 @@
 "use client";
 
 import { Languages } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import { useLanguage } from "@/lib/i18n/language-provider";
 import type { Locale } from "@/lib/i18n/dictionaries";
@@ -8,9 +9,14 @@ import styles from "./language-switcher.module.css";
 
 export function LanguageSwitcher() {
   const { locale, setLocale, t } = useLanguage();
+  const pathname = usePathname();
 
   return (
-    <label className={styles.switcher}>
+    <label
+      className={`${styles.switcher} ${
+        pathname === "/" ? styles.landingSwitcher : ""
+      }`}
+    >
       <Languages aria-hidden="true" />
       <span className="sr-only">{t("language.label")}</span>
       <select

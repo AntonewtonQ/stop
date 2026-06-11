@@ -33,4 +33,16 @@
     right: 0.8rem;
     bottom: 0.8rem;
   }
+
+  .landingSwitcher {
+    position: absolute;
+    top: 5rem;
+    bottom: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .landingSwitcher {
+    top: 0.75rem;
+  }
 }

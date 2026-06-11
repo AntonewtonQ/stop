@@ -1,5 +1,7 @@
 .actions {
-  width: min(100%, 32rem);
+  width: 100%;
+  max-width: 32rem;
+  min-width: 0;
   margin-top: 2rem;
 }
 
@@ -16,6 +18,7 @@
 
 .nameField div {
   position: relative;
+  min-width: 0;
 }
 
 .nameField svg {
@@ -95,6 +98,7 @@
 
 .divider {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 0.8rem;
   margin: 1.35rem 0 0.85rem;
@@ -106,6 +110,7 @@
 }
 
 .dividerLine {
+  min-width: 0;
   flex: 1;
   background: rgb(var(--primary-rgb) / 14%);
 }
@@ -163,6 +168,7 @@
 .feedback {
   min-height: 1.2rem;
   margin-top: 0.8rem;
+  overflow-wrap: anywhere;
   color: var(--brand-muted);
   font-size: 0.78rem;
   font-weight: 600;
@@ -180,11 +186,20 @@
 }
 
 @media (max-width: 420px) {
+  .actions {
+    margin-top: 1.6rem;
+  }
+
   .resumeButton {
     width: 100%;
+    white-space: normal;
   }
 
   .joinForm {
     grid-template-columns: 1fr;
+  }
+
+  .joinForm button {
+    width: 100%;
   }
 }

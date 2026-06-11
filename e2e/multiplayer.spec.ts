@@ -208,6 +208,46 @@ test("mantém acções e controlos flutuantes separados em ecrãs compactos", as
   expect(resumeRoom!.y).toBeGreaterThan(createRoom!.y + createRoom!.height + 8);
 });
 
+test("mantém a landing page legível sem cortar conteúdo em ecrãs compactos", async ({
+  page,
+}) => {
+  for (const width of [320, 375, 584]) {
+    await page.setViewportSize({ width, height: 700 });
+    await page.goto("/");
+
+    const clippedElements = await page.locator("main *").evaluateAll((elements) =>
+      elements
+        .filter((element) => {
+          const rect = element.getBoundingClientRect();
+          let parent = element.parentElement;
+          let insideHorizontalScroller = false;
+
+          while (parent) {
+            const overflow = window.getComputedStyle(parent).overflowX;
+            if (overflow === "auto" || overflow === "scroll") {
+              insideHorizontalScroller = true;
+              break;
+            }
+            parent = parent.parentElement;
+          }
+
+          return (
+            !insideHorizontalScroller &&
+            (rect.left < -1 || rect.right > window.innerWidth + 1)
+          );
+        })
+        .map((element) => ({
+          tag: element.tagName,
+          text: element.textContent?.trim().slice(0, 50),
+        })),
+    );
+
+    expect(clippedElements).toEqual([]);
+    await expect(page.getByRole("heading", { name: /Pensa rápido/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Criar uma sala" })).toBeVisible();
+  }
+});
+
 test("expõe PWA instalável e regista o service worker", async ({
   page,
   request,
