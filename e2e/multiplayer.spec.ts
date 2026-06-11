@@ -253,3 +253,25 @@ test("expõe PWA instalável e regista o service worker", async ({
   await expect(page.getByRole("heading", { name: /Pensa rápido/ })).toBeVisible();
   await page.context().setOffline(false);
 });
+
+test("expõe o código de verificação do Google AdSense", async ({ request }) => {
+  const response = await request.get("/");
+  const html = await response.text();
+
+  expect(response.ok()).toBe(true);
+  expect(html).toContain(
+    "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068523374327625",
+  );
+  expect(html).toContain('crossorigin="anonymous"');
+});
+
+test("publica a autorização do Google AdSense em ads.txt", async ({
+  request,
+}) => {
+  const response = await request.get("/ads.txt");
+
+  expect(response.ok()).toBe(true);
+  await expect(response.text()).resolves.toContain(
+    "google.com, pub-9068523374327625, DIRECT, f08c47fec0942fa0",
+  );
+});
