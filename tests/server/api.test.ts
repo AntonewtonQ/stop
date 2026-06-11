@@ -8,6 +8,7 @@ import { POST as presenceRoute } from "@/app/api/rooms/[code]/presence/route";
 import { POST as createRoute } from "@/app/api/rooms/route";
 import { GET as healthRoute } from "@/app/api/health/route";
 import type { PlayerSession, Room } from "@/lib/game/types";
+import { getDatabase } from "@/lib/server/database";
 import { clearTestDatabase, makeSession } from "../helpers/game";
 
 type RouteResponse = { room?: Room; error?: string };
@@ -187,7 +188,58 @@ describe("Route Handlers", () => {
     expect(lateStop.status).toBe(409);
   });
 
-  it("transfere liderança através da API de presença", async () => {
+  it("inicia uma revanche mantendo os jogadores da sala", async () => {
+    const code = "RVN01";
+    const host = makeSession("Ana", code);
+    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+
+    for (const [type, payload] of [
+      ["start-game", {}],
+      ["choose-letter", { letter: "A" }],
+      [
+        "finish-round",
+        {
+          answers: {
+            Nome: "Ana",
+            País: "Angola",
+            Comida: "Arroz",
+            Profissão: "Actor",
+            Animal: "Antílope",
+          },
+        },
+      ],
+      ["finish-game", {}],
+    ] as const) {
+      await actionRoute(
+        jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+          actor: actor(host),
+          type,
+          payload,
+        }),
+        context(code),
+      );
+    }
+
+    const response = await actionRoute(
+      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        actor: actor(host),
+        type: "rematch",
+        payload: {},
+      }),
+      context(code),
+    );
+    const rematch = await json(response);
+
+    expect(response.status).toBe(200);
+    expect(rematch.room).toMatchObject({
+      status: "lobby",
+      round: null,
+      history: [],
+      players: [{ id: host.id, name: host.name }],
+    });
+  });
+
+  it("aplica graça antes de transferir liderança através da API de presença", async () => {
     const code = "API03";
     const host = makeSession("Ana", code);
     const guest = makeSession("Beto", code);
@@ -212,10 +264,29 @@ describe("Route Handlers", () => {
       }),
       context(code),
     );
-    const data = await json(response);
+    const duringGrace = await json(response);
 
-    expect(data.room?.hostId).toBe(guest.id);
-    expect(data.room?.round?.commanderId).toBe(guest.id);
+    expect(duringGrace.room?.hostId).toBe(host.id);
+    expect(
+      duringGrace.room?.players.find((player) => player.id === host.id)?.isOnline,
+    ).toBe(true);
+
+    getDatabase()
+      .prepare(
+        "UPDATE players SET last_seen_at = 0 WHERE room_code = ? AND id = ?",
+      )
+      .run(code, host.id);
+    const afterGrace = await presenceRoute(
+      jsonRequest(`http://stop.test/api/rooms/${code}/presence`, {
+        actor: actor(guest),
+        online: true,
+      }),
+      context(code),
+    );
+    const transferred = await json(afterGrace);
+
+    expect(transferred.room?.hostId).toBe(guest.id);
+    expect(transferred.room?.round?.commanderId).toBe(guest.id);
   });
 
   it("publica actualizações através do endpoint SSE", async () => {

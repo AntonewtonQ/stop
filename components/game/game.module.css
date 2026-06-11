@@ -55,6 +55,26 @@
   font-weight: 800;
 }
 
+.headerInviteActions,
+.inviteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.headerInviteActions {
+  justify-self: end;
+}
+
+.headerInviteActions .copyButton {
+  justify-self: auto;
+}
+
+.whatsappButton {
+  border-color: rgb(37 211 102 / 25%);
+  color: #128c4a;
+}
+
 .lobbyLayout {
   display: grid;
   width: min(100%, 76rem);
@@ -263,6 +283,14 @@
   border-color: rgb(255 255 255 / 18%);
   background: rgb(255 255 255 / 8%);
   color: white;
+}
+
+.inviteActions {
+  flex-wrap: wrap;
+}
+
+.inviteActions button {
+  flex: 1;
 }
 
 .settingsPanel {
@@ -1563,6 +1591,10 @@
     margin: 0;
   }
 
+  .headerInviteActions {
+    gap: 0.3rem;
+  }
+
   .sectionTitle,
   .answerBoardHeader,
   .roundHero,
@@ -1580,7 +1612,7 @@
     grid-template-columns: auto 1fr;
   }
 
-  .inviteCallout button {
+  .inviteActions {
     grid-column: 1 / -1;
   }
 

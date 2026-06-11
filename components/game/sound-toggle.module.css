@@ -1,0 +1,26 @@
+.toggle {
+  position: fixed;
+  z-index: 110;
+  right: 1rem;
+  bottom: 4.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-color: rgb(15 45 61 / 14%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 0.7rem 2rem rgb(15 45 61 / 15%);
+  color: var(--petroleum);
+  backdrop-filter: blur(12px);
+}
+
+.toggle svg {
+  width: 1rem;
+}
+
+@media (max-width: 640px) {
+  .toggle {
+    right: 0.8rem;
+    bottom: 4.55rem;
+  }
+}

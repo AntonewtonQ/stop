@@ -6,6 +6,7 @@ import {
   Check,
   Copy,
   Crown,
+  MessageCircle,
   Play,
   Settings2,
   UsersRound,
@@ -80,6 +81,19 @@ export function LobbyRoom({
     });
   }
 
+  function inviteOnWhatsApp() {
+    const inviteUrl = `${window.location.origin}/sala/${room.code}`;
+    const message = t("lobby.whatsappMessage", {
+      code: room.code,
+      url: inviteUrl,
+    });
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  }
+
   async function handleStart() {
     if (!isHost) return;
     try {
@@ -100,10 +114,20 @@ export function LobbyRoom({
           <span>{t("common.room")}</span>
           <strong>{room.code}</strong>
         </div>
-        <Button variant="outline" className={styles.copyButton} onClick={copyInvite}>
-          <Copy />
-          {t("lobby.copyInvite")}
-        </Button>
+        <div className={styles.headerInviteActions}>
+          <Button
+            variant="outline"
+            className={`${styles.copyButton} ${styles.whatsappButton}`}
+            onClick={inviteOnWhatsApp}
+          >
+            <MessageCircle />
+            {t("lobby.whatsappInvite")}
+          </Button>
+          <Button variant="outline" className={styles.copyButton} onClick={copyInvite}>
+            <Copy />
+            {t("lobby.copyInvite")}
+          </Button>
+        </div>
       </header>
 
       <div className={styles.lobbyLayout}>
@@ -126,10 +150,16 @@ export function LobbyRoom({
               <strong>{t("lobby.callTitle")}</strong>
               <p>{t("lobby.callBody")}</p>
             </div>
-            <Button variant="outline" onClick={copyInvite}>
-              <Copy />
-              {t("lobby.copyInvite")}
-            </Button>
+            <div className={styles.inviteActions}>
+              <Button variant="outline" onClick={inviteOnWhatsApp}>
+                <MessageCircle />
+                {t("lobby.whatsappInvite")}
+              </Button>
+              <Button variant="outline" onClick={copyInvite}>
+                <Copy />
+                {t("lobby.copyInvite")}
+              </Button>
+            </div>
           </aside>
         </section>
 

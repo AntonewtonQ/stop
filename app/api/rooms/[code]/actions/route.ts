@@ -5,8 +5,8 @@ import {
   finishRound,
   normalizeRoomCode,
   prepareNextRound,
-  restartGame,
   saveRoundAnswers,
+  startRematch,
   startFirstRound,
   updateRoomSettings,
 } from "@/lib/game/engine";
@@ -128,8 +128,9 @@ function parseAction(body: ActionBody) {
       return prepareNextRound;
     case "finish-game":
       return finishGame;
+    case "rematch":
     case "restart-game":
-      return restartGame;
+      return startRematch;
     default:
       throw new RoomRepositoryError("Esta acção não é válida.", 400);
   }

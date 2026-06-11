@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { Plus, UserRound } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { History, Plus, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -14,9 +14,11 @@ import {
   joinRoom,
   makeRoomCode,
   normalizeRoomCode,
+  readLastPlayerSession,
   readRoom,
   savePlayerSession,
 } from "@/lib/game/storage";
+import type { PlayerSession } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./room-actions.module.css";
 
@@ -26,6 +28,15 @@ export function RoomActions() {
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [message, setMessage] = useState("");
+  const [recentSession, setRecentSession] = useState<PlayerSession | null>(null);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setRecentSession(readLastPlayerSession()),
+      0,
+    );
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   function validateName() {
     const name = playerName.trim();
@@ -131,6 +142,18 @@ export function RoomActions() {
           {t("entry.createRoom")}
         </Button>
       </div>
+
+      {recentSession && (
+        <Button
+          className={styles.resumeButton}
+          type="button"
+          variant="outline"
+          onClick={() => router.push(`/sala/${recentSession.roomCode}`)}
+        >
+          <History />
+          {t("entry.resumeRoom", { code: recentSession.roomCode })}
+        </Button>
+      )}
 
       <div className={styles.divider}>
         <Separator className={styles.dividerLine} />

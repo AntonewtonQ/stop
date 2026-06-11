@@ -106,7 +106,7 @@ describe("RoomRepository", () => {
     expect(getRoom(code)?.round?.stoppedBy).toBe(sessions[1].id);
   });
 
-  it("marca ausências e transfere anfitrião e comandante", () => {
+  it("aguarda o período de graça antes de transferir anfitrião e comandante", () => {
     const { code, room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
     createStoredRoom(
       { ...room, players: [room.players[0]], settings: { ...room.settings, roundsToPlay: 1 } },
@@ -115,14 +115,32 @@ describe("RoomRepository", () => {
     joinStoredRoom(code, sessions[1], joinRoom);
     mutateStoredRoom(code, sessions[0].id, sessions[0].token, startFirstRound);
 
-    const { room: transferred, changed } = updateStoredPresence(
+    const { room: duringGrace, changed } = updateStoredPresence(
       code,
       sessions[0].id,
       sessions[0].token,
       false,
     );
 
-    expect(changed).toBe(true);
+    expect(changed).toBe(false);
+    expect(duringGrace.hostId).toBe(sessions[0].id);
+    expect(
+      duringGrace.players.find((player) => player.id === sessions[0].id)
+        ?.isOnline,
+    ).toBe(true);
+
+    getDatabase()
+      .prepare(
+        "UPDATE players SET last_seen_at = 0 WHERE room_code = ? AND id = ?",
+      )
+      .run(code, sessions[0].id);
+    const { room: transferred } = updateStoredPresence(
+      code,
+      sessions[1].id,
+      sessions[1].token,
+      true,
+    );
+
     expect(transferred.hostId).toBe(sessions[1].id);
     expect(transferred.round?.commanderId).toBe(sessions[1].id);
     expect(

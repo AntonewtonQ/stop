@@ -1,0 +1,58 @@
+.notice {
+  position: fixed;
+  z-index: 120;
+  top: 1rem;
+  left: 50%;
+  display: flex;
+  width: min(calc(100% - 2rem), 32rem);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgb(240 178 74 / 45%);
+  border-radius: 1rem;
+  background: rgb(15 45 61 / 96%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 24%);
+  color: white;
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+
+.notice > svg {
+  width: 1.2rem;
+  color: var(--amber);
+}
+
+.notice div {
+  display: grid;
+  flex: 1;
+  gap: 0.08rem;
+}
+
+.notice strong {
+  font-size: 0.72rem;
+}
+
+.notice span {
+  color: rgb(255 255 255 / 62%);
+  font-size: 0.58rem;
+  font-weight: 650;
+}
+
+.notice button {
+  color: var(--amber);
+}
+
+.notice button svg,
+.spinning {
+  width: 1rem;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

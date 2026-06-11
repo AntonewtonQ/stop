@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   chooseRoundLetter,
+  finishGame,
   finishRound,
   prepareNextRound,
   reconcileRoomPresence,
   saveRoundAnswers,
+  startRematch,
   startFirstRound,
 } from "@/lib/game/engine";
 import {
@@ -107,6 +109,32 @@ describe("motor da partida", () => {
 
     expect(reconciled.commanderOrder[1]).toBe(sessions[2].id);
     expect(nextRound.round?.commanderId).toBe(sessions[2].id);
+  });
+
+  it("prepara uma revanche preservando sala, jogadores e regras", () => {
+    const { room, sessions } = makeRoomWithPlayers(["Ana"]);
+    const round = chooseRoundLetter(
+      startFirstRound(room, sessions[0].id),
+      sessions[0].id,
+      "A",
+    );
+    const results = finishRound(
+      completeAnswers(round, sessions[0].id),
+      sessions[0].id,
+    );
+    const finished = finishGame(results, sessions[0].id);
+    const rematch = startRematch(finished, sessions[0].id);
+
+    expect(finished.status).toBe("finished");
+    expect(rematch).toMatchObject({
+      code: room.code,
+      status: "lobby",
+      players: room.players,
+      settings: room.settings,
+      round: null,
+      history: [],
+      commanderOrder: [],
+    });
   });
 });
 

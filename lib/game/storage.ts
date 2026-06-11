@@ -14,6 +14,7 @@ import type {
 } from "./types";
 
 const SESSION_PREFIX = "stop.ao:player:";
+const LAST_ROOM_KEY = "stop.ao:last-room";
 
 export { createPlayerSession, makeRoomCode, normalizeRoomCode };
 
@@ -157,8 +158,8 @@ export function finishGame(code: string) {
   return sendAction(code, "finish-game");
 }
 
-export function restartGame(code: string) {
-  return sendAction(code, "restart-game");
+export function startRematch(code: string) {
+  return sendAction(code, "rematch");
 }
 
 export function syncPlayerPresence(
@@ -175,25 +176,57 @@ export function syncPlayerPresence(
   });
 }
 
-export function savePlayerSession(session: PlayerSession) {
-  window.sessionStorage.setItem(
-    `${SESSION_PREFIX}${session.roomCode}`,
-    JSON.stringify(session),
+export function signalPlayerDisconnect(code: string) {
+  const normalizedCode = normalizeRoomCode(code);
+  const session = readPlayerSession(normalizedCode);
+  if (!session || typeof navigator === "undefined" || !navigator.sendBeacon) {
+    return false;
+  }
+
+  return navigator.sendBeacon(
+    `/api/rooms/${normalizedCode}/presence`,
+    new Blob(
+      [
+        JSON.stringify({
+          actor: { id: session.id, token: session.token },
+          online: false,
+        }),
+      ],
+      { type: "application/json" },
+    ),
   );
+}
+
+export function savePlayerSession(session: PlayerSession) {
+  const key = `${SESSION_PREFIX}${session.roomCode}`;
+  const value = JSON.stringify(session);
+  window.localStorage.setItem(key, value);
+  window.localStorage.setItem(LAST_ROOM_KEY, session.roomCode);
+  window.sessionStorage.setItem(key, value);
 }
 
 export function readPlayerSession(code: string): PlayerSession | null {
   if (typeof window === "undefined") return null;
 
-  const rawSession = window.sessionStorage.getItem(
-    `${SESSION_PREFIX}${normalizeRoomCode(code)}`,
-  );
+  const key = `${SESSION_PREFIX}${normalizeRoomCode(code)}`;
+  const rawSession =
+    window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key);
   if (!rawSession) return null;
 
   try {
     const session = JSON.parse(rawSession) as PlayerSession;
-    return session.token ? session : null;
+    if (!session.token) return null;
+
+    window.localStorage.setItem(key, rawSession);
+    window.localStorage.setItem(LAST_ROOM_KEY, session.roomCode);
+    return session;
   } catch {
     return null;
   }
+}
+
+export function readLastPlayerSession() {
+  if (typeof window === "undefined") return null;
+  const code = window.localStorage.getItem(LAST_ROOM_KEY);
+  return code ? readPlayerSession(code) : null;
 }

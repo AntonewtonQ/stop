@@ -8,7 +8,7 @@ import { Logo } from "@/components/brand/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getPlayerTotal } from "@/lib/game/scoring";
-import { restartGame } from "@/lib/game/storage";
+import { startRematch } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
@@ -30,13 +30,13 @@ export function FinalResults({
     .sort((a, b) => b.total - a.total);
   const winner = ranking[0];
 
-  async function playAgain() {
+  async function playRematch() {
     if (!isHost) return;
     try {
-      await restartGame(room.code);
-      toast.success(t("final.ready"));
+      await startRematch(room.code);
+      toast.success(t("final.rematchReady"));
     } catch (error) {
-      toast.error(t("final.prepareFailed"), {
+      toast.error(t("final.rematchFailed"), {
         description: errorMessage(error),
       });
     }
@@ -94,9 +94,9 @@ export function FinalResults({
 
       <div className={styles.finalActions}>
         {isHost ? (
-          <Button className={styles.startButton} onClick={playAgain}>
+          <Button className={styles.startButton} onClick={playRematch}>
             <RotateCcw />
-            {t("final.playAgain")}
+            {t("final.rematch")}
           </Button>
         ) : (
           <div className={styles.waitingHost}>

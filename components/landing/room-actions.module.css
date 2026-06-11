@@ -75,6 +75,24 @@
   transform: translateY(0.45rem);
 }
 
+.resumeButton {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 2.65rem;
+  margin-top: 1.35rem;
+  border-color: rgb(15 45 61 / 14%);
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 78%);
+  color: var(--petroleum);
+  font-weight: 750;
+}
+
+.resumeButton:hover {
+  border-color: rgb(240 178 74 / 55%);
+  background: rgb(240 178 74 / 10%);
+  color: var(--petroleum);
+}
+
 .divider {
   display: flex;
   align-items: center;
@@ -162,6 +180,10 @@
 }
 
 @media (max-width: 420px) {
+  .resumeButton {
+    width: 100%;
+  }
+
   .joinForm {
     grid-template-columns: 1fr;
   }

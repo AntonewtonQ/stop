@@ -6,7 +6,7 @@ import {
   normalizeRoom,
   reconcileRoomPresence,
 } from "@/lib/game/engine";
-import { PRESENCE_OFFLINE_AFTER } from "@/lib/game/constants";
+import { PRESENCE_DISCONNECT_GRACE } from "@/lib/game/constants";
 import type { PlayerSession, Room, RoundState } from "@/lib/game/types";
 import { getDatabase } from "./database";
 
@@ -408,11 +408,19 @@ export function updateStoredPresence(
       .get(code, playerId) as { is_online: number } | undefined;
     const now = Date.now();
 
-    database
-      .prepare(
-        "UPDATE players SET is_online = ?, last_seen_at = ? WHERE room_code = ? AND id = ?",
-      )
-      .run(isOnline ? 1 : 0, now, code, playerId);
+    if (isOnline) {
+      database
+        .prepare(
+          "UPDATE players SET is_online = 1, last_seen_at = ? WHERE room_code = ? AND id = ?",
+        )
+        .run(now, code, playerId);
+    } else {
+      database
+        .prepare(
+          "UPDATE players SET last_seen_at = ? WHERE room_code = ? AND id = ?",
+        )
+        .run(now, code, playerId);
+    }
 
     const stalePlayers = database
       .prepare(
@@ -420,7 +428,7 @@ export function updateStoredPresence(
          SET is_online = 0
          WHERE room_code = ? AND is_online = 1 AND last_seen_at < ?`,
       )
-      .run(code, now - PRESENCE_OFFLINE_AFTER);
+      .run(code, now - PRESENCE_DISCONNECT_GRACE);
 
     const room = getRoom(code);
     if (!room) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
@@ -432,7 +440,7 @@ export function updateStoredPresence(
     return {
       room: nextRoom,
       changed:
-        Boolean(previous?.is_online) !== isOnline ||
+        (isOnline && !Boolean(previous?.is_online)) ||
         stalePlayers.changes > 0 ||
         leadershipChanged,
     };

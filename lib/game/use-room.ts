@@ -6,14 +6,23 @@ import { PRESENCE_HEARTBEAT_INTERVAL } from "./constants";
 import {
   readPlayerSession,
   readRoom,
+  signalPlayerDisconnect,
   syncPlayerPresence,
 } from "./storage";
 import type { PlayerSession, Room } from "./types";
+
+export type RoomConnectionStatus = "connected" | "reconnecting" | "offline";
 
 export function useRoom(code: string) {
   const [room, setRoom] = useState<Room | null>(null);
   const [session, setSession] = useState<PlayerSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] =
+    useState<RoomConnectionStatus>("connected");
+
+  const markConnectionFailure = useCallback(() => {
+    setConnectionStatus(navigator.onLine ? "reconnecting" : "offline");
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -26,12 +35,28 @@ export function useRoom(code: string) {
           : nextRoom,
       );
       setSession(readPlayerSession(code));
+      setConnectionStatus("connected");
+      return true;
     } catch {
-      // Keep the latest room state during a temporary network failure.
+      markConnectionFailure();
+      return false;
     } finally {
       setIsLoading(false);
     }
-  }, [code]);
+  }, [code, markConnectionFailure]);
+
+  const reconnect = useCallback(async () => {
+    setConnectionStatus(navigator.onLine ? "reconnecting" : "offline");
+    if (!navigator.onLine) return false;
+
+    try {
+      if (readPlayerSession(code)) await syncPlayerPresence(code);
+    } catch {
+      markConnectionFailure();
+    }
+
+    return refresh();
+  }, [code, markConnectionFailure, refresh]);
 
   useEffect(() => {
     const initialRefresh = window.setTimeout(() => void refresh(), 0);
@@ -47,37 +72,50 @@ export function useRoom(code: string) {
       }
     }
 
-    function handleRealtimeUpdate() {
-      void refresh();
+    function handleOnline() {
+      void reconnect();
+    }
+
+    function handleOffline() {
+      setConnectionStatus("offline");
     }
 
     window.addEventListener("stop-room-update", handleLocalUpdate);
-    window.addEventListener("focus", handleRealtimeUpdate);
-    window.addEventListener("online", handleRealtimeUpdate);
+    window.addEventListener("focus", handleOnline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
       window.clearTimeout(initialRefresh);
       window.removeEventListener("stop-room-update", handleLocalUpdate);
-      window.removeEventListener("focus", handleRealtimeUpdate);
-      window.removeEventListener("online", handleRealtimeUpdate);
+      window.removeEventListener("focus", handleOnline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
-  }, [code, refresh]);
+  }, [code, reconnect, refresh]);
 
   useEffect(() => {
     if (!room?.code) return;
 
     const events = new EventSource(`/api/rooms/${room.code}/events`);
+    const handleConnected = () => {
+      setConnectionStatus("connected");
+      void refresh();
+    };
     const handleRealtimeUpdate = () => void refresh();
+    const handleError = () => markConnectionFailure();
 
-    events.addEventListener("connected", handleRealtimeUpdate);
+    events.addEventListener("connected", handleConnected);
     events.addEventListener("room-updated", handleRealtimeUpdate);
+    events.addEventListener("error", handleError);
 
     return () => {
       events.close();
-      events.removeEventListener("connected", handleRealtimeUpdate);
+      events.removeEventListener("connected", handleConnected);
       events.removeEventListener("room-updated", handleRealtimeUpdate);
+      events.removeEventListener("error", handleError);
     };
-  }, [refresh, room?.code]);
+  }, [markConnectionFailure, refresh, room?.code]);
 
   useEffect(() => {
     if (!room?.code || !session) return;
@@ -85,9 +123,9 @@ export function useRoom(code: string) {
     const roomCode = room.code;
 
     function markOnline() {
-      void syncPlayerPresence(roomCode).catch(() => {
-        // The next heartbeat or reconnect will restore presence.
-      });
+      void syncPlayerPresence(roomCode)
+        .then(() => setConnectionStatus("connected"))
+        .catch(markConnectionFailure);
     }
 
     function handleVisibilityChange() {
@@ -100,12 +138,22 @@ export function useRoom(code: string) {
       PRESENCE_HEARTBEAT_INTERVAL,
     );
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    const handlePageHide = () => signalPlayerDisconnect(roomCode);
+    window.addEventListener("pagehide", handlePageHide);
 
     return () => {
       window.clearInterval(heartbeat);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
     };
-  }, [room?.code, session]);
+  }, [markConnectionFailure, room?.code, session]);
 
-  return { room, session, isLoading, refresh };
+  return {
+    room,
+    session,
+    isLoading,
+    connectionStatus,
+    reconnect,
+    refresh,
+  };
 }

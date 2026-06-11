@@ -125,5 +125,6 @@ describe("scoreRound", () => {
 
     expect(result.challenges[challenge.id].status).toBe("rejected");
     expect(result.players.a.answers.Nome.points).toBe(0);
+    expect(result.players.a.total).toBe(0);
   });
 });

@@ -412,7 +412,7 @@ export function finishGame(room: Room, requesterId: string) {
   return { ...room, status: "finished" as const };
 }
 
-export function restartGame(room: Room, requesterId: string) {
+export function startRematch(room: Room, requesterId: string) {
   if (room.hostId !== requesterId || room.status !== "finished") return room;
 
   return {
@@ -424,6 +424,8 @@ export function restartGame(room: Room, requesterId: string) {
     settings: { ...room.settings, roundsToPlay: room.players.length },
   };
 }
+
+export const restartGame = startRematch;
 
 function replaceRoundCommander(room: Room, commanderId: string) {
   if (!room.round || room.round.commanderId === commanderId) return room;

@@ -16,6 +16,9 @@ O projecto já possui um MVP online jogável:
 - entrada numa sala existente por código ou convite;
 - lobby sincronizado entre navegadores e dispositivos ligados ao mesmo servidor;
 - presença online/offline sincronizada entre jogadores;
+- recuperação automática da sessão após fechar e reabrir o navegador;
+- aviso visual de ligação perdida com tentativa de reconexão;
+- período de graça antes de marcar jogadores como offline;
 - lista de jogadores e identificação do anfitrião;
 - transferência automática do anfitrião e comandante quando ficam offline;
 - configuração de categorias e duração pelo anfitrião;
@@ -29,6 +32,8 @@ O projecto já possui um MVP online jogável:
 - botão STOP disponível para quem preencher todas as categorias;
 - o primeiro STOP aceite termina a rodada para todos;
 - encerramento automático quando o tempo termina;
+- sons para início da rodada, últimos cinco segundos e STOP;
+- controlo individual para activar ou desactivar sons;
 - validação automática através de um léxico local por categoria;
 - identificação de respostas duvidosas;
 - votação sincronizada das respostas duvidosas pelos restantes jogadores;
@@ -39,7 +44,8 @@ O projecto já possui um MVP online jogável:
 - resultados por categoria e jogador;
 - classificação acumulada entre rodadas;
 - início da rodada seguinte;
-- classificação final e opção de jogar novamente;
+- classificação final e revanche mantendo sala, regras e jogadores;
+- convite directo para WhatsApp no lobby;
 - estados para sala inexistente, entrada tardia e espera pelo comandante.
 - API HTTP para todas as operações da partida;
 - actualizações realtime através de Server-Sent Events;
@@ -70,6 +76,7 @@ expandido em `lib/game/word-validation.ts`.
 11. A pontuação e a classificação são recalculadas após cada decisão.
 12. O comando passa ao jogador seguinte, que escolhe uma nova letra.
 13. A partida termina depois de completar uma rodada por jogador inicial.
+14. O anfitrião pode iniciar uma revanche com os mesmos jogadores.
 
 ## Testar localmente
 
@@ -102,11 +109,13 @@ O backend utiliza Route Handlers do Next.js e SQLite nativo do Node:
 - jogadores, rodadas, respostas, desafios e votos possuem tabelas próprias;
 - cada mutação é validada pelo servidor e executada numa transacção;
 - tokens privados autorizam as acções e são guardados como hashes SHA-256;
-- a identidade do jogador é guardada em `sessionStorage`;
+- a identidade do jogador é guardada em `localStorage` e recuperada ao reabrir
+  o navegador;
 - o servidor publica notificações SSE imediatamente após cada alteração visível;
 - o cliente recupera automaticamente o estado ao reconectar;
-- cada sessão envia um heartbeat autenticado e fica offline após `35` segundos
-  sem actividade;
+- a página inicial permite retomar a última sala guardada;
+- cada sessão envia um heartbeat autenticado e entra num período de graça de
+  `35` segundos antes de ficar offline;
 - a janela de presença permite actualizar a página sem perder o comando;
 - se o anfitrião ou comandante ficar offline, a liderança passa ao próximo
   jogador online sem devolver o controlo automaticamente ao reconectar;
@@ -162,7 +171,7 @@ migrar o broker SSE em memória para Redis/Pub/Sub, como Upstash Redis.
 - `GET /api/health` — valida o processo Node e a ligação à base de dados.
 
 As acções incluem configuração, início, escolha da letra, respostas, STOP,
-votos, próxima rodada, fim da partida e reinício.
+votos, próxima rodada, fim da partida e revanche.
 
 ## Base de dados
 

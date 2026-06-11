@@ -23,7 +23,7 @@ export function JoinRoomGate({
   onJoined,
 }: {
   room: Room;
-  onJoined: () => void | Promise<void>;
+  onJoined: () => void | Promise<unknown>;
 }) {
   const { errorMessage, t } = useLanguage();
   const [name, setName] = useState("");
