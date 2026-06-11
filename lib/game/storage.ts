@@ -133,8 +133,12 @@ export function saveRoundAnswers(code: string, answers: RoundAnswers) {
   return sendAction(code, "save-answers", { answers });
 }
 
-export function finishRound(code: string, timedOut = false) {
-  return sendAction(code, "finish-round", { timedOut });
+export function finishRound(
+  code: string,
+  timedOut = false,
+  answers?: RoundAnswers,
+) {
+  return sendAction(code, "finish-round", { timedOut, answers });
 }
 
 export function castAnswerVote(

@@ -131,6 +131,62 @@ describe("Route Handlers", () => {
     });
   });
 
+  it("guarda as respostas finais e aceita o primeiro STOP de qualquer jogador", async () => {
+    const code = "STOP1";
+    const host = makeSession("Ana", code);
+    const guest = makeSession("Beto", code);
+
+    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await joinRoute(
+      jsonRequest(`http://stop.test/api/rooms/${code}/join`, { session: guest }),
+      context(code),
+    );
+    for (const [session, type, payload] of [
+      [host, "start-game", {}],
+      [host, "choose-letter", { letter: "A" }],
+    ] as const) {
+      await actionRoute(
+        jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+          actor: actor(session),
+          type,
+          payload,
+        }),
+        context(code),
+      );
+    }
+
+    const answers = {
+      Nome: "Ana",
+      País: "Angola",
+      Comida: "Arroz",
+      Profissão: "Actor",
+      Animal: "Antílope",
+    };
+    const stopped = await actionRoute(
+      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        actor: actor(guest),
+        type: "finish-round",
+        payload: { answers },
+      }),
+      context(code),
+    );
+    const lateStop = await actionRoute(
+      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        actor: actor(host),
+        type: "finish-round",
+        payload: { answers },
+      }),
+      context(code),
+    );
+    const stoppedRoom = await json(stopped);
+
+    expect(stopped.status).toBe(200);
+    expect(stoppedRoom.room?.status).toBe("results");
+    expect(stoppedRoom.room?.round?.stoppedBy).toBe(guest.id);
+    expect(stoppedRoom.room?.round?.answers[guest.id]).toEqual(answers);
+    expect(lateStop.status).toBe(409);
+  });
+
   it("transfere liderança através da API de presença", async () => {
     const code = "API03";
     const host = makeSession("Ana", code);

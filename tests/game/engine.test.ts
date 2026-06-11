@@ -5,6 +5,7 @@ import {
   finishRound,
   prepareNextRound,
   reconcileRoomPresence,
+  saveRoundAnswers,
   startFirstRound,
 } from "@/lib/game/engine";
 import {
@@ -17,7 +18,11 @@ describe("motor da partida", () => {
     const { room, sessions } = makeRoomWithPlayers();
     const prepared = startFirstRound(room, sessions[0].id);
     const firstRound = chooseRoundLetter(prepared, sessions[0].id, "A");
-    const results = finishRound(firstRound, sessions[0].id, 100);
+    const results = finishRound(
+      completeAnswers(firstRound, sessions[0].id),
+      sessions[0].id,
+      100,
+    );
     const nextSelection = prepareNextRound(results, sessions[1].id);
 
     expect(prepared.commanderOrder).toEqual(sessions.map((session) => session.id));
@@ -30,7 +35,7 @@ describe("motor da partida", () => {
     );
   });
 
-  it("impede outro jogador de escolher a letra ou parar o relógio", () => {
+  it("reserva a escolha da letra ao comandante e exige respostas completas para STOP", () => {
     const { room, sessions } = makeRoomWithPlayers();
     const prepared = startFirstRound(room, sessions[0].id);
 
@@ -38,6 +43,35 @@ describe("motor da partida", () => {
 
     const round = chooseRoundLetter(prepared, sessions[0].id, "A");
     expect(finishRound(round, sessions[1].id)).toBe(round);
+  });
+
+  it("permite que qualquer jogador preenchido grite STOP primeiro", () => {
+    const { room, sessions } = makeRoomWithPlayers();
+    const round = chooseRoundLetter(
+      startFirstRound(room, sessions[0].id),
+      sessions[0].id,
+      "A",
+    );
+    const completed = completeAnswers(round, sessions[1].id);
+    const results = finishRound(completed, sessions[1].id);
+
+    expect(results.status).toBe("results");
+    expect(results.round?.stoppedBy).toBe(sessions[1].id);
+    expect(finishRound(results, sessions[0].id)).toBe(results);
+  });
+
+  it("rejeita STOP de alguém que não pertence à sala", () => {
+    const { room, sessions } = makeRoomWithPlayers();
+    const round = completeAnswers(
+      chooseRoundLetter(
+        startFirstRound(room, sessions[0].id),
+        sessions[0].id,
+        "A",
+      ),
+      "intruso",
+    );
+
+    expect(finishRound(round, "intruso")).toBe(round);
   });
 
   it("transfere anfitrião e comandante corrente para o próximo online", () => {
@@ -62,7 +96,10 @@ describe("motor da partida", () => {
       sessions[0].id,
       "A",
     );
-    const results = finishRound(firstRound, sessions[0].id);
+    const results = finishRound(
+      completeAnswers(firstRound, sessions[0].id),
+      sessions[0].id,
+    );
     const reconciled = reconcileRoomPresence(
       setPlayerOnline(results, sessions[1].id, false),
     );
@@ -72,3 +109,16 @@ describe("motor da partida", () => {
     expect(nextRound.round?.commanderId).toBe(sessions[2].id);
   });
 });
+
+function completeAnswers(
+  room: ReturnType<typeof startFirstRound>,
+  playerId: string,
+) {
+  return saveRoundAnswers(
+    room,
+    playerId,
+    Object.fromEntries(
+      room.settings.categories.map((category) => [category, "Resposta"]),
+    ),
+  );
+}

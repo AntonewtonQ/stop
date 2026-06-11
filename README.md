@@ -24,7 +24,8 @@ O projecto já possui um MVP online jogável:
 - início sincronizado das rodadas;
 - relógio regressivo e barra de progresso;
 - persistência das respostas por jogador;
-- botão STOP exclusivo do comandante, que termina a rodada para todos;
+- botão STOP disponível para quem preencher todas as categorias;
+- o primeiro STOP aceite termina a rodada para todos;
 - encerramento automático quando o tempo termina;
 - validação automática através de um léxico local por categoria;
 - identificação de respostas duvidosas;
@@ -59,7 +60,8 @@ actual é uma base inicial e pode ser expandido em `lib/game/word-validation.ts`
 5. O anfitrião, primeiro comandante activo, escolhe uma letra ainda não utilizada.
 6. A escolha inicia a rodada e o relógio para todos.
 7. Todos preenchem as respostas antes do tempo terminar.
-8. O comandante corrente pode gritar STOP e encerrar a rodada para todos.
+8. O primeiro jogador a preencher tudo pode gritar STOP e encerrar a rodada
+   para todos.
 9. As respostas conhecidas são validadas automaticamente.
 10. Os restantes jogadores votam nas respostas duvidosas.
 11. A pontuação e a classificação são recalculadas após cada decisão.
@@ -189,7 +191,9 @@ automaticamente para não bloquear a partida.
 - a ordem seguinte respeita a ordem de entrada na sala;
 - cada jogador online comanda uma rodada sempre que a ordem permitir;
 - jogadores offline são movidos na ordem ou substituídos por alguém online;
-- o comandante escolhe a letra e controla o botão STOP;
+- o comandante escolhe a letra da rodada;
+- qualquer jogador pode gritar STOP depois de preencher todas as categorias;
+- o primeiro STOP aceite pelo servidor termina a rodada para todos;
 - uma letra utilizada deixa de estar disponível durante a partida;
 - o número de rodadas é igual ao número de jogadores presentes ao iniciar.
 

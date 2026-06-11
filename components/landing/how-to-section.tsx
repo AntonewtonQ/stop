@@ -15,7 +15,7 @@ const steps = [
   {
     number: "03",
     title: "Grita STOP",
-    description: "Preenche tudo, pára o relógio e conta os pontos.",
+    description: "Quem preencher tudo primeiro termina a rodada para todos.",
   },
 ];
 
@@ -28,8 +28,8 @@ export function HowToSection() {
           <h2>Entrar é fácil. Ganhar já é outra conversa.</h2>
         </div>
         <p>
-          Cada jogador comanda uma rodada. Escolhe a letra, controla o STOP e
-          passa o comando ao próximo.
+          Cada jogador comanda uma rodada e escolhe a letra. O primeiro a
+          preencher tudo grita STOP.
         </p>
       </div>
 

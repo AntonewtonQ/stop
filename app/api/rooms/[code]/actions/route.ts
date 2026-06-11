@@ -105,8 +105,17 @@ function parseAction(body: ActionBody) {
       return (room: Room, actorId: string) =>
         saveRoundAnswers(room, actorId, parseAnswers(payload.answers));
     case "finish-round":
-      return (room: Room, actorId: string) =>
-        finishRound(room, payload.timedOut === true ? null : actorId);
+      return (room: Room, actorId: string) => {
+        const roomWithFinalAnswers =
+          payload.answers === undefined
+            ? room
+            : saveRoundAnswers(room, actorId, parseAnswers(payload.answers));
+
+        return finishRound(
+          roomWithFinalAnswers,
+          payload.timedOut === true ? null : actorId,
+        );
+      };
     case "vote":
       return (room: Room, actorId: string) =>
         castAnswerVote(

@@ -43,10 +43,25 @@ test("dois jogadores entram e a liderança offline é transferida", async ({
   ).toBeVisible();
   await guest.getByRole("button", { name: /^A/ }).click();
 
-  await expect(guest.getByText("Gritar STOP")).toBeVisible();
+  await expect(
+    guest.getByRole("button", { name: "Preenche tudo para gritar STOP" }),
+  ).toBeVisible();
   await expect(
     host.getByRole("heading", { name: "Preenche tudo antes do STOP." }),
   ).toBeVisible();
+  await expect(
+    host.getByRole("button", { name: "Preenche tudo para gritar STOP" }),
+  ).toBeVisible();
+
+  const answers = ["Ana", "Angola", "Arroz", "Actor", "Antílope"];
+  const answerInputs = host.getByPlaceholder("A...");
+  await expect(answerInputs).toHaveCount(answers.length);
+  for (const [index, answer] of answers.entries()) {
+    await answerInputs.nth(index).fill(answer);
+  }
+
+  await host.getByRole("button", { name: "Gritar STOP" }).click();
+  await expect(guest.getByText("Ana gritou STOP primeiro.")).toBeVisible();
 
   await hostContext.close();
   await guestContext.close();

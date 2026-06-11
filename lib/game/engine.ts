@@ -305,7 +305,14 @@ export function finishRound(
   now = Date.now(),
 ) {
   if (room.status !== "round" || !room.round || room.round.result) return room;
-  if (stoppedBy !== null && stoppedBy !== room.round.commanderId) return room;
+  if (stoppedBy !== null) {
+    const isPlayer = room.players.some((player) => player.id === stoppedBy);
+    const completedAllCategories = room.settings.categories.every((category) =>
+      room.round?.answers[stoppedBy]?.[category]?.trim(),
+    );
+
+    if (!isPlayer || !completedAllCategories) return room;
+  }
 
   const deadline = room.round.startedAt + room.round.duration * 1000;
   if (stoppedBy === null && now < deadline) return room;

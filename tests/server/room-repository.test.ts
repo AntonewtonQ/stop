@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   chooseRoundLetter,
+  finishRound,
   joinRoom,
   saveRoundAnswers,
   startFirstRound,
@@ -63,6 +64,46 @@ describe("RoomRepository", () => {
       letter: "A",
     });
     expect(stored?.round?.answers[sessions[1].id]).toEqual({ Nome: "Abel" });
+  });
+
+  it("aceita apenas o primeiro STOP entre jogadores preenchidos", () => {
+    const { code, room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
+    createStoredRoom(
+      {
+        ...room,
+        players: [room.players[0]],
+        settings: { ...room.settings, roundsToPlay: 1 },
+      },
+      sessions[0].token,
+    );
+    joinStoredRoom(code, sessions[1], joinRoom);
+    mutateStoredRoom(code, sessions[0].id, sessions[0].token, startFirstRound);
+    mutateStoredRoom(code, sessions[0].id, sessions[0].token, (storedRoom, id) =>
+      chooseRoundLetter(storedRoom, id, "A"),
+    );
+
+    for (const session of sessions) {
+      mutateStoredRoom(code, session.id, session.token, (storedRoom, id) =>
+        saveRoundAnswers(
+          storedRoom,
+          id,
+          Object.fromEntries(
+            storedRoom.settings.categories.map((category) => [category, "Ana"]),
+          ),
+        ),
+      );
+    }
+
+    mutateStoredRoom(code, sessions[1].id, sessions[1].token, (storedRoom, id) =>
+      finishRound(storedRoom, id),
+    );
+
+    expect(() =>
+      mutateStoredRoom(code, sessions[0].id, sessions[0].token, (storedRoom, id) =>
+        finishRound(storedRoom, id),
+      ),
+    ).toThrowError(RoomRepositoryError);
+    expect(getRoom(code)?.round?.stoppedBy).toBe(sessions[1].id);
   });
 
   it("marca ausências e transfere anfitrião e comandante", () => {

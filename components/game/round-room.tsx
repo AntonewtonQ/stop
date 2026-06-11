@@ -24,12 +24,12 @@ export function RoundRoom({
   const commander = room.players.find(
     (player) => player.id === round.commanderId,
   )!;
-  const isCommander = commander.id === session.id;
   const onlinePlayers = room.players.filter((player) => player.isOnline).length;
   const [answers, setAnswers] = useState<RoundAnswers>(
     round.answers[session.id] ?? {},
   );
   const [now, setNow] = useState(round.startedAt);
+  const [isStopping, setIsStopping] = useState(false);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 250);
@@ -44,6 +44,9 @@ export function RoundRoom({
   const answeredCount = useMemo(
     () => Object.values(answers).filter((answer) => answer.trim()).length,
     [answers],
+  );
+  const canStop = room.settings.categories.every((category) =>
+    answers[category]?.trim(),
   );
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export function RoundRoom({
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       void saveRoundAnswers(room.code, answers).catch(() => {
-        // The final save is retried when the commander presses STOP.
+        // The final answers are sent atomically when the player presses STOP.
       });
     }, 250);
 
@@ -72,13 +75,16 @@ export function RoundRoom({
   }, [answers, room.code]);
 
   async function submitAnswers() {
+    if (!canStop || isStopping) return;
+    setIsStopping(true);
+
     try {
-      await saveRoundAnswers(room.code, answers);
-      await finishRound(room.code);
+      await finishRound(room.code, false, answers);
       toast.success("STOP!", {
         description: `${answeredCount} de ${room.settings.categories.length} categorias preenchidas.`,
       });
     } catch (error) {
+      setIsStopping(false);
       toast.error("Não conseguimos terminar a rodada.", {
         description: error instanceof Error ? error.message : undefined,
       });
@@ -160,17 +166,21 @@ export function RoundRoom({
           })}
         </div>
 
-        {isCommander ? (
-          <Button className={styles.stopRoundButton} onClick={submitAnswers}>
-            <Send />
-            Gritar STOP
-          </Button>
-        ) : (
-          <div className={styles.commanderClockNotice}>
-            <Clock3 />
-            {commander.name} controla o STOP nesta rodada.
-          </div>
-        )}
+        <Button
+          className={styles.stopRoundButton}
+          disabled={!canStop || isStopping}
+          onClick={submitAnswers}
+        >
+          <Send />
+          {isStopping
+            ? "A gritar STOP..."
+            : canStop
+              ? "Gritar STOP"
+              : "Preenche tudo para gritar STOP"}
+        </Button>
+        <div className={styles.commanderClockNotice}>
+          <Clock3 />O primeiro a preencher tudo termina a rodada para todos.
+        </div>
       </section>
     </main>
   );
