@@ -720,6 +720,21 @@
   font-weight: 700;
 }
 
+.footerCopy {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footerCopy a {
+  color: var(--petroleum);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-decoration-color: var(--amber);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25rem;
+}
+
 @keyframes floatCard {
   0%,
   100% {
@@ -913,5 +928,11 @@
   .footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .footerCopy {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.65rem;
   }
 }

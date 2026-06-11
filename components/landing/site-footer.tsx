@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { Logo } from "@/components/brand/logo";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/lib/i18n/language-provider";
@@ -12,7 +14,10 @@ export function SiteFooter() {
     <footer className={styles.footer}>
       <Separator className={styles.footerSeparator} />
       <Logo compact />
-      <p>{t("landing.footer")}</p>
+      <div className={styles.footerCopy}>
+        <p>{t("landing.footer")}</p>
+        <Link href="/privacidade">{t("landing.privacy")}</Link>
+      </div>
     </footer>
   );
 }

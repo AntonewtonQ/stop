@@ -275,3 +275,32 @@ test("publica a autorização do Google AdSense em ads.txt", async ({
     "google.com, pub-9068523374327625, DIRECT, f08c47fec0942fa0",
   );
 });
+
+test("publica a política de privacidade e consentimento nos três idiomas", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Privacidade e consentimento" }).click();
+
+  await expect(page).toHaveURL(/\/privacidade$/);
+  await expect(
+    page.getByRole("heading", {
+      name: "Joga tranquilo. Os teus dados ficam claros.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Google AdSense")).toBeVisible();
+
+  await page.getByLabel("Idioma").selectOption("en");
+  await expect(
+    page.getByRole("heading", {
+      name: "Play with peace of mind. Your data stays clear.",
+    }),
+  ).toBeVisible();
+
+  await page.getByLabel("Language").selectOption("fr");
+  await expect(
+    page.getByRole("heading", {
+      name: "Joue sereinement. Tes données restent claires.",
+    }),
+  ).toBeVisible();
+});

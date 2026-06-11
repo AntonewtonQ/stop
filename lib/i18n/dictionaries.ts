@@ -64,6 +64,7 @@ export const pt = {
   "landing.stepStopBody":
     "Quem preencher tudo primeiro termina a rodada para todos.",
   "landing.footer": "Feito em Angola para quem pensa rápido.",
+  "landing.privacy": "Privacidade e consentimento",
   "landing.previewAria": "Prévia de uma rodada",
   "landing.previewTime": "Tempo",
   "landing.previewRoundLetter": "Letra da rodada",
@@ -316,6 +317,7 @@ export const en: Dictionary = {
   "landing.stepStopTitle": "Shout STOP",
   "landing.stepStopBody": "The first to complete everything ends the round for all.",
   "landing.footer": "Made in Angola for fast thinkers.",
+  "landing.privacy": "Privacy and consent",
   "landing.previewAria": "Round preview",
   "landing.previewTime": "Time",
   "landing.previewRoundLetter": "Round letter",
@@ -563,6 +565,7 @@ export const fr: Dictionary = {
   "landing.stepStopTitle": "Crie STOP",
   "landing.stepStopBody": "Le premier à tout remplir termine la manche pour tous.",
   "landing.footer": "Créé en Angola pour ceux qui pensent vite.",
+  "landing.privacy": "Confidentialité et consentement",
   "landing.previewAria": "Aperçu d'une manche",
   "landing.previewTime": "Temps",
   "landing.previewRoundLetter": "Lettre de la manche",
