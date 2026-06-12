@@ -26,6 +26,10 @@ test("dois jogadores entram e completam uma rodada sincronizada", async ({
   await expect(host.getByText("Beto", { exact: true })).toBeVisible();
   await expect(host.locator('[data-avatar-id="rocket"]').first()).toBeVisible();
   await expect(host.locator('[data-avatar-id="crown"]').first()).toBeVisible();
+  await host
+    .getByRole("button", { name: "Diminuir número de rodadas" })
+    .click();
+  await expect(guest.getByText("Jogadores: 2 · Rodadas: 1")).toBeVisible();
   expect(
     await host.evaluate((roomCode) => {
       const session = JSON.parse(
@@ -63,7 +67,10 @@ test("dois jogadores entram e completam uma rodada sincronizada", async ({
   }
 
   await host.getByRole("button", { name: "Gritar STOP" }).click();
-  await expect(guest.getByText("Ana gritou STOP primeiro.")).toBeVisible();
+  await expect(host.getByText("Fim de jogo", { exact: true })).toBeVisible();
+  await expect(guest.getByText("Fim de jogo", { exact: true })).toBeVisible();
+  await expect(host.getByText("Beto", { exact: true })).toBeVisible();
+  await expect(guest.getByText("Ana", { exact: true })).toBeVisible();
 
   await hostContext.close();
   await guestContext.close();
@@ -157,6 +164,9 @@ test("valida convite, sons e revanche com os mesmos jogadores", async ({
   await page.getByRole("button", { name: "Activar sons" }).click();
 
   await page.getByRole("button", { name: "Preparar primeira rodada" }).click();
+  await expect(
+    page.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
   await page.getByRole("button", { name: /^A/ }).click();
 
   const answerInputs = page.getByPlaceholder("A...");
@@ -166,15 +176,46 @@ test("valida convite, sons e revanche com os mesmos jogadores", async ({
     await answerInputs.nth(index).fill(answer);
   }
   await page.getByRole("button", { name: "Gritar STOP" }).click();
-  await expect(page.getByText("+100 pontos")).toBeVisible();
-
-  await page.getByRole("button", { name: "Ver classificação final" }).click();
+  await expect(page.getByText("Fim de jogo", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Iniciar revanche" })).toBeVisible();
   await page.getByRole("button", { name: "Iniciar revanche" }).click();
 
   await expect(page.getByText("Ana (tu)", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Preparar primeira rodada" }),
+  ).toBeVisible();
+});
+
+test("permite ao anfitrião definir o número de rodadas", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Qual é o teu nome?").fill("Ana");
+  await page.getByRole("button", { name: "Criar uma sala" }).click();
+
+  await page
+    .getByRole("button", { name: "Aumentar número de rodadas" })
+    .click();
+  await expect(page.getByText("Definido pelo anfitrião")).toBeVisible();
+  await expect(page.getByText("Jogadores: 1 · Rodadas: 2")).toBeVisible();
+
+  await page.getByRole("button", { name: "Preparar primeira rodada" }).click();
+  await expect(
+    page.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /^A/ }).click();
+
+  const answers = ["Ana", "Angola", "Arroz", "Actor", "Antílope"];
+  const answerInputs = page.getByPlaceholder("A...");
+  for (const [index, answer] of answers.entries()) {
+    await answerInputs.nth(index).fill(answer);
+  }
+  await page.getByRole("button", { name: "Gritar STOP" }).click();
+  await page
+    .getByRole("button", { name: "Escolher letra da próxima rodada" })
+    .click();
+
+  await expect(page.getByText(/Rodada 2 de 2/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "O comando é teu." }),
   ).toBeVisible();
 });
 
@@ -248,6 +289,23 @@ test("mantém a landing page legível sem cortar conteúdo em ecrãs compactos",
   }
 });
 
+test("mostra o loading do stop.ao enquanto cria a sala", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Qual é o teu nome?").fill("Ana");
+  await page.route("**/api/rooms", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    await route.continue();
+  });
+
+  await page.getByRole("button", { name: "Criar uma sala" }).click();
+
+  await expect(
+    page.getByRole("status", { name: "A criar a tua sala..." }),
+  ).toBeVisible();
+  await expect(page.locator('[aria-label="stop.ao"]').last()).toBeVisible();
+  await expect(page).toHaveURL(/\/sala\/[A-Z0-9]+$/);
+});
+
 test("expõe PWA instalável e regista o service worker", async ({
   page,
   request,
@@ -277,6 +335,18 @@ test("expõe PWA instalável e regista o service worker", async ({
   expect(workerResponse.ok()).toBe(true);
   expect(workerResponse.headers()["cache-control"]).toContain("no-cache");
   expect(workerResponse.headers()["service-worker-allowed"]).toBe("/");
+  await expect(workerResponse.text()).resolves.toContain(
+    "cacheFirstNavigation",
+  );
+
+  const appResponse = await request.get("/");
+  expect(appResponse.headers()["x-stop-ao-app"]).toBe("1");
+
+  const instagramLogo = await request.get(
+    "/brand/stop-ao-logo-instagram.png",
+  );
+  expect(instagramLogo.ok()).toBe(true);
+  expect(instagramLogo.headers()["content-type"]).toContain("image/png");
 
   await page.goto("/");
   const workerUrl = await page.evaluate(async () => {

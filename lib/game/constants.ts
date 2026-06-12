@@ -44,3 +44,6 @@ export const PLAYABLE_LETTERS = [
   "T",
   "V",
 ];
+
+export const MIN_ROUNDS_TO_PLAY = 1;
+export const MAX_ROUNDS_TO_PLAY = PLAYABLE_LETTERS.length;

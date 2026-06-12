@@ -19,6 +19,7 @@ import {
   finishGame,
   prepareNextRound,
 } from "@/lib/game/storage";
+import { getCommanderForRound } from "@/lib/game/engine";
 import { getPlayerTotal } from "@/lib/game/scoring";
 import type {
   AnswerScoreStatus,
@@ -46,9 +47,8 @@ export function ResultsRoom({
   const round = room.round!;
   const result = round.result!;
   const isLastRound = round.number >= room.settings.roundsToPlay;
-  const nextCommanderId = room.commanderOrder[round.number];
-  const controllerId = isLastRound ? round.commanderId : nextCommanderId;
-  const isController = controllerId === session.id;
+  const nextCommanderId = getCommanderForRound(room, round.number + 1);
+  const isController = isLastRound || nextCommanderId === session.id;
   const nextCommander = room.players.find(
     (player) => player.id === nextCommanderId,
   );
@@ -280,11 +280,9 @@ export function ResultsRoom({
             <div className={styles.waitingHost}>
               <span />
               {result.votingComplete
-                ? isLastRound
-                  ? t("results.commanderClosing")
-                  : nextCommander
-                    ? t("results.nextCommander", { name: nextCommander.name })
-                    : t("results.nextCommanderFallback")
+                ? nextCommander
+                  ? t("results.nextCommander", { name: nextCommander.name })
+                  : t("results.nextCommanderFallback")
                 : t("results.voting")}
             </div>
           )}

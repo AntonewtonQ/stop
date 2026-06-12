@@ -119,7 +119,9 @@ export function joinRoom(code: string, session: PlayerSession) {
 
 export function updateRoomSettings(
   code: string,
-  settings: Partial<Pick<RoomSettings, "categories" | "roundDuration">>,
+  settings: Partial<
+    Pick<RoomSettings, "categories" | "roundDuration" | "roundsToPlay">
+  >,
 ) {
   return sendAction(code, "update-settings", settings);
 }

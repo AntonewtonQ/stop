@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Stop-AO-App",
+            value: "1",
+          },
+        ],
+      },
+      {
         source: "/sw.js",
         headers: [
           {

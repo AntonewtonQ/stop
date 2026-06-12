@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  castAnswerVote,
   chooseRoundLetter,
   finishGame,
   finishRound,
+  joinRoom,
   prepareNextRound,
   reconcileRoomPresence,
   saveRoundAnswers,
   startRematch,
   startFirstRound,
+  updateRoomSettings,
 } from "@/lib/game/engine";
 import {
+  makeSession,
   makeRoomWithPlayers,
   setPlayerOnline,
 } from "../helpers/game";
@@ -37,6 +41,57 @@ describe("motor da partida", () => {
     );
   });
 
+  it("fixa o número de rodadas e mantém a escolha quando entram jogadores", () => {
+    const { code, room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
+    const configured = updateRoomSettings(room, sessions[0].id, {
+      roundsToPlay: 5,
+    });
+    const joined = joinRoom(configured, makeSession("Carla", code));
+
+    expect(configured.settings).toMatchObject({
+      roundsToPlay: 5,
+      roundsCustomized: true,
+    });
+    expect(joined.settings.roundsToPlay).toBe(5);
+  });
+
+  it("repete a ordem de comando até completar as rodadas escolhidas", () => {
+    const { room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
+    const configured = updateRoomSettings(room, sessions[0].id, {
+      roundsToPlay: 3,
+    });
+    const firstSelection = startFirstRound(configured, sessions[0].id);
+    const firstResults = finishRound(
+      completeAnswers(
+        chooseRoundLetter(firstSelection, sessions[0].id, "A"),
+        sessions[0].id,
+      ),
+      sessions[0].id,
+    );
+    const secondSelection = prepareNextRound(firstResults, sessions[1].id);
+    const secondResults = finishRound(
+      completeAnswers(
+        chooseRoundLetter(secondSelection, sessions[1].id, "B"),
+        sessions[1].id,
+      ),
+      sessions[1].id,
+    );
+    const thirdSelection = prepareNextRound(secondResults, sessions[0].id);
+    const thirdResults = finishRound(
+      completeAnswers(
+        chooseRoundLetter(thirdSelection, sessions[0].id, "C"),
+        sessions[0].id,
+      ),
+      sessions[0].id,
+    );
+
+    expect(secondSelection.round?.commanderId).toBe(sessions[1].id);
+    expect(thirdSelection.round?.commanderId).toBe(sessions[0].id);
+    expect(thirdResults.status).toBe("finished");
+    expect(prepareNextRound(thirdResults, sessions[0].id)).toBe(thirdResults);
+    expect(finishGame(thirdResults, sessions[1].id)).toBe(thirdResults);
+  });
+
   it("reserva a escolha da letra ao comandante e exige respostas completas para STOP", () => {
     const { room, sessions } = makeRoomWithPlayers();
     const prepared = startFirstRound(room, sessions[0].id);
@@ -60,6 +115,35 @@ describe("motor da partida", () => {
     expect(results.status).toBe("results");
     expect(results.round?.stoppedBy).toBe(sessions[1].id);
     expect(finishRound(results, sessions[0].id)).toBe(results);
+  });
+
+  it("abre a classificação final após concluir as votações da última rodada", () => {
+    const { room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
+    const configured = updateRoomSettings(room, sessions[0].id, {
+      roundsToPlay: 1,
+    });
+    const round = chooseRoundLetter(
+      startFirstRound(configured, sessions[0].id),
+      sessions[0].id,
+      "A",
+    );
+    const doubtfulAnswers = Object.fromEntries(
+      round.settings.categories.map((category) => [category, "Azzzzzz"]),
+    );
+    let results = finishRound(
+      saveRoundAnswers(round, sessions[0].id, doubtfulAnswers),
+      sessions[0].id,
+    );
+    const challengeIds = Object.keys(results.round?.result?.challenges ?? {});
+
+    expect(results.status).toBe("results");
+    expect(challengeIds.length).toBeGreaterThan(0);
+
+    for (const challengeId of challengeIds) {
+      results = castAnswerVote(results, sessions[1].id, challengeId, "approve");
+    }
+
+    expect(results.status).toBe("finished");
   });
 
   it("rejeita STOP de alguém que não pertence à sala", () => {
@@ -122,10 +206,9 @@ describe("motor da partida", () => {
       completeAnswers(round, sessions[0].id),
       sessions[0].id,
     );
-    const finished = finishGame(results, sessions[0].id);
-    const rematch = startRematch(finished, sessions[0].id);
+    const rematch = startRematch(results, sessions[0].id);
 
-    expect(finished.status).toBe("finished");
+    expect(results.status).toBe("finished");
     expect(rematch).toMatchObject({
       code: room.code,
       status: "lobby",

@@ -23,6 +23,7 @@ export type RoomSettings = {
   categories: string[];
   roundDuration: number;
   roundsToPlay: number;
+  roundsCustomized: boolean;
 };
 
 export type RoundAnswers = Record<string, string>;

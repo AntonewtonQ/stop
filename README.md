@@ -28,9 +28,11 @@ O projecto já possui um MVP online jogável:
 - período de graça antes de marcar jogadores como offline;
 - lista de jogadores e identificação do anfitrião;
 - transferência automática do anfitrião e comandante quando ficam offline;
-- configuração de categorias e duração pelo anfitrião;
+- configuração de categorias, duração e número de rodadas pelo anfitrião;
 - ordem de comandantes definida pela entrada dos jogadores;
-- número de rodadas igual ao de jogadores, começando pelo anfitrião actual;
+- número de rodadas automático pelo total de jogadores ou fixado entre `1` e
+  `19` pelo anfitrião;
+- rotação cíclica dos comandantes quando existem mais rodadas do que jogadores;
 - escolha manual da letra pelo comandante corrente;
 - bloqueio de letras já utilizadas;
 - início sincronizado das rodadas;
@@ -51,6 +53,7 @@ O projecto já possui um MVP online jogável:
 - resultados por categoria e jogador;
 - classificação acumulada entre rodadas;
 - início da rodada seguinte;
+- classificação final apresentada automaticamente a todos no fim da partida;
 - classificação final e revanche mantendo sala, regras e jogadores;
 - convite directo para WhatsApp no lobby;
 - estados para sala inexistente, entrada tardia e espera pelo comandante.
@@ -71,7 +74,7 @@ expandido em `lib/game/word-validation.ts`.
 
 1. O jogador escreve o nome na página inicial.
 2. Cria uma sala ou entra numa sala existente.
-3. No lobby, o anfitrião configura categorias e tempo.
+3. No lobby, o anfitrião configura categorias, tempo e número de rodadas.
 4. Outros jogadores entram através do código ou convite.
 5. O anfitrião, primeiro comandante activo, escolhe uma letra ainda não utilizada.
 6. A escolha inicia a rodada e o relógio para todos.
@@ -82,7 +85,7 @@ expandido em `lib/game/word-validation.ts`.
 10. Os restantes jogadores votam nas respostas duvidosas.
 11. A pontuação e a classificação são recalculadas após cada decisão.
 12. O comando passa ao jogador seguinte, que escolhe uma nova letra.
-13. A partida termina depois de completar uma rodada por jogador inicial.
+13. A partida termina depois de completar o número de rodadas definido.
 14. O anfitrião pode iniciar uma revanche com os mesmos jogadores.
 
 ## Testar localmente
@@ -177,11 +180,18 @@ Node.js `24.14.1` e guarda o SQLite temporário em `/tmp/stop.db`.
   apagam salas e partidas guardadas;
 - partidas activas mantêm pedidos de presença, reduzindo a possibilidade de o
   serviço adormecer durante o jogo;
+- depois da primeira visita, a PWA abre a interface guardada imediatamente e
+  mostra o loading do `stop.ao` enquanto o serviço volta a responder;
+- no primeiro acesso após o serviço adormecer, a página temporária do Render
+  ainda pode aparecer porque é servida antes de o código da aplicação arrancar;
 - o broker realtime funciona apenas numa instância.
 
 Para produção durável ainda gratuita, o próximo passo é migrar o SQLite para
 PostgreSQL no Neon Free. Para múltiplas instâncias, também será necessário
 migrar o broker SSE em memória para Redis/Pub/Sub, como Upstash Redis.
+Para eliminar completamente a página de arranque do Render, é necessário usar
+uma instância que não adormeça ou alojar o frontend separadamente num serviço
+sempre activo.
 
 ## API
 
@@ -224,13 +234,15 @@ automaticamente para não bloquear a partida.
 
 - o criador da sala é o primeiro comandante enquanto permanecer online;
 - a ordem seguinte respeita a ordem de entrada na sala;
-- cada jogador online comanda uma rodada sempre que a ordem permitir;
+- o comando roda entre os jogadores online até completar as rodadas definidas;
 - jogadores offline são movidos na ordem ou substituídos por alguém online;
 - o comandante escolhe a letra da rodada;
 - qualquer jogador pode gritar STOP depois de preencher todas as categorias;
 - o primeiro STOP aceite pelo servidor termina a rodada para todos;
 - uma letra utilizada deixa de estar disponível durante a partida;
-- o número de rodadas é igual ao número de jogadores presentes ao iniciar.
+- por padrão, o número de rodadas acompanha o número de jogadores;
+- o anfitrião pode fixar entre `1` e `19` rodadas antes de iniciar;
+- quando há mais rodadas do que jogadores, a ordem de comando recomeça.
 
 ## Stack
 

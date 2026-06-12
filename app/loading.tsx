@@ -3,7 +3,7 @@
 import { GameLoading } from "@/components/game/game-loading";
 import { useLanguage } from "@/lib/i18n/language-provider";
 
-export default function LoadingRoom() {
+export default function Loading() {
   const { t } = useLanguage();
 
   return (

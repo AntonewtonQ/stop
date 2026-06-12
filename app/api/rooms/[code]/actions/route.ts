@@ -81,7 +81,7 @@ function parseAction(body: ActionBody) {
   switch (body.type) {
     case "update-settings": {
       const settings: Partial<
-        Pick<RoomSettings, "categories" | "roundDuration">
+        Pick<RoomSettings, "categories" | "roundDuration" | "roundsToPlay">
       > = {};
 
       if (Array.isArray(payload.categories)) {
@@ -91,6 +91,9 @@ function parseAction(body: ActionBody) {
       }
       if (typeof payload.roundDuration === "number") {
         settings.roundDuration = payload.roundDuration;
+      }
+      if (typeof payload.roundsToPlay === "number") {
+        settings.roundsToPlay = payload.roundsToPlay;
       }
 
       return (room: Room, actorId: string) =>

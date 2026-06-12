@@ -1,6 +1,8 @@
 import {
   CATEGORY_OPTIONS,
   DEFAULT_CATEGORIES,
+  MAX_ROUNDS_TO_PLAY,
+  MIN_ROUNDS_TO_PLAY,
   PLAYABLE_LETTERS,
   ROUND_DURATION_OPTIONS,
 } from "./constants";
@@ -30,10 +32,28 @@ function randomFrom<T>(items: readonly T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function isValidRoundsToPlay(value: number) {
+  return (
+    Number.isInteger(value) &&
+    value >= MIN_ROUNDS_TO_PLAY &&
+    value <= MAX_ROUNDS_TO_PLAY
+  );
+}
+
+function commanderIndexForRound(room: Room, roundNumber: number) {
+  if (room.commanderOrder.length === 0) return -1;
+  return (roundNumber - 1) % room.commanderOrder.length;
+}
+
+export function getCommanderForRound(room: Room, roundNumber: number) {
+  const commanderIndex = commanderIndexForRound(room, roundNumber);
+  return room.commanderOrder[commanderIndex] ?? room.hostId;
+}
+
 function makeRound(room: Room, number: number): RoundState {
   return {
     number,
-    commanderId: room.commanderOrder[number - 1] ?? room.hostId,
+    commanderId: getCommanderForRound(room, number),
     letter: "",
     startedAt: 0,
     duration: room.settings.roundDuration,
@@ -74,15 +94,27 @@ function normalizeResult(result: RoundResult | null): RoundResult | null {
   };
 }
 
+function finishRoomIfComplete(room: Room): Room {
+  const gameComplete =
+    room.status === "results" &&
+    room.round?.result?.votingComplete &&
+    room.round.number >= room.settings.roundsToPlay;
+
+  return gameComplete ? { ...room, status: "finished" as const } : room;
+}
+
 function normalizeRound(
   round: RoundState,
   commanderOrder: string[],
   hostId: string,
 ): RoundState {
+  const commanderIndex =
+    commanderOrder.length > 0 ? (round.number - 1) % commanderOrder.length : -1;
+
   return {
     ...round,
     commanderId:
-      round.commanderId ?? commanderOrder[round.number - 1] ?? hostId,
+      round.commanderId ?? commanderOrder[commanderIndex] ?? hostId,
     stoppedAt: round.stoppedAt ?? null,
     stoppedBy: round.stoppedBy ?? null,
     answers: round.answers ?? {},
@@ -109,10 +141,10 @@ export function normalizeRoom(room: Room): Room {
     settings: {
       categories: room.settings?.categories ?? DEFAULT_CATEGORIES,
       roundDuration: room.settings?.roundDuration ?? 60,
-      roundsToPlay:
-        room.status === "lobby"
-          ? (room.settings?.roundsToPlay ?? room.players.length)
-          : commanderOrder.length,
+      roundsToPlay: isValidRoundsToPlay(room.settings?.roundsToPlay)
+        ? room.settings.roundsToPlay
+        : Math.max(room.players.length, MIN_ROUNDS_TO_PLAY),
+      roundsCustomized: room.settings?.roundsCustomized ?? false,
     },
     history: (room.history ?? []).map((round) =>
       normalizeRound(round, commanderOrder, room.hostId),
@@ -190,7 +222,11 @@ export function createRoom(
     settings: {
       categories: settings?.categories ?? DEFAULT_CATEGORIES,
       roundDuration: settings?.roundDuration ?? 60,
-      roundsToPlay: 1,
+      roundsToPlay: isValidRoundsToPlay(settings?.roundsToPlay ?? 1)
+        ? (settings?.roundsToPlay ?? 1)
+        : 1,
+      roundsCustomized:
+        settings?.roundsCustomized ?? settings?.roundsToPlay !== undefined,
     },
     round: null,
     history: [],
@@ -207,22 +243,24 @@ export function joinRoom(room: Room, session: PlayerSession) {
   return {
     ...room,
     players: [...room.players, asRoomPlayer(session, false)],
-    settings: {
-      ...room.settings,
-      roundsToPlay: room.players.length + 1,
-    },
+    settings: room.settings.roundsCustomized
+      ? room.settings
+      : { ...room.settings, roundsToPlay: room.players.length + 1 },
   };
 }
 
 export function updateRoomSettings(
   room: Room,
   requesterId: string,
-  settings: Partial<Pick<RoomSettings, "categories" | "roundDuration">>,
+  settings: Partial<
+    Pick<RoomSettings, "categories" | "roundDuration" | "roundsToPlay">
+  >,
 ) {
   if (room.status !== "lobby" || room.hostId !== requesterId) return room;
 
   const categories = settings.categories ?? room.settings.categories;
   const roundDuration = settings.roundDuration ?? room.settings.roundDuration;
+  const roundsToPlay = settings.roundsToPlay ?? room.settings.roundsToPlay;
   const validCategories =
     categories.length >= 3 &&
     categories.every((category) =>
@@ -231,12 +269,22 @@ export function updateRoomSettings(
   const validDuration = ROUND_DURATION_OPTIONS.includes(
     roundDuration as (typeof ROUND_DURATION_OPTIONS)[number],
   );
+  const validRoundsToPlay = isValidRoundsToPlay(roundsToPlay);
 
-  if (!validCategories || !validDuration) return room;
+  if (!validCategories || !validDuration || !validRoundsToPlay) return room;
 
   return {
     ...room,
-    settings: { ...room.settings, categories, roundDuration },
+    settings: {
+      ...room.settings,
+      categories,
+      roundDuration,
+      roundsToPlay,
+      roundsCustomized:
+        settings.roundsToPlay === undefined
+          ? room.settings.roundsCustomized
+          : true,
+    },
   };
 }
 
@@ -252,10 +300,6 @@ export function startFirstRound(room: Room, requesterId: string) {
   const preparedRoom = {
     ...room,
     commanderOrder,
-    settings: {
-      ...room.settings,
-      roundsToPlay: commanderOrder.length,
-    },
   };
 
   return {
@@ -347,12 +391,12 @@ export function finishRound(
     result,
   };
 
-  return {
+  return finishRoomIfComplete({
     ...room,
     status: "results" as const,
     round: completedRound,
     history: [...room.history, completedRound],
-  };
+  });
 }
 
 export function castAnswerVote(
@@ -388,22 +432,24 @@ export function castAnswerVote(
   });
   const updatedRound = { ...room.round, result };
 
-  return {
+  return finishRoomIfComplete({
     ...room,
     round: updatedRound,
     history: room.history.map((round) =>
       round.number === updatedRound.number ? updatedRound : round,
     ),
-  };
+  });
 }
 
 export function prepareNextRound(room: Room, requesterId: string) {
-  const nextCommanderId = room.commanderOrder[room.history.length];
+  const nextRoundNumber = (room.round?.number ?? 0) + 1;
+  const nextCommanderId = getCommanderForRound(room, nextRoundNumber);
 
   if (
     room.status !== "results" ||
     !room.round ||
     !room.round.result?.votingComplete ||
+    room.round.number >= room.settings.roundsToPlay ||
     requesterId !== nextCommanderId
   ) {
     return room;
@@ -420,7 +466,8 @@ export function finishGame(room: Room, requesterId: string) {
   if (
     room.status !== "results" ||
     !room.round?.result?.votingComplete ||
-    room.round.commanderId !== requesterId
+    room.round.number < room.settings.roundsToPlay ||
+    !room.players.some((player) => player.id === requesterId)
   ) {
     return room;
   }
@@ -437,7 +484,9 @@ export function startRematch(room: Room, requesterId: string) {
     round: null,
     history: [],
     commanderOrder: [],
-    settings: { ...room.settings, roundsToPlay: room.players.length },
+    settings: room.settings.roundsCustomized
+      ? room.settings
+      : { ...room.settings, roundsToPlay: room.players.length },
   };
 }
 
@@ -457,6 +506,8 @@ function replaceRoundCommander(room: Room, commanderId: string) {
 }
 
 function transferCommanderAt(room: Room, targetIndex: number) {
+  if (targetIndex < 0) return room;
+
   const currentCommanderId = room.commanderOrder[targetIndex];
   const currentCommander = room.players.find(
     (player) => player.id === currentCommanderId,
@@ -527,13 +578,13 @@ function recalculatePendingVotes(room: Room) {
 
   const round = { ...room.round, result };
 
-  return {
+  return finishRoomIfComplete({
     ...room,
     round,
     history: room.history.map((item) =>
       item.number === round.number ? round : item,
     ),
-  };
+  });
 }
 
 export function reconcileRoomPresence(room: Room) {
@@ -545,7 +596,7 @@ export function reconcileRoomPresence(room: Room) {
     (nextRoom.status === "letter-selection" || nextRoom.status === "round") &&
     nextRoom.round
   ) {
-    const targetIndex = nextRoom.round.number - 1;
+    const targetIndex = commanderIndexForRound(nextRoom, nextRoom.round.number);
     nextRoom = transferCommanderAt(nextRoom, targetIndex);
     nextRoom = replaceRoundCommander(
       nextRoom,
@@ -554,9 +605,10 @@ export function reconcileRoomPresence(room: Room) {
   } else if (nextRoom.status === "results" && nextRoom.round) {
     const isLastRound =
       nextRoom.round.number >= nextRoom.settings.roundsToPlay;
-    const targetIndex = isLastRound
-      ? nextRoom.round.number - 1
-      : nextRoom.round.number;
+    const targetRoundNumber = isLastRound
+      ? nextRoom.round.number
+      : nextRoom.round.number + 1;
+    const targetIndex = commanderIndexForRound(nextRoom, targetRoundNumber);
 
     nextRoom = transferCommanderAt(nextRoom, targetIndex);
     if (isLastRound) {

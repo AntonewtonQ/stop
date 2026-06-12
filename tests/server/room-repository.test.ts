@@ -27,7 +27,17 @@ describe("RoomRepository", () => {
 
   it("persiste a sala e protege o token da sessão com hash", () => {
     const { code, room, sessions } = makeRoomWithPlayers(["Ana"]);
-    createStoredRoom(room, sessions[0].token);
+    createStoredRoom(
+      {
+        ...room,
+        settings: {
+          ...room.settings,
+          roundsToPlay: 5,
+          roundsCustomized: true,
+        },
+      },
+      sessions[0].token,
+    );
 
     const row = getDatabase()
       .prepare("SELECT session_token FROM players WHERE room_code = ?")
@@ -35,6 +45,10 @@ describe("RoomRepository", () => {
 
     expect(getRoom(code)?.players[0].name).toBe("Ana");
     expect(getRoom(code)?.players[0].avatarId).toBe("spark");
+    expect(getRoom(code)?.settings).toMatchObject({
+      roundsToPlay: 5,
+      roundsCustomized: true,
+    });
     expect(row.session_token).not.toBe(sessions[0].token);
     expect(row.session_token).toHaveLength(64);
     expect(() =>

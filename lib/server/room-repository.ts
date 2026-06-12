@@ -22,6 +22,7 @@ type RoomRow = {
   categories_json: string;
   round_duration: number;
   rounds_to_play: number;
+  rounds_customized: number;
   commander_order_json: string;
   current_round_number: number | null;
   updated_at: number;
@@ -158,6 +159,7 @@ export function getRoom(code: string): Room | null {
       categories: parseJson<string[]>(roomRow.categories_json),
       roundDuration: roomRow.round_duration,
       roundsToPlay: roomRow.rounds_to_play,
+      roundsCustomized: Boolean(roomRow.rounds_customized),
     },
     round:
       rounds.find((round) => round.number === roomRow.current_round_number) ?? null,
@@ -181,14 +183,15 @@ function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {
     .prepare(`
       INSERT INTO rooms (
         code, host_id, status, categories_json, round_duration, rounds_to_play,
-        commander_order_json, current_round_number, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        rounds_customized, commander_order_json, current_round_number, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(code) DO UPDATE SET
         host_id = excluded.host_id,
         status = excluded.status,
         categories_json = excluded.categories_json,
         round_duration = excluded.round_duration,
         rounds_to_play = excluded.rounds_to_play,
+        rounds_customized = excluded.rounds_customized,
         commander_order_json = excluded.commander_order_json,
         current_round_number = excluded.current_round_number,
         updated_at = excluded.updated_at
@@ -200,6 +203,7 @@ function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {
       JSON.stringify(persistedRoom.settings.categories),
       persistedRoom.settings.roundDuration,
       persistedRoom.settings.roundsToPlay,
+      persistedRoom.settings.roundsCustomized ? 1 : 0,
       JSON.stringify(persistedRoom.commanderOrder),
       persistedRoom.round?.number ?? null,
       persistedRoom.updatedAt,

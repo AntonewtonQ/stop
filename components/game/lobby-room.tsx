@@ -7,7 +7,9 @@ import {
   Copy,
   Crown,
   MessageCircle,
+  Minus,
   Play,
+  Plus,
   Settings2,
   UsersRound,
 } from "lucide-react";
@@ -19,6 +21,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   CATEGORY_OPTIONS,
+  MAX_ROUNDS_TO_PLAY,
+  MIN_ROUNDS_TO_PLAY,
   ROUND_DURATION_OPTIONS,
 } from "@/lib/game/constants";
 import {
@@ -69,6 +73,17 @@ export function LobbyRoom({
       await updateRoomSettings(room.code, { roundDuration });
     } catch (error) {
       toast.error(t("lobby.timeFailed"), {
+        description: errorMessage(error),
+      });
+    }
+  }
+
+  async function updateRoundCount(roundsToPlay: number) {
+    if (!isHost) return;
+    try {
+      await updateRoomSettings(room.code, { roundsToPlay });
+    } catch (error) {
+      toast.error(t("lobby.roundsFailed"), {
         description: errorMessage(error),
       });
     }
@@ -214,10 +229,55 @@ export function LobbyRoom({
               <strong>
                 {t("lobby.playersRounds", {
                   players: room.players.length,
-                  rounds: room.players.length,
+                  rounds: room.settings.roundsToPlay,
                 })}
               </strong>
               <small>{t("lobby.commandRule")}</small>
+            </div>
+          </div>
+
+          <div className={styles.settingGroup}>
+            <div className={styles.settingLabel}>
+              <span>{t("lobby.rounds")}</span>
+              <small>
+                {room.settings.roundsCustomized
+                  ? t("lobby.roundsFixed")
+                  : t("lobby.roundsAuto")}
+              </small>
+            </div>
+            <div className={styles.roundCountControl}>
+              <Button
+                aria-label={t("lobby.decreaseRounds")}
+                disabled={
+                  !isHost ||
+                  room.settings.roundsToPlay <= MIN_ROUNDS_TO_PLAY
+                }
+                onClick={() =>
+                  updateRoundCount(room.settings.roundsToPlay - 1)
+                }
+                type="button"
+                variant="outline"
+              >
+                <Minus />
+              </Button>
+              <div aria-live="polite">
+                <strong>{room.settings.roundsToPlay}</strong>
+                <span>{t("common.rounds")}</span>
+              </div>
+              <Button
+                aria-label={t("lobby.increaseRounds")}
+                disabled={
+                  !isHost ||
+                  room.settings.roundsToPlay >= MAX_ROUNDS_TO_PLAY
+                }
+                onClick={() =>
+                  updateRoundCount(room.settings.roundsToPlay + 1)
+                }
+                type="button"
+                variant="outline"
+              >
+                <Plus />
+              </Button>
             </div>
           </div>
 

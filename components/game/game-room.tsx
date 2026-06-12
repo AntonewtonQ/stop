@@ -10,6 +10,7 @@ import { useGameSounds } from "@/lib/game/use-game-sounds";
 import { useRoom } from "@/lib/game/use-room";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import { ConnectionNotice } from "./connection-notice";
+import { GameLoading } from "./game-loading";
 import { JoinRoomGate } from "./join-room-gate";
 import { FinalResults } from "./final-results";
 import { LetterSelectionRoom } from "./letter-selection-room";
@@ -35,23 +36,19 @@ export function GameRoom({ code }: { code: string }) {
   function renderRoom() {
     if (isLoading) {
       return (
-        <main className={styles.gamePage}>
-          <div className={styles.loadingCard}>
-            <span />
-            <p>{t("common.loadingRoom")}</p>
-          </div>
-        </main>
+        <GameLoading
+          detail={`${t("landing.heroTitle")} ${t("landing.heroTitleAccent")}`}
+          message={t("common.loadingRoom")}
+        />
       );
     }
 
     if (!room && connectionStatus !== "connected") {
       return (
-        <main className={styles.gamePage}>
-          <div className={styles.loadingCard}>
-            <span />
-            <p>{t("connection.reconnectingTitle")}</p>
-          </div>
-        </main>
+        <GameLoading
+          detail={`${t("landing.heroTitle")} ${t("landing.heroTitleAccent")}`}
+          message={t("connection.reconnectingTitle")}
+        />
       );
     }
 

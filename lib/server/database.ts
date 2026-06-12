@@ -28,6 +28,7 @@ export function getDatabase() {
       categories_json TEXT NOT NULL,
       round_duration INTEGER NOT NULL,
       rounds_to_play INTEGER NOT NULL,
+      rounds_customized INTEGER NOT NULL DEFAULT 0,
       commander_order_json TEXT NOT NULL,
       current_round_number INTEGER,
       updated_at INTEGER NOT NULL
@@ -115,7 +116,19 @@ export function getDatabase() {
       }>
     ).map((column) => column.name),
   );
+  const roomColumns = new Set(
+    (
+      database.prepare("PRAGMA table_info(rooms)").all() as Array<{
+        name: string;
+      }>
+    ).map((column) => column.name),
+  );
 
+  if (!roomColumns.has("rounds_customized")) {
+    database.exec(
+      "ALTER TABLE rooms ADD COLUMN rounds_customized INTEGER NOT NULL DEFAULT 0",
+    );
+  }
   if (!playerColumns.has("is_online")) {
     database.exec(
       "ALTER TABLE players ADD COLUMN is_online INTEGER NOT NULL DEFAULT 0",

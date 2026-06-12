@@ -58,6 +58,14 @@ describe("Route Handlers", () => {
       }),
       context(code),
     );
+    const configured = await actionRoute(
+      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        actor: actor(host),
+        type: "update-settings",
+        payload: { roundsToPlay: 4 },
+      }),
+      context(code),
+    );
     const started = await actionRoute(
       jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
         actor: actor(host),
@@ -74,6 +82,10 @@ describe("Route Handlers", () => {
         expect.objectContaining({ id: guest.id, avatarId: "spark" }),
       ]),
     );
+    expect((await json(configured)).room?.settings).toMatchObject({
+      roundsToPlay: 4,
+      roundsCustomized: true,
+    });
     expect((await json(started)).room?.status).toBe("letter-selection");
 
     const unauthorized = await actionRoute(
@@ -233,7 +245,6 @@ describe("Route Handlers", () => {
           },
         },
       ],
-      ["finish-game", {}],
     ] as const) {
       await actionRoute(
         jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {

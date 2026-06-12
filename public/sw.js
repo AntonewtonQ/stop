@@ -1,4 +1,4 @@
-const CACHE_VERSION = "stop-ao-v1";
+const CACHE_VERSION = "stop-ao-v2";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -46,7 +46,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request));
+    event.respondWith(cacheFirstNavigation(request, event));
     return;
   }
 
@@ -60,16 +60,24 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-async function networkFirst(request) {
+async function cacheFirstNavigation(request, event) {
   const cache = await caches.open(CACHE_VERSION);
-
-  try {
-    const response = await fetch(request);
-    if (response.ok) await cache.put(request, response.clone());
+  const cached = await cache.match(request, { ignoreSearch: true });
+  const networkUpdate = fetch(request).then(async (response) => {
+    if (isAppResponse(response)) await cache.put(request, response.clone());
     return response;
-  } catch {
-    return (await cache.match(request)) ?? (await cache.match("/"));
+  });
+
+  if (cached) {
+    event.waitUntil(networkUpdate.catch(() => undefined));
+    return cached;
   }
+
+  return networkUpdate.catch(() => cache.match("/"));
+}
+
+function isAppResponse(response) {
+  return response.ok && response.headers.get("x-stop-ao-app") === "1";
 }
 
 async function cacheFirst(request) {

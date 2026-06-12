@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AvatarPicker } from "@/components/game/avatar-picker";
+import { GameLoading } from "@/components/game/game-loading";
 import { ProfileColorPicker } from "@/components/game/profile-color-picker";
 import { ThemePicker } from "@/components/game/theme-picker";
 import { DEFAULT_AVATAR_ID, type AvatarId } from "@/lib/game/avatars";
@@ -40,6 +41,9 @@ export function RoomActions() {
   const [roomCode, setRoomCode] = useState("");
   const [message, setMessage] = useState("");
   const [recentSession, setRecentSession] = useState<PlayerSession | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    "creating" | "joining" | null
+  >(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(
@@ -60,11 +64,13 @@ export function RoomActions() {
   }
 
   async function handleCreateRoom() {
+    if (pendingAction) return;
     const name = validateName();
     if (!name) return;
 
     const code = makeRoomCode();
     const session = createPlayerSession(name, code, avatarId, profileColor);
+    setPendingAction("creating");
 
     try {
       await createRoom(code, session);
@@ -77,11 +83,14 @@ export function RoomActions() {
       toast.error(t("entry.createFailed"), {
         description: errorMessage(error),
       });
+    } finally {
+      setPendingAction(null);
     }
   }
 
   async function handleJoinRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pendingAction) return;
     const name = validateName();
     if (!name) return;
 
@@ -94,18 +103,21 @@ export function RoomActions() {
     }
 
     let room;
+    setPendingAction("joining");
     try {
       room = await readRoom(code);
     } catch (error) {
       toast.error(t("entry.findFailed"), {
         description: errorMessage(error),
       });
+      setPendingAction(null);
       return;
     }
     if (!room) {
       const feedback = t("entry.roomUnavailableFeedback");
       setMessage(feedback);
       toast.error(t("entry.roomUnavailable"), { description: feedback });
+      setPendingAction(null);
       return;
     }
 
@@ -113,6 +125,7 @@ export function RoomActions() {
       const feedback = t("entry.gameStartedFeedback");
       setMessage(feedback);
       toast.error(t("entry.gameStarted"), { description: feedback });
+      setPendingAction(null);
       return;
     }
 
@@ -127,11 +140,26 @@ export function RoomActions() {
       toast.error(t("entry.joinFailed"), {
         description: errorMessage(error),
       });
+    } finally {
+      setPendingAction(null);
     }
   }
 
   return (
-    <div className={styles.actions}>
+    <div className={styles.actions} aria-busy={Boolean(pendingAction)}>
+      {pendingAction && (
+        <div className={styles.loadingOverlay}>
+          <GameLoading
+            detail={`${t("landing.heroTitle")} ${t("landing.heroTitleAccent")}`}
+            message={
+              pendingAction === "creating"
+                ? t("entry.creatingRoom")
+                : t("entry.joiningRoom")
+            }
+          />
+        </div>
+      )}
+
       <label className={styles.nameField} htmlFor="player-name">
         <span>{t("entry.nameQuestion")}</span>
         <div>
@@ -143,6 +171,7 @@ export function RoomActions() {
             placeholder={t("entry.namePlaceholder")}
             maxLength={24}
             autoComplete="nickname"
+            disabled={Boolean(pendingAction)}
           />
         </div>
       </label>
@@ -156,7 +185,12 @@ export function RoomActions() {
       <ThemePicker />
 
       <div className={styles.mainAction}>
-        <Button className={styles.createButton} type="button" onClick={handleCreateRoom}>
+        <Button
+          className={styles.createButton}
+          type="button"
+          onClick={handleCreateRoom}
+          disabled={Boolean(pendingAction)}
+        >
           <Plus data-icon="inline-start" />
           {t("entry.createRoom")}
         </Button>
@@ -168,6 +202,7 @@ export function RoomActions() {
           type="button"
           variant="outline"
           onClick={() => router.push(`/sala/${recentSession.roomCode}`)}
+          disabled={Boolean(pendingAction)}
         >
           <History />
           {t("entry.resumeRoom", { code: recentSession.roomCode })}
@@ -191,8 +226,11 @@ export function RoomActions() {
           placeholder={t("entry.codePlaceholder")}
           maxLength={8}
           autoComplete="off"
+          disabled={Boolean(pendingAction)}
         />
-        <Button type="submit">{t("entry.joinRoom")}</Button>
+        <Button type="submit" disabled={Boolean(pendingAction)}>
+          {t("entry.joinRoom")}
+        </Button>
       </form>
 
       <p className={styles.feedback} aria-live="polite">

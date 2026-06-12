@@ -400,6 +400,43 @@
   color: white;
 }
 
+.roundCountControl {
+  display: grid;
+  grid-template-columns: 2.8rem minmax(0, 1fr) 2.8rem;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.roundCountControl button {
+  height: auto;
+  min-height: 3.1rem;
+  padding: 0;
+  border-color: rgb(var(--primary-rgb) / 10%);
+  color: var(--petroleum);
+}
+
+.roundCountControl > div {
+  display: grid;
+  min-width: 0;
+  place-content: center;
+  justify-items: center;
+  border-radius: 0.8rem;
+  background: var(--warm-white);
+}
+
+.roundCountControl strong {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.roundCountControl span {
+  margin-top: 0.2rem;
+  color: var(--brand-muted);
+  font-size: 0.55rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
 .commanderSummary {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -572,23 +609,77 @@
   background: white;
 }
 
-.loadingCard {
+.gameLoading {
+  position: relative;
   display: grid;
+  min-height: calc(100vh - 2.5rem);
+  align-content: center;
   justify-items: center;
-  gap: 0.8rem;
-  margin-top: 35vh;
-  color: var(--brand-muted);
-  font-size: 0.75rem;
-  font-weight: 750;
+  gap: 1.1rem;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.loadingCard span {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid rgb(var(--primary-rgb) / 12%);
-  border-top-color: var(--amber);
+.loadingGlow {
+  position: absolute;
+  z-index: -1;
+  width: min(68vw, 24rem);
+  aspect-ratio: 1;
   border-radius: 50%;
-  animation: spin 700ms linear infinite;
+  background: radial-gradient(
+    circle,
+    rgb(var(--accent-rgb) / 24%) 0,
+    rgb(var(--accent-rgb) / 8%) 42%,
+    transparent 72%
+  );
+  animation: loadingGlow 1.8s ease-in-out infinite;
+}
+
+.loadingLogo {
+  padding: 1.2rem 1.45rem;
+  border: 1px solid rgb(var(--primary-rgb) / 8%);
+  border-radius: 1.4rem;
+  background: rgb(255 255 255 / 86%);
+  box-shadow: 0 1.25rem 3.5rem rgb(var(--primary-rgb) / 12%);
+  animation: loadingFloat 1.8s ease-in-out infinite;
+}
+
+.loadingProgress {
+  width: min(64vw, 12rem);
+  height: 0.34rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--primary-rgb) / 10%);
+}
+
+.loadingProgress span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--amber);
+  box-shadow: 0 0 1rem rgb(var(--accent-rgb) / 65%);
+  animation: loadingProgress 1.15s ease-in-out infinite;
+}
+
+.loadingCopy {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.loadingCopy strong {
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.loadingCopy span {
+  color: var(--brand-muted);
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
 .roundPage {
@@ -1538,9 +1629,26 @@
   color: white;
 }
 
-@keyframes spin {
+@keyframes loadingFloat {
+  50% {
+    transform: translateY(-0.35rem);
+  }
+}
+
+@keyframes loadingGlow {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes loadingProgress {
+  from {
+    transform: translateX(-120%);
+  }
+
   to {
-    transform: rotate(360deg);
+    transform: translateX(340%);
   }
 }
 
@@ -1548,6 +1656,14 @@
   50% {
     opacity: 0.3;
     transform: scale(0.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingGlow,
+  .loadingLogo,
+  .loadingProgress span {
+    animation-duration: 4s;
   }
 }
 
