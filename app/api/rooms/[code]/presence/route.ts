@@ -22,7 +22,7 @@ export async function POST(
     const code = normalizeRoomCode(rawCode);
     const body = await parseBody(request);
     const actor = parseActor(body.actor);
-    const { room, changed } = updateStoredPresence(
+    const { room, changed } = await updateStoredPresence(
       code,
       actor.id,
       actor.token,

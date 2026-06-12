@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const room = createStoredRoom(createRoom(code, host), host.token);
+    const room = await createStoredRoom(createRoom(code, host), host.token);
     publishRoomUpdate(room.code, room.updatedAt);
     return Response.json({ room: getRoomView(room, host.id) }, { status: 201 });
   } catch (error) {

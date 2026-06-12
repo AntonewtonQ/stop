@@ -7,6 +7,7 @@ import { POST as joinRoute } from "@/app/api/rooms/[code]/join/route";
 import { POST as presenceRoute } from "@/app/api/rooms/[code]/presence/route";
 import { POST as createRoute } from "@/app/api/rooms/route";
 import { GET as healthRoute } from "@/app/api/health/route";
+import { POST as cleanupRoute } from "@/app/api/maintenance/cleanup/route";
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { getDatabase } from "@/lib/server/database";
 import { clearTestDatabase, makeSession } from "../helpers/game";
@@ -37,11 +38,49 @@ describe("Route Handlers", () => {
   beforeEach(clearTestDatabase);
 
   it("expõe um health check que valida a base de dados", async () => {
-    const response = healthRoute();
-    const data = (await response.json()) as { status: string; service: string };
+    const response = await healthRoute();
+    const data = (await response.json()) as {
+      status: string;
+      service: string;
+      database: string;
+    };
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({ status: "ok", service: "stop.ao", timestamp: expect.any(String) });
+    expect(data).toEqual({
+      status: "ok",
+      service: "stop.ao",
+      database: "sqlite",
+      timestamp: expect.any(String),
+    });
+  });
+
+  it("protege a limpeza de salas antigas com um segredo", async () => {
+    const code = "OLD01";
+    const host = makeSession("Ana", code);
+    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    getDatabase()
+      .prepare("UPDATE rooms SET updated_at = 0 WHERE code = ?")
+      .run(code);
+    getDatabase()
+      .prepare("UPDATE players SET is_online = 0 WHERE room_code = ?")
+      .run(code);
+    process.env.MAINTENANCE_SECRET = "maintenance-test-secret";
+
+    const unauthorized = await cleanupRoute(
+      new Request("http://stop.test/api/maintenance/cleanup", {
+        method: "POST",
+      }),
+    );
+    const authorized = await cleanupRoute(
+      new Request("http://stop.test/api/maintenance/cleanup", {
+        method: "POST",
+        headers: { authorization: "Bearer maintenance-test-secret" },
+      }),
+    );
+    const result = (await authorized.json()) as { deletedRooms: number };
+
+    expect(unauthorized.status).toBe(401);
+    expect(result.deletedRooms).toBe(1);
   });
 
   it("executa criação, entrada e acções autenticadas", async () => {

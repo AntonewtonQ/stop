@@ -16,7 +16,7 @@ export async function GET(
 ) {
   const { code: rawCode } = await params;
   const code = normalizeRoomCode(rawCode);
-  const room = getRoom(code);
+  const room = await getRoom(code);
 
   if (!room) {
     return Response.json(

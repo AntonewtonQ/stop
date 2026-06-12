@@ -10,5 +10,13 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 24.14.1
-      - key: STOP_DATABASE_PATH
-        value: /tmp/stop.db
+      - key: DATABASE_URL
+        sync: false
+      - key: MAINTENANCE_SECRET
+        generateValue: true
+      - key: ROOM_RETENTION_ACTIVE_HOURS
+        value: 24
+      - key: ROOM_RETENTION_FINISHED_HOURS
+        value: 168
+      - key: ROOM_CLEANUP_INTERVAL_MINUTES
+        value: 15

@@ -59,7 +59,9 @@ O projecto já possui um MVP online jogável:
 - estados para sala inexistente, entrada tardia e espera pelo comandante.
 - API HTTP para todas as operações da partida;
 - actualizações realtime através de Server-Sent Events;
-- base de dados SQLite para salas, jogadores, rodadas, respostas e votos;
+- PostgreSQL/Neon em produção e SQLite local para salas, jogadores, rodadas,
+  respostas e votos;
+- limpeza automática e configurável de salas antigas;
 - autorização das acções através de tokens privados de sessão.
 - testes automatizados das regras, SQLite, APIs, SSE e fluxo multiplayer.
 - Blueprint Render e health check preparados para publicação gratuita.
@@ -129,11 +131,16 @@ mostra o estado de reconexão até a internet voltar.
 
 ## Backend e persistência
 
-O backend utiliza Route Handlers do Next.js e SQLite nativo do Node:
+O backend utiliza Route Handlers do Next.js e escolhe a base de dados através
+do ambiente:
 
-- as salas são guardadas em `data/stop.db`;
+- com `DATABASE_URL`, utiliza PostgreSQL/Neon;
+- sem `DATABASE_URL`, utiliza SQLite nativo do Node em `data/stop.db`;
 - jogadores, rodadas, respostas, desafios e votos possuem tabelas próprias;
 - cada mutação é validada pelo servidor e executada numa transacção;
+- no PostgreSQL, a sala é bloqueada durante cada mutação para evitar conflitos
+  entre acções simultâneas;
+- o esquema PostgreSQL é criado automaticamente na primeira ligação;
 - tokens privados autorizam as acções e são guardados como hashes SHA-256;
 - a identidade do jogador é guardada em `localStorage` e recuperada ao reabrir
   o navegador;
@@ -148,11 +155,13 @@ O backend utiliza Route Handlers do Next.js e SQLite nativo do Node:
 - cada sala suporta até `19` jogadores, um por letra jogável;
 - dispositivos e navegadores diferentes conseguem jogar através do mesmo servidor;
 - actualizar a página mantém a sala e a sessão da aba;
-- `STOP_DATABASE_PATH` permite definir outro caminho para o ficheiro SQLite.
+- `STOP_DATABASE_PATH` permite definir outro caminho para o ficheiro SQLite;
+- salas abandonadas são removidas após `24` horas e partidas concluídas após
+  `168` horas, por padrão;
+- salas com jogadores online recentes nunca são removidas pela limpeza.
 
 O SQLite é adequado para desenvolvimento, demonstração e uma única instância do
-servidor. Um deploy distribuído deverá migrar para PostgreSQL ou outro serviço
-de base de dados partilhado.
+servidor. O PostgreSQL/Neon é a persistência recomendada para produção.
 
 ## Publicar gratuitamente
 
@@ -164,20 +173,63 @@ escala para múltiplas instâncias.
 2. Cria uma conta em [Render](https://render.com/).
 3. No dashboard, escolhe **New → Blueprint**.
 4. Liga o repositório do `stop.ao`.
-5. Confirma o serviço definido em `render.yaml` e escolhe o plano **Free**.
-6. Depois do deploy, abre a URL `https://stop-ao.onrender.com` atribuída pelo
+5. Cria um projecto gratuito na [Neon](https://neon.com/) e copia a connection
+   string **pooled**, que contém `-pooler` no hostname.
+6. Confirma o serviço definido em `render.yaml`, escolhe o plano **Free** e
+   define `DATABASE_URL` com a connection string da Neon.
+7. Depois do deploy, abre a URL `https://stop-ao.onrender.com` atribuída pelo
    Render.
-7. Confirma o estado do servidor em `/api/health`.
+8. Confirma o estado do servidor em `/api/health`.
 
 O Blueprint executa `npm ci && npm run build`, inicia `npm run start`, utiliza
-Node.js `24.14.1` e guarda o SQLite temporário em `/tmp/stop.db`.
+Node.js `24.14.1` e utiliza PostgreSQL quando `DATABASE_URL` estiver definida.
+
+### Migrar para Neon
+
+1. Na Neon, cria um projecto e selecciona uma região próxima do Render.
+2. Abre **Connect**, activa **Pooled connection** e copia o URL PostgreSQL.
+3. No Render, abre **Environment** e define `DATABASE_URL` com esse URL.
+4. Confirma que `MAINTENANCE_SECRET` possui um valor longo e secreto.
+5. Faz um novo deploy e abre `/api/health`; a primeira ligação cria o esquema e
+   a resposta deverá apresentar `"database":"postgresql"`.
+6. Cria uma sala de teste, faz outro deploy e confirma que a sala continua
+   disponível.
+
+Não coloques `DATABASE_URL` ou `MAINTENANCE_SECRET` no Git. O ficheiro
+`.env.example` documenta as variáveis sem expor segredos.
+
+As salas existentes no SQLite temporário do Render não são copiadas
+automaticamente para a Neon. A activação causa um reset único das salas abertas;
+as salas criadas depois disso passam a sobreviver a reinícios e deploys.
+
+### Limpeza de salas antigas
+
+A limpeza roda automaticamente durante o tráfego, no máximo uma vez a cada
+`ROOM_CLEANUP_INTERVAL_MINUTES`. Para garantir limpeza mesmo sem visitas,
+configura um serviço cron externo para enviar um `POST` periódico para:
+
+```text
+https://stop-ao.onrender.com/api/maintenance/cleanup
+```
+
+Com o cabeçalho:
+
+```text
+Authorization: Bearer <MAINTENANCE_SECRET>
+```
+
+Variáveis disponíveis:
+
+- `ROOM_RETENTION_ACTIVE_HOURS=24` — retenção de salas abandonadas;
+- `ROOM_RETENTION_FINISHED_HOURS=168` — retenção de partidas concluídas;
+- `ROOM_CLEANUP_INTERVAL_MINUTES=15` — intervalo da limpeza oportunística.
 
 ### Limitações da beta gratuita
 
 - o serviço pode adormecer depois de `15` minutos sem pedidos;
 - o primeiro acesso após adormecer pode demorar cerca de um minuto;
-- o filesystem gratuito é temporário: reinícios, novos deploys ou suspensão
-  apagam salas e partidas guardadas;
+- sem `DATABASE_URL`, o filesystem gratuito é temporário e reinícios apagam
+  salas; com Neon, as salas persistem;
 - partidas activas mantêm pedidos de presença, reduzindo a possibilidade de o
   serviço adormecer durante o jogo;
 - depois da primeira visita, a PWA abre a interface guardada imediatamente e
@@ -186,12 +238,10 @@ Node.js `24.14.1` e guarda o SQLite temporário em `/tmp/stop.db`.
   ainda pode aparecer porque é servida antes de o código da aplicação arrancar;
 - o broker realtime funciona apenas numa instância.
 
-Para produção durável ainda gratuita, o próximo passo é migrar o SQLite para
-PostgreSQL no Neon Free. Para múltiplas instâncias, também será necessário
-migrar o broker SSE em memória para Redis/Pub/Sub, como Upstash Redis.
-Para eliminar completamente a página de arranque do Render, é necessário usar
-uma instância que não adormeça ou alojar o frontend separadamente num serviço
-sempre activo.
+Para múltiplas instâncias, ainda será necessário migrar o broker SSE em memória
+para Redis/Pub/Sub, como Upstash Redis. Para eliminar completamente a página de
+arranque do Render, é necessário usar uma instância que não adormeça ou alojar
+o frontend separadamente num serviço sempre activo.
 
 ## API
 
@@ -202,13 +252,14 @@ sempre activo.
 - `POST /api/rooms/[code]/presence` — actualiza presença e reconcilia liderança;
 - `GET /api/rooms/[code]/events` — mantém o canal SSE realtime da sala.
 - `GET /api/health` — valida o processo Node e a ligação à base de dados.
+- `POST /api/maintenance/cleanup` — remove salas antigas com autorização Bearer.
 
 As acções incluem configuração, início, escolha da letra, respostas, STOP,
 votos, próxima rodada, fim da partida e revanche.
 
 ## Base de dados
 
-O esquema é criado automaticamente ao iniciar a primeira operação:
+O mesmo esquema é criado automaticamente em SQLite ou PostgreSQL:
 
 - `rooms` — estado e configuração das salas;
 - `players` — jogadores, ordem de entrada e tokens de sessão protegidos;
@@ -249,7 +300,8 @@ automaticamente para não bloquear a partida.
 - Next.js `16.2.7` com App Router
 - React `19.2.4`
 - Node.js `24` com SQLite nativo
-- SQLite
+- PostgreSQL/Neon em produção
+- SQLite em desenvolvimento e testes
 - TypeScript
 - Tailwind CSS v4
 - shadcn/ui `4.11.0`
@@ -285,9 +337,11 @@ lib/
   game/types.ts            Tipos do domínio
   game/use-room.ts         Sincronização reactiva via SSE
   game/word-validation.ts  Léxico local e normalização de respostas
-  server/database.ts       Inicialização e esquema SQLite
+  server/database.ts       Inicialização dos esquemas SQLite e PostgreSQL
   server/realtime.ts       Broker SSE por sala
-  server/room-repository.ts Persistência transaccional das salas
+  server/room-repository.ts Escolha e limpeza da persistência
+  server/room-repository-postgres.ts Persistência PostgreSQL/Neon
+  server/room-repository-sqlite.ts Persistência SQLite local
   server/room-view.ts      Visão pública/privada da sala
   utils.ts                 Utilitários partilhados
 
@@ -336,13 +390,12 @@ npx playwright install chromium
 
 Evoluir o MVP online:
 
-1. adicionar rate limiting, limites de payload e limpeza de salas antigas;
-2. migrar SQLite para PostgreSQL no Neon;
-3. migrar o broker SSE para Redis/Pub/Sub antes de usar múltiplas instâncias;
-4. substituir o léxico inicial por um serviço de validação expansível;
-5. criar histórico consultável de partidas e classificação;
-6. permitir recuperar uma sessão noutro dispositivo;
-7. adicionar autenticação opcional e perfis.
+1. adicionar rate limiting e limites de payload;
+2. migrar o broker SSE para Redis/Pub/Sub antes de usar múltiplas instâncias;
+3. substituir o léxico inicial por um serviço de validação expansível;
+4. criar histórico consultável de partidas e classificação;
+5. permitir recuperar uma sessão noutro dispositivo;
+6. adicionar autenticação opcional e perfis.
 
 ## Nota sobre Next.js
 

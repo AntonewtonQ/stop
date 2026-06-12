@@ -20,7 +20,7 @@ export async function POST(
     const code = normalizeRoomCode(rawCode);
     const body = (await request.json()) as { session?: unknown };
     const session = parseSession(body.session, code);
-    const room = joinStoredRoom(code, session, joinRoom);
+    const room = await joinStoredRoom(code, session, joinRoom);
     publishRoomUpdate(room.code, room.updatedAt);
 
     return Response.json({ room: getRoomView(room, session.id) });

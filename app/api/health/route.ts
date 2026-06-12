@@ -1,15 +1,11 @@
-import { getDatabase } from "@/lib/server/database";
+import { checkDatabaseHealth } from "@/lib/server/database";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function GET() {
+export async function GET() {
   try {
-    const result = getDatabase()
-      .prepare("SELECT 1 AS healthy")
-      .get() as { healthy: number } | undefined;
-
-    if (result?.healthy !== 1) {
+    if (!(await checkDatabaseHealth())) {
       throw new Error("Database health check failed.");
     }
 
@@ -17,6 +13,7 @@ export function GET() {
       {
         status: "ok",
         service: "stop.ao",
+        database: process.env.DATABASE_URL ? "postgresql" : "sqlite",
         timestamp: new Date().toISOString(),
       },
       { headers: { "Cache-Control": "no-store" } },

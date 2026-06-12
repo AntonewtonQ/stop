@@ -3,9 +3,12 @@ import "server-only";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { Pool } from "pg";
 
 const globalDatabase = globalThis as typeof globalThis & {
   stopDatabase?: DatabaseSync;
+  stopPostgresPool?: Pool;
+  stopPostgresSchema?: Promise<void>;
 };
 
 export function getDatabase() {
@@ -150,4 +153,141 @@ export function getDatabase() {
 
   globalDatabase.stopDatabase = database;
   return database;
+}
+
+export function getPostgresPool() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is required to use PostgreSQL.");
+  }
+  if (globalDatabase.stopPostgresPool) return globalDatabase.stopPostgresPool;
+
+  globalDatabase.stopPostgresPool = new Pool({
+    connectionString,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
+  });
+  return globalDatabase.stopPostgresPool;
+}
+
+export function ensurePostgresSchema() {
+  if (globalDatabase.stopPostgresSchema) return globalDatabase.stopPostgresSchema;
+
+  globalDatabase.stopPostgresSchema = getPostgresPool()
+    .query(`
+      CREATE TABLE IF NOT EXISTS rooms (
+        code TEXT PRIMARY KEY,
+        host_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        categories_json JSONB NOT NULL,
+        round_duration INTEGER NOT NULL,
+        rounds_to_play INTEGER NOT NULL,
+        rounds_customized BOOLEAN NOT NULL DEFAULT FALSE,
+        commander_order_json JSONB NOT NULL,
+        current_round_number INTEGER,
+        updated_at BIGINT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS players (
+        id TEXT PRIMARY KEY,
+        room_code TEXT NOT NULL REFERENCES rooms(code) ON DELETE CASCADE,
+        session_token TEXT NOT NULL,
+        name TEXT NOT NULL,
+        initials TEXT NOT NULL,
+        color TEXT NOT NULL,
+        avatar_id TEXT NOT NULL DEFAULT 'spark',
+        is_host BOOLEAN NOT NULL,
+        is_online BOOLEAN NOT NULL DEFAULT FALSE,
+        last_seen_at BIGINT NOT NULL DEFAULT 0,
+        joined_at BIGINT NOT NULL,
+        position INTEGER NOT NULL,
+        UNIQUE(room_code, position)
+      );
+
+      CREATE TABLE IF NOT EXISTS rounds (
+        room_code TEXT NOT NULL REFERENCES rooms(code) ON DELETE CASCADE,
+        number INTEGER NOT NULL,
+        commander_id TEXT NOT NULL,
+        letter TEXT NOT NULL,
+        started_at BIGINT NOT NULL,
+        duration INTEGER NOT NULL,
+        stopped_at BIGINT,
+        stopped_by TEXT,
+        result_json JSONB,
+        PRIMARY KEY(room_code, number)
+      );
+
+      CREATE TABLE IF NOT EXISTS answers (
+        room_code TEXT NOT NULL,
+        round_number INTEGER NOT NULL,
+        player_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        points INTEGER,
+        score_status TEXT,
+        validation_status TEXT,
+        challenge_id TEXT,
+        PRIMARY KEY(room_code, round_number, player_id, category),
+        FOREIGN KEY(room_code, round_number)
+          REFERENCES rounds(room_code, number) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS challenges (
+        room_code TEXT NOT NULL,
+        round_number INTEGER NOT NULL,
+        id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        normalized_answer TEXT NOT NULL,
+        status TEXT NOT NULL,
+        player_ids_json JSONB NOT NULL,
+        PRIMARY KEY(room_code, round_number, id),
+        FOREIGN KEY(room_code, round_number)
+          REFERENCES rounds(room_code, number) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS votes (
+        room_code TEXT NOT NULL,
+        round_number INTEGER NOT NULL,
+        challenge_id TEXT NOT NULL,
+        player_id TEXT NOT NULL,
+        vote TEXT NOT NULL,
+        PRIMARY KEY(room_code, round_number, challenge_id, player_id),
+        FOREIGN KEY(room_code, round_number, challenge_id)
+          REFERENCES challenges(room_code, round_number, id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS players_room_code_idx ON players(room_code);
+      CREATE INDEX IF NOT EXISTS players_online_idx
+        ON players(room_code, is_online, last_seen_at);
+      CREATE INDEX IF NOT EXISTS rooms_cleanup_idx ON rooms(status, updated_at);
+      CREATE INDEX IF NOT EXISTS rounds_room_code_idx ON rounds(room_code);
+      CREATE INDEX IF NOT EXISTS answers_round_idx
+        ON answers(room_code, round_number);
+      CREATE INDEX IF NOT EXISTS votes_round_idx
+        ON votes(room_code, round_number);
+    `)
+    .then(() => undefined)
+    .catch((error) => {
+      globalDatabase.stopPostgresSchema = undefined;
+      throw error;
+    });
+
+  return globalDatabase.stopPostgresSchema;
+}
+
+export async function checkDatabaseHealth() {
+  if (process.env.DATABASE_URL) {
+    await ensurePostgresSchema();
+    const result = await getPostgresPool().query<{ healthy: number }>(
+      "SELECT 1 AS healthy",
+    );
+    return result.rows[0]?.healthy === 1;
+  }
+
+  const result = getDatabase()
+    .prepare("SELECT 1 AS healthy")
+    .get() as { healthy: number } | undefined;
+  return result?.healthy === 1;
 }

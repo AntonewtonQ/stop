@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> },
 ) {
   const { code } = await params;
-  const room = getRoom(normalizeRoomCode(code));
+  const room = await getRoom(normalizeRoomCode(code));
 
   if (!room) {
     return Response.json(
@@ -28,7 +28,7 @@ export async function GET(
 
   if (playerId && token) {
     try {
-      authenticatePlayer(room.code, playerId, token);
+      await authenticatePlayer(room.code, playerId, token);
       viewerId = playerId;
     } catch {
       viewerId = undefined;

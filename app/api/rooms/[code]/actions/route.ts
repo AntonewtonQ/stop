@@ -41,7 +41,7 @@ export async function POST(
     const body = (await request.json()) as ActionBody;
     const actor = parseActor(body.actor);
     const action = parseAction(body);
-    const room = mutateStoredRoom(code, actor.id, actor.token, action);
+    const room = await mutateStoredRoom(code, actor.id, actor.token, action);
     if (body.type !== "save-answers") {
       publishRoomUpdate(room.code, room.updatedAt);
     }
