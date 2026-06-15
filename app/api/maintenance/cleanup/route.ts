@@ -6,23 +6,28 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function authorized(request: Request) {
-  const secret = process.env.MAINTENANCE_SECRET;
   const authorization = request.headers.get("authorization");
   const supplied = authorization?.startsWith("Bearer ")
     ? authorization.slice(7)
     : "";
+  const secrets = [
+    process.env.MAINTENANCE_SECRET,
+    process.env.CRON_SECRET,
+  ].filter((secret): secret is string => Boolean(secret));
 
-  if (!secret || !supplied) return false;
+  if (!supplied || secrets.length === 0) return false;
 
-  const expectedBuffer = Buffer.from(secret);
   const suppliedBuffer = Buffer.from(supplied);
-  return (
-    expectedBuffer.length === suppliedBuffer.length &&
-    timingSafeEqual(expectedBuffer, suppliedBuffer)
-  );
+  return secrets.some((secret) => {
+    const expectedBuffer = Buffer.from(secret);
+    return (
+      expectedBuffer.length === suppliedBuffer.length &&
+      timingSafeEqual(expectedBuffer, suppliedBuffer)
+    );
+  });
 }
 
-export async function POST(request: Request) {
+async function cleanup(request: Request) {
   if (!authorized(request)) {
     return Response.json({ error: "Não autorizado." }, { status: 401 });
   }
@@ -37,3 +42,6 @@ export async function POST(request: Request) {
     { headers: { "Cache-Control": "no-store" } },
   );
 }
+
+export const GET = cleanup;
+export const POST = cleanup;

@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { PRESENCE_HEARTBEAT_INTERVAL } from "./constants";
+import {
+  PRESENCE_HEARTBEAT_INTERVAL,
+  ROOM_SYNC_POLL_INTERVAL,
+} from "./constants";
 import {
   readPlayerSession,
   readRoom,
@@ -116,6 +119,27 @@ export function useRoom(code: string) {
       events.removeEventListener("error", handleError);
     };
   }, [markConnectionFailure, refresh, room?.code]);
+
+  useEffect(() => {
+    if (!room?.code) return;
+
+    let cancelled = false;
+    let poll: number | undefined;
+
+    async function refreshAfterDelay() {
+      await refresh();
+      if (!cancelled) {
+        poll = window.setTimeout(refreshAfterDelay, ROOM_SYNC_POLL_INTERVAL);
+      }
+    }
+
+    poll = window.setTimeout(refreshAfterDelay, ROOM_SYNC_POLL_INTERVAL);
+
+    return () => {
+      cancelled = true;
+      if (poll !== undefined) window.clearTimeout(poll);
+    };
+  }, [refresh, room?.code]);
 
   useEffect(() => {
     if (!room?.code || !session) return;

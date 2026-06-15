@@ -14,7 +14,12 @@ import {
   isProfileColor,
 } from "@/lib/game/profile-colors";
 import type { PlayerSession, Room, RoundState } from "@/lib/game/types";
-import { ensurePostgresSchema, getPostgresPool } from "./database";
+import {
+  connectPostgres,
+  ensurePostgresSchema,
+  getPostgresPool,
+  withPostgresRetry,
+} from "./database-postgres";
 import { RoomRepositoryError } from "./room-repository-error";
 
 type Queryable = {
@@ -83,7 +88,7 @@ async function withTransaction<T>(
   operation: (client: PoolClient) => Promise<T>,
 ) {
   await ensurePostgresSchema();
-  const client = await getPostgresPool().connect();
+  const client = await connectPostgres();
 
   try {
     await client.query("BEGIN");
@@ -91,7 +96,11 @@ async function withTransaction<T>(
     await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("PostgreSQL rollback failed.", rollbackError);
+    }
     throw error;
   } finally {
     client.release();
@@ -106,21 +115,21 @@ async function getRoomFrom(database: Queryable, code: string) {
   const roomRow = roomResult.rows[0];
   if (!roomRow) return null;
 
-  const [playerResult, roundResult, answerResult] = await Promise.all([
-    database.query<PlayerRow>(
-      "SELECT * FROM players WHERE room_code = $1 ORDER BY position",
-      [code],
-    ),
-    database.query<RoundRow>(
-      "SELECT * FROM rounds WHERE room_code = $1 ORDER BY number",
-      [code],
-    ),
-    database.query<AnswerRow>(
-      `SELECT round_number, player_id, category, answer
-       FROM answers WHERE room_code = $1`,
-      [code],
-    ),
-  ]);
+  // PoolClient only supports one active query at a time, so these must remain
+  // sequential while getRoomFrom is used inside a transaction.
+  const playerResult = await database.query<PlayerRow>(
+    "SELECT * FROM players WHERE room_code = $1 ORDER BY position",
+    [code],
+  );
+  const roundResult = await database.query<RoundRow>(
+    "SELECT * FROM rounds WHERE room_code = $1 ORDER BY number",
+    [code],
+  );
+  const answerResult = await database.query<AnswerRow>(
+    `SELECT round_number, player_id, category, answer
+     FROM answers WHERE room_code = $1`,
+    [code],
+  );
 
   const rounds = roundResult.rows.map((roundRow) => {
     const answers: RoundState["answers"] = {};
@@ -184,7 +193,7 @@ async function getRoomFrom(database: Queryable, code: string) {
 
 export async function getRoom(code: string) {
   await ensurePostgresSchema();
-  return getRoomFrom(getPostgresPool(), code);
+  return withPostgresRetry(() => getRoomFrom(getPostgresPool(), code));
 }
 
 async function persistRoom(
@@ -442,7 +451,9 @@ export async function authenticatePlayer(
   token: string,
 ) {
   await ensurePostgresSchema();
-  await authenticateWith(getPostgresPool(), code, playerId, token);
+  await withPostgresRetry(() =>
+    authenticateWith(getPostgresPool(), code, playerId, token),
+  );
   return true;
 }
 
@@ -506,20 +517,22 @@ export async function deleteExpiredRooms(
   onlineCutoff: number,
 ) {
   await ensurePostgresSchema();
-  const result = await getPostgresPool().query(
-    `DELETE FROM rooms
-     WHERE (
-       (status = 'finished' AND updated_at < $1)
-       OR (status <> 'finished' AND updated_at < $2)
-     )
-     AND NOT EXISTS (
-       SELECT 1
-       FROM players
-       WHERE players.room_code = rooms.code
-         AND players.is_online = TRUE
-         AND players.last_seen_at >= $3
-     )`,
-    [finishedCutoff, activeCutoff, onlineCutoff],
+  const result = await withPostgresRetry(() =>
+    getPostgresPool().query(
+      `DELETE FROM rooms
+       WHERE (
+         (status = 'finished' AND updated_at < $1)
+         OR (status <> 'finished' AND updated_at < $2)
+       )
+       AND NOT EXISTS (
+         SELECT 1
+         FROM players
+         WHERE players.room_code = rooms.code
+           AND players.is_online = TRUE
+           AND players.last_seen_at >= $3
+       )`,
+      [finishedCutoff, activeCutoff, onlineCutoff],
+    ),
   );
   return result.rowCount ?? 0;
 }

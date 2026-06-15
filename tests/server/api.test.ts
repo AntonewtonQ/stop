@@ -7,9 +7,12 @@ import { POST as joinRoute } from "@/app/api/rooms/[code]/join/route";
 import { POST as presenceRoute } from "@/app/api/rooms/[code]/presence/route";
 import { POST as createRoute } from "@/app/api/rooms/route";
 import { GET as healthRoute } from "@/app/api/health/route";
-import { POST as cleanupRoute } from "@/app/api/maintenance/cleanup/route";
+import {
+  GET as cleanupCronRoute,
+  POST as cleanupRoute,
+} from "@/app/api/maintenance/cleanup/route";
 import type { PlayerSession, Room } from "@/lib/game/types";
-import { getDatabase } from "@/lib/server/database";
+import { getDatabase } from "@/lib/server/database-sqlite";
 import { clearTestDatabase, makeSession } from "../helpers/game";
 
 type RouteResponse = { room?: Room; error?: string };
@@ -58,6 +61,7 @@ describe("Route Handlers", () => {
     const code = "OLD01";
     const host = makeSession("Ana", code);
     await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await new Promise((resolve) => setImmediate(resolve));
     getDatabase()
       .prepare("UPDATE rooms SET updated_at = 0 WHERE code = ?")
       .run(code);
@@ -81,6 +85,19 @@ describe("Route Handlers", () => {
 
     expect(unauthorized.status).toBe(401);
     expect(result.deletedRooms).toBe(1);
+  });
+
+  it("aceita o segredo enviado pelo Vercel Cron", async () => {
+    process.env.CRON_SECRET = "vercel-cron-test-secret";
+
+    const response = await cleanupCronRoute(
+      new Request("http://stop.test/api/maintenance/cleanup", {
+        headers: { authorization: "Bearer vercel-cron-test-secret" },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    delete process.env.CRON_SECRET;
   });
 
   it("executa criação, entrada e acções autenticadas", async () => {

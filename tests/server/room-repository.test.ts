@@ -7,7 +7,7 @@ import {
   saveRoundAnswers,
   startFirstRound,
 } from "@/lib/game/engine";
-import { getDatabase } from "@/lib/server/database";
+import { getDatabase } from "@/lib/server/database-sqlite";
 import {
   authenticatePlayer,
   cleanupExpiredRooms,

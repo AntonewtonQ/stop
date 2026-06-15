@@ -1,4 +1,4 @@
-import { getDatabase } from "@/lib/server/database";
+import { getDatabase } from "@/lib/server/database-sqlite";
 import {
   createRoom,
   joinRoom,

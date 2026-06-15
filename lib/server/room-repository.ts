@@ -2,8 +2,7 @@ import "server-only";
 
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { PRESENCE_DISCONNECT_GRACE } from "@/lib/game/constants";
-import * as postgres from "./room-repository-postgres";
-import * as sqlite from "./room-repository-sqlite";
+import { assertProductionDatabaseConfigured } from "./database";
 
 export { RoomRepositoryError } from "./room-repository-error";
 
@@ -21,21 +20,29 @@ function isPostgresConfigured() {
   return Boolean(process.env.DATABASE_URL);
 }
 
+function getAdapter() {
+  assertProductionDatabaseConfigured();
+
+  return isPostgresConfigured()
+    ? import("./room-repository-postgres")
+    : import("./room-repository-sqlite");
+}
+
 function positiveNumber(value: string | undefined, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 export async function getRoom(code: string) {
-  return isPostgresConfigured() ? postgres.getRoom(code) : sqlite.getRoom(code);
+  const adapter = await getAdapter();
+  return adapter.getRoom(code);
 }
 
 export async function createStoredRoom(room: Room, hostToken: string) {
-  return withAutomaticCleanup(() =>
-    isPostgresConfigured()
-      ? postgres.createStoredRoom(room, hostToken)
-      : sqlite.createStoredRoom(room, hostToken),
-  );
+  return withAutomaticCleanup(async () => {
+    const adapter = await getAdapter();
+    return adapter.createStoredRoom(room, hostToken);
+  });
 }
 
 export async function joinStoredRoom(
@@ -43,11 +50,10 @@ export async function joinStoredRoom(
   session: PlayerSession,
   join: RoomJoin,
 ) {
-  return withAutomaticCleanup(() =>
-    isPostgresConfigured()
-      ? postgres.joinStoredRoom(code, session, join)
-      : sqlite.joinStoredRoom(code, session, join),
-  );
+  return withAutomaticCleanup(async () => {
+    const adapter = await getAdapter();
+    return adapter.joinStoredRoom(code, session, join);
+  });
 }
 
 export async function mutateStoredRoom(
@@ -56,11 +62,10 @@ export async function mutateStoredRoom(
   token: string,
   mutate: RoomMutation,
 ) {
-  return withAutomaticCleanup(() =>
-    isPostgresConfigured()
-      ? postgres.mutateStoredRoom(code, playerId, token, mutate)
-      : sqlite.mutateStoredRoom(code, playerId, token, mutate),
-  );
+  return withAutomaticCleanup(async () => {
+    const adapter = await getAdapter();
+    return adapter.mutateStoredRoom(code, playerId, token, mutate);
+  });
 }
 
 export async function authenticatePlayer(
@@ -68,9 +73,8 @@ export async function authenticatePlayer(
   playerId: string,
   token: string,
 ) {
-  return isPostgresConfigured()
-    ? postgres.authenticatePlayer(code, playerId, token)
-    : sqlite.authenticatePlayer(code, playerId, token);
+  const adapter = await getAdapter();
+  return adapter.authenticatePlayer(code, playerId, token);
 }
 
 export async function updateStoredPresence(
@@ -79,11 +83,10 @@ export async function updateStoredPresence(
   token: string,
   isOnline: boolean,
 ) {
-  return withAutomaticCleanup(() =>
-    isPostgresConfigured()
-      ? postgres.updateStoredPresence(code, playerId, token, isOnline)
-      : sqlite.updateStoredPresence(code, playerId, token, isOnline),
-  );
+  return withAutomaticCleanup(async () => {
+    const adapter = await getAdapter();
+    return adapter.updateStoredPresence(code, playerId, token, isOnline);
+  });
 }
 
 export async function cleanupExpiredRooms(now = Date.now()) {
@@ -103,9 +106,8 @@ export async function cleanupExpiredRooms(now = Date.now()) {
     now - PRESENCE_DISCONNECT_GRACE,
   ] as const;
 
-  return isPostgresConfigured()
-    ? postgres.deleteExpiredRooms(...args)
-    : sqlite.deleteExpiredRooms(...args);
+  const adapter = await getAdapter();
+  return adapter.deleteExpiredRooms(...args);
 }
 
 async function withAutomaticCleanup<T>(operation: () => Promise<T> | T) {

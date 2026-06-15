@@ -13,7 +13,7 @@ import {
   isProfileColor,
 } from "@/lib/game/profile-colors";
 import type { PlayerSession, Room, RoundState } from "@/lib/game/types";
-import { getDatabase } from "./database";
+import { getDatabase } from "./database-sqlite";
 import { RoomRepositoryError } from "./room-repository-error";
 
 type RoomRow = {

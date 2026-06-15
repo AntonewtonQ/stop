@@ -58,13 +58,14 @@ O projecto já possui um MVP online jogável:
 - convite directo para WhatsApp no lobby;
 - estados para sala inexistente, entrada tardia e espera pelo comandante.
 - API HTTP para todas as operações da partida;
-- actualizações realtime através de Server-Sent Events;
+- actualizações realtime através de Server-Sent Events com consulta periódica
+  como fallback entre instâncias;
 - PostgreSQL/Neon em produção e SQLite local para salas, jogadores, rodadas,
   respostas e votos;
 - limpeza automática e configurável de salas antigas;
 - autorização das acções através de tokens privados de sessão.
 - testes automatizados das regras, SQLite, APIs, SSE e fluxo multiplayer.
-- Blueprint Render e health check preparados para publicação gratuita.
+- configurações Vercel e Render com health check e limpeza programada.
 
 O validador é deliberadamente conservador: respostas presentes no léxico local
 da categoria são aceites automaticamente; respostas que começam pela letra
@@ -140,11 +141,15 @@ do ambiente:
 - cada mutação é validada pelo servidor e executada numa transacção;
 - no PostgreSQL, a sala é bloqueada durante cada mutação para evitar conflitos
   entre acções simultâneas;
+- a ligação PostgreSQL tolera o cold start da Neon, repete aquisições de ligação
+  transitórias e usa verificação SSL completa;
 - o esquema PostgreSQL é criado automaticamente na primeira ligação;
 - tokens privados autorizam as acções e são guardados como hashes SHA-256;
 - a identidade do jogador é guardada em `localStorage` e recuperada ao reabrir
   o navegador;
 - o servidor publica notificações SSE imediatamente após cada alteração visível;
+- o cliente consulta a sala periodicamente como fallback para ambientes
+  distribuídos como a Vercel;
 - o cliente recupera automaticamente o estado ao reconectar;
 - a página inicial permite retomar a última sala guardada;
 - cada sessão envia um heartbeat autenticado e entra num período de graça de
@@ -165,9 +170,39 @@ servidor. O PostgreSQL/Neon é a persistência recomendada para produção.
 
 ## Publicar gratuitamente
 
-A primeira beta pública pode ser publicada no **Render Free** como um único Web
-Service Node.js. Esta opção é compatível com o broker SSE em memória porque não
-escala para múltiplas instâncias.
+### Vercel
+
+A aplicação está preparada para a **Vercel Hobby** com PostgreSQL/Neon. O
+ficheiro `vercel.json` activa uma limpeza diária às `03:00 UTC`, e a
+sincronização periódica mantém as salas consistentes quando pedidos da mesma
+partida chegam a instâncias diferentes.
+
+1. Envia estas alterações para o GitHub.
+2. Na [Vercel](https://vercel.com/), escolhe **Add New → Project** e importa o
+   repositório do `stop.ao`.
+3. Mantém o framework detectado como **Next.js** e o build padrão.
+4. Em **Environment Variables**, adiciona para `Production`:
+   - `DATABASE_URL` com a connection string **pooled** da Neon, contendo
+     `-pooler` no hostname;
+   - `CRON_SECRET` com um segredo longo para a limpeza diária;
+   - `MAINTENANCE_SECRET` com outro segredo longo para limpezas manuais;
+   - `POSTGRES_CONNECTION_TIMEOUT_MS=30000`;
+   - `ROOM_RETENTION_ACTIVE_HOURS=24`;
+   - `ROOM_RETENTION_FINISHED_HOURS=168`;
+   - `ROOM_CLEANUP_INTERVAL_MINUTES=15`.
+5. Publica e abre `/api/health`. A resposta deve incluir
+   `"database":"postgresql"`.
+6. Cria uma sala e testa a entrada através de outro navegador ou telemóvel.
+
+A Vercel utiliza Node.js `24.x`, executa o Cron apenas no deployment de
+produção e envia automaticamente `Authorization: Bearer <CRON_SECRET>`. Sem
+`DATABASE_URL`, o backend recusa iniciar na Vercel para impedir perda de salas
+num SQLite temporário.
+
+### Render
+
+Também é possível publicar no **Render Free** como um único Web Service Node.js.
+Esta opção mantém todas as ligações SSE na mesma instância.
 
 1. Envia o repositório para o GitHub.
 2. Cria uma conta em [Render](https://render.com/).
@@ -184,19 +219,19 @@ escala para múltiplas instâncias.
 O Blueprint executa `npm ci && npm run build`, inicia `npm run start`, utiliza
 Node.js `24.14.1` e utiliza PostgreSQL quando `DATABASE_URL` estiver definida.
 
-### Migrar para Neon
+### Configurar Neon
 
-1. Na Neon, cria um projecto e selecciona uma região próxima do Render.
+1. Na Neon, cria um projecto e selecciona uma região próxima do alojamento.
 2. Abre **Connect**, activa **Pooled connection** e copia o URL PostgreSQL.
-3. No Render, abre **Environment** e define `DATABASE_URL` com esse URL.
-4. Confirma que `MAINTENANCE_SECRET` possui um valor longo e secreto.
+3. No alojamento, define `DATABASE_URL` com esse URL.
+4. Confirma que os segredos de manutenção possuem valores longos e privados.
 5. Faz um novo deploy e abre `/api/health`; a primeira ligação cria o esquema e
    a resposta deverá apresentar `"database":"postgresql"`.
 6. Cria uma sala de teste, faz outro deploy e confirma que a sala continua
    disponível.
 
-Não coloques `DATABASE_URL` ou `MAINTENANCE_SECRET` no Git. O ficheiro
-`.env.example` documenta as variáveis sem expor segredos.
+Não coloques `DATABASE_URL`, `CRON_SECRET` ou `MAINTENANCE_SECRET` no Git. O
+ficheiro `.env.example` documenta as variáveis sem expor segredos.
 
 As salas existentes no SQLite temporário do Render não são copiadas
 automaticamente para a Neon. A activação causa um reset único das salas abertas;
@@ -205,8 +240,11 @@ as salas criadas depois disso passam a sobreviver a reinícios e deploys.
 ### Limpeza de salas antigas
 
 A limpeza roda automaticamente durante o tráfego, no máximo uma vez a cada
-`ROOM_CLEANUP_INTERVAL_MINUTES`. Para garantir limpeza mesmo sem visitas,
-configura um serviço cron externo para enviar um `POST` periódico para:
+`ROOM_CLEANUP_INTERVAL_MINUTES`. Na Vercel, o Cron definido em `vercel.json`
+também envia um `GET` diário autenticado com `CRON_SECRET`.
+
+Para outro alojamento, configura um serviço cron externo para enviar um `POST`
+periódico para:
 
 ```text
 https://stop-ao.onrender.com/api/maintenance/cleanup
@@ -223,25 +261,26 @@ Variáveis disponíveis:
 - `ROOM_RETENTION_ACTIVE_HOURS=24` — retenção de salas abandonadas;
 - `ROOM_RETENTION_FINISHED_HOURS=168` — retenção de partidas concluídas;
 - `ROOM_CLEANUP_INTERVAL_MINUTES=15` — intervalo da limpeza oportunística.
+- `POSTGRES_CONNECTION_TIMEOUT_MS=30000` — tolerância para o cold start da Neon.
 
 ### Limitações da beta gratuita
 
-- o serviço pode adormecer depois de `15` minutos sem pedidos;
-- o primeiro acesso após adormecer pode demorar cerca de um minuto;
-- sem `DATABASE_URL`, o filesystem gratuito é temporário e reinícios apagam
-  salas; com Neon, as salas persistem;
+- na Vercel Hobby, o Cron executa no máximo uma vez por dia e pode iniciar
+  dentro da hora configurada;
+- funções e streams SSE possuem duração limitada e reconectam automaticamente;
+- o broker SSE em memória não atravessa instâncias da Vercel, por isso o
+  fallback periódico pode levar até cerca de `3` segundos para reflectir uma
+  acção;
+- no Render Free, o serviço pode adormecer depois de períodos sem pedidos e o
+  primeiro acesso seguinte pode demorar;
 - partidas activas mantêm pedidos de presença, reduzindo a possibilidade de o
   serviço adormecer durante o jogo;
 - depois da primeira visita, a PWA abre a interface guardada imediatamente e
   mostra o loading do `stop.ao` enquanto o serviço volta a responder;
 - no primeiro acesso após o serviço adormecer, a página temporária do Render
   ainda pode aparecer porque é servida antes de o código da aplicação arrancar;
-- o broker realtime funciona apenas numa instância.
-
-Para múltiplas instâncias, ainda será necessário migrar o broker SSE em memória
-para Redis/Pub/Sub, como Upstash Redis. Para eliminar completamente a página de
-arranque do Render, é necessário usar uma instância que não adormeça ou alojar
-o frontend separadamente num serviço sempre activo.
+- para notificações instantâneas entre múltiplas instâncias, ainda será
+  necessário migrar o broker SSE para Redis/Pub/Sub, como Upstash Redis.
 
 ## API
 
@@ -252,7 +291,8 @@ o frontend separadamente num serviço sempre activo.
 - `POST /api/rooms/[code]/presence` — actualiza presença e reconcilia liderança;
 - `GET /api/rooms/[code]/events` — mantém o canal SSE realtime da sala.
 - `GET /api/health` — valida o processo Node e a ligação à base de dados.
-- `POST /api/maintenance/cleanup` — remove salas antigas com autorização Bearer.
+- `GET|POST /api/maintenance/cleanup` — remove salas antigas com autorização
+  Bearer através de `CRON_SECRET` ou `MAINTENANCE_SECRET`.
 
 As acções incluem configuração, início, escolha da letra, respostas, STOP,
 votos, próxima rodada, fim da partida e revanche.
@@ -391,7 +431,8 @@ npx playwright install chromium
 Evoluir o MVP online:
 
 1. adicionar rate limiting e limites de payload;
-2. migrar o broker SSE para Redis/Pub/Sub antes de usar múltiplas instâncias;
+2. migrar o broker SSE para Redis/Pub/Sub para notificações instantâneas entre
+   múltiplas instâncias;
 3. substituir o léxico inicial por um serviço de validação expansível;
 4. criar histórico consultável de partidas e classificação;
 5. permitir recuperar uma sessão noutro dispositivo;
