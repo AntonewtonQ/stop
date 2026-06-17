@@ -1,6 +1,6 @@
 "use client";
 
-const SOUND_PREFERENCE_KEY = "stop.ao:sounds";
+const SOUND_PREFERENCE_KEY = "jogastop:sounds";
 const SOUND_PREFERENCE_EVENT = "stop-sound-preference";
 
 export type GameSound = "start" | "tick" | "stop";

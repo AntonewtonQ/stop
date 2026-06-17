@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "stop.ao - Jogo Stop Online",
-    short_name: "stop.ao",
+    name: "jogastop - Jogo Stop Online",
+    short_name: "jogastop",
     description:
       "Joga Stop online com os teus amigos. Pensa rápido e marca grande.",
     start_url: "/",

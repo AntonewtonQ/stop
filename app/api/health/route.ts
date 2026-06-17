@@ -12,7 +12,7 @@ export async function GET() {
     return Response.json(
       {
         status: "ok",
-        service: "stop.ao",
+        service: "jogastop",
         database: process.env.DATABASE_URL ? "postgresql" : "sqlite",
         timestamp: new Date().toISOString(),
       },
@@ -21,7 +21,7 @@ export async function GET() {
   } catch (error) {
     console.error(error);
     return Response.json(
-      { status: "error", service: "stop.ao" },
+      { status: "error", service: "jogastop" },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }

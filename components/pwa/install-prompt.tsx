@@ -33,7 +33,7 @@ export function InstallPrompt() {
       setIsStandalone(standalone);
       setIsIOS(ios);
       setDismissed(
-        window.sessionStorage.getItem("stop.ao:pwa-dismissed") === "1",
+        window.sessionStorage.getItem("jogastop:pwa-dismissed") === "1",
       );
     }, 0);
 
@@ -57,7 +57,7 @@ export function InstallPrompt() {
   }, []);
 
   function dismiss() {
-    window.sessionStorage.setItem("stop.ao:pwa-dismissed", "1");
+    window.sessionStorage.setItem("jogastop:pwa-dismissed", "1");
     setDismissed(true);
   }
 

@@ -1,6 +1,6 @@
-# stop.ao
+# jogastop
 
-O `stop.ao` é uma versão online do clássico jogo Stop, criada em Angola para
+O `jogastop` é uma versão online do clássico jogo Stop, criada em Angola para
 jogar em grupo. Em cada rodada, os jogadores preenchem categorias com respostas
 que começam pela letra sorteada antes que o tempo termine ou alguém grite STOP.
 
@@ -116,7 +116,7 @@ Para testar entre dispositivos, abre o endereço de rede apresentado pelo
 
 ## Instalar no telemóvel
 
-Em produção, o `stop.ao` pode ser instalado como aplicação:
+Em produção, o `jogastop` pode ser instalado como aplicação:
 
 - no Android/Chrome, usa o botão **Instalar** apresentado pela aplicação ou a
   opção **Instalar aplicação** do navegador;
@@ -136,7 +136,7 @@ O backend utiliza Route Handlers do Next.js e escolhe a base de dados através
 do ambiente:
 
 - com `DATABASE_URL`, utiliza PostgreSQL/Neon;
-- sem `DATABASE_URL`, utiliza SQLite nativo do Node em `data/stop.db`;
+- sem `DATABASE_URL`, utiliza SQLite nativo do Node em `data/jogastop.db`;
 - jogadores, rodadas, respostas, desafios e votos possuem tabelas próprias;
 - cada mutação é validada pelo servidor e executada numa transacção;
 - no PostgreSQL, a sala é bloqueada durante cada mutação para evitar conflitos
@@ -160,7 +160,7 @@ do ambiente:
 - cada sala suporta até `19` jogadores, um por letra jogável;
 - dispositivos e navegadores diferentes conseguem jogar através do mesmo servidor;
 - actualizar a página mantém a sala e a sessão da aba;
-- `STOP_DATABASE_PATH` permite definir outro caminho para o ficheiro SQLite;
+- `JOGASTOP_DATABASE_PATH` permite definir outro caminho para o ficheiro SQLite;
 - salas abandonadas são removidas após `24` horas e partidas concluídas após
   `168` horas, por padrão;
 - salas com jogadores online recentes nunca são removidas pela limpeza.
@@ -179,7 +179,7 @@ partida chegam a instâncias diferentes.
 
 1. Envia estas alterações para o GitHub.
 2. Na [Vercel](https://vercel.com/), escolhe **Add New → Project** e importa o
-   repositório do `stop.ao`.
+   repositório do `jogastop`.
 3. Mantém o framework detectado como **Next.js** e o build padrão.
 4. Em **Environment Variables**, adiciona para `Production`:
    - `DATABASE_URL` com a connection string **pooled** da Neon, contendo
@@ -207,12 +207,12 @@ Esta opção mantém todas as ligações SSE na mesma instância.
 1. Envia o repositório para o GitHub.
 2. Cria uma conta em [Render](https://render.com/).
 3. No dashboard, escolhe **New → Blueprint**.
-4. Liga o repositório do `stop.ao`.
+4. Liga o repositório do `jogastop`.
 5. Cria um projecto gratuito na [Neon](https://neon.com/) e copia a connection
    string **pooled**, que contém `-pooler` no hostname.
 6. Confirma o serviço definido em `render.yaml`, escolhe o plano **Free** e
    define `DATABASE_URL` com a connection string da Neon.
-7. Depois do deploy, abre a URL `https://stop-ao.onrender.com` atribuída pelo
+7. Depois do deploy, abre a URL `https://jogastop.onrender.com` atribuída pelo
    Render.
 8. Confirma o estado do servidor em `/api/health`.
 
@@ -247,7 +247,7 @@ Para outro alojamento, configura um serviço cron externo para enviar um `POST`
 periódico para:
 
 ```text
-https://stop-ao.onrender.com/api/maintenance/cleanup
+https://jogastop.onrender.com/api/maintenance/cleanup
 ```
 
 Com o cabeçalho:
@@ -276,7 +276,7 @@ Variáveis disponíveis:
 - partidas activas mantêm pedidos de presença, reduzindo a possibilidade de o
   serviço adormecer durante o jogo;
 - depois da primeira visita, a PWA abre a interface guardada imediatamente e
-  mostra o loading do `stop.ao` enquanto o serviço volta a responder;
+  mostra o loading do `jogastop` enquanto o serviço volta a responder;
 - no primeiro acesso após o serviço adormecer, a página temporária do Render
   ainda pode aparecer porque é servida antes de o código da aplicação arrancar;
 - para notificações instantâneas entre múltiplas instâncias, ainda será
@@ -352,7 +352,7 @@ automaticamente para não bloquear a partida.
 - Playwright
 
 O shadcn/ui utiliza o preset Nova. As primitivas acessíveis são personalizadas
-pelos tokens visuais do `stop.ao`.
+pelos tokens visuais do `jogastop`.
 
 ## Estrutura
 
@@ -413,7 +413,7 @@ npx tsc --noEmit  # validação TypeScript
 
 ## Testes automatizados
 
-A suíte utiliza bases SQLite temporárias e nunca altera `data/stop.db`:
+A suíte utiliza bases SQLite temporárias e nunca altera `data/jogastop.db`:
 
 - `tests/game/` cobre pontuação, validação, letras, rodadas e comandantes;
 - `tests/server/` cobre persistência, tokens, presença, Route Handlers e SSE;

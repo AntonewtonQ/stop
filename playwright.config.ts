@@ -11,7 +11,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "npm run build && STOP_DATABASE_PATH=/tmp/stop-ao-playwright.db npm run start -- -p 3100",
+      "npm run build && JOGASTOP_DATABASE_PATH=/tmp/jogastop-playwright.db npm run start -- -p 3100",
     reuseExistingServer: !process.env.CI,
     url: "http://localhost:3100",
   },

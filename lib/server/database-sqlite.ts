@@ -12,7 +12,9 @@ export function getDatabase() {
   if (globalDatabase.stopDatabase) return globalDatabase.stopDatabase;
 
   const databasePath =
-    process.env.STOP_DATABASE_PATH ?? path.join(process.cwd(), "data", "stop.db");
+    process.env.JOGASTOP_DATABASE_PATH ??
+    process.env.STOP_DATABASE_PATH ??
+    path.join(process.cwd(), "data", "jogastop.db");
   mkdirSync(path.dirname(databasePath), { recursive: true });
 
   const database = new DatabaseSync(databasePath);

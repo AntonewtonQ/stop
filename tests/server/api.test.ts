@@ -51,7 +51,7 @@ describe("Route Handlers", () => {
     expect(response.status).toBe(200);
     expect(data).toEqual({
       status: "ok",
-      service: "stop.ao",
+      service: "jogastop",
       database: "sqlite",
       timestamp: expect.any(String),
     });
@@ -60,7 +60,7 @@ describe("Route Handlers", () => {
   it("protege a limpeza de salas antigas com um segredo", async () => {
     const code = "OLD01";
     const host = makeSession("Ana", code);
-    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
     await new Promise((resolve) => setImmediate(resolve));
     getDatabase()
       .prepare("UPDATE rooms SET updated_at = 0 WHERE code = ?")
@@ -71,12 +71,12 @@ describe("Route Handlers", () => {
     process.env.MAINTENANCE_SECRET = "maintenance-test-secret";
 
     const unauthorized = await cleanupRoute(
-      new Request("http://stop.test/api/maintenance/cleanup", {
+      new Request("http://jogastop.test/api/maintenance/cleanup", {
         method: "POST",
       }),
     );
     const authorized = await cleanupRoute(
-      new Request("http://stop.test/api/maintenance/cleanup", {
+      new Request("http://jogastop.test/api/maintenance/cleanup", {
         method: "POST",
         headers: { authorization: "Bearer maintenance-test-secret" },
       }),
@@ -91,7 +91,7 @@ describe("Route Handlers", () => {
     process.env.CRON_SECRET = "vercel-cron-test-secret";
 
     const response = await cleanupCronRoute(
-      new Request("http://stop.test/api/maintenance/cleanup", {
+      new Request("http://jogastop.test/api/maintenance/cleanup", {
         headers: { authorization: "Bearer vercel-cron-test-secret" },
       }),
     );
@@ -106,16 +106,16 @@ describe("Route Handlers", () => {
     const guest = makeSession("Beto", code);
 
     const created = await createRoute(
-      jsonRequest("http://stop.test/api/rooms", { code, host }),
+      jsonRequest("http://jogastop.test/api/rooms", { code, host }),
     );
     const joined = await joinRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/join`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/join`, {
         session: guest,
       }),
       context(code),
     );
     const configured = await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: actor(host),
         type: "update-settings",
         payload: { roundsToPlay: 4 },
@@ -123,7 +123,7 @@ describe("Route Handlers", () => {
       context(code),
     );
     const started = await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: actor(host),
         type: "start-game",
         payload: {},
@@ -145,7 +145,7 @@ describe("Route Handlers", () => {
     expect((await json(started)).room?.status).toBe("letter-selection");
 
     const unauthorized = await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: { id: host.id, token: "errado" },
         type: "choose-letter",
         payload: { letter: "A" },
@@ -159,7 +159,7 @@ describe("Route Handlers", () => {
     const code = "AVT01";
     const host = { ...makeSession("Ana", code), avatarId: "desconhecido" };
     const response = await createRoute(
-      jsonRequest("http://stop.test/api/rooms", { code, host }),
+      jsonRequest("http://jogastop.test/api/rooms", { code, host }),
     );
 
     expect(response.status).toBe(400);
@@ -169,7 +169,7 @@ describe("Route Handlers", () => {
     const code = "CLR01";
     const host = { ...makeSession("Ana", code), color: "red" };
     const response = await createRoute(
-      jsonRequest("http://stop.test/api/rooms", { code, host }),
+      jsonRequest("http://jogastop.test/api/rooms", { code, host }),
     );
 
     expect(response.status).toBe(400);
@@ -180,9 +180,9 @@ describe("Route Handlers", () => {
     const host = makeSession("Ana", code);
     const guest = makeSession("Beto", code);
 
-    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
     await joinRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/join`, { session: guest }),
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/join`, { session: guest }),
       context(code),
     );
     for (const [session, type, payload] of [
@@ -192,7 +192,7 @@ describe("Route Handlers", () => {
       [guest, "save-answers", { answers: { Nome: "Abel" } }],
     ] as const) {
       await actionRoute(
-        jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
           actor: actor(session),
           type,
           payload,
@@ -203,13 +203,13 @@ describe("Route Handlers", () => {
 
     const publicRoom = await json(
       await getRoomRoute(
-        new Request(`http://stop.test/api/rooms/${code}`),
+        new Request(`http://jogastop.test/api/rooms/${code}`),
         context(code),
       ),
     );
     const hostRoom = await json(
       await getRoomRoute(
-        new Request(`http://stop.test/api/rooms/${code}`, {
+        new Request(`http://jogastop.test/api/rooms/${code}`, {
           headers: {
             "x-stop-player-id": host.id,
             "x-stop-player-token": host.token,
@@ -230,9 +230,9 @@ describe("Route Handlers", () => {
     const host = makeSession("Ana", code);
     const guest = makeSession("Beto", code);
 
-    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
     await joinRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/join`, { session: guest }),
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/join`, { session: guest }),
       context(code),
     );
     for (const [session, type, payload] of [
@@ -240,7 +240,7 @@ describe("Route Handlers", () => {
       [host, "choose-letter", { letter: "A" }],
     ] as const) {
       await actionRoute(
-        jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
           actor: actor(session),
           type,
           payload,
@@ -257,7 +257,7 @@ describe("Route Handlers", () => {
       Animal: "Antílope",
     };
     const stopped = await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: actor(guest),
         type: "finish-round",
         payload: { answers },
@@ -265,7 +265,7 @@ describe("Route Handlers", () => {
       context(code),
     );
     const lateStop = await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: actor(host),
         type: "finish-round",
         payload: { answers },
@@ -284,7 +284,7 @@ describe("Route Handlers", () => {
   it("inicia uma revanche mantendo os jogadores da sala", async () => {
     const code = "RVN01";
     const host = makeSession("Ana", code);
-    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
 
     for (const [type, payload] of [
       ["start-game", {}],
@@ -303,7 +303,7 @@ describe("Route Handlers", () => {
       ],
     ] as const) {
       await actionRoute(
-        jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+        jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
           actor: actor(host),
           type,
           payload,
@@ -313,7 +313,7 @@ describe("Route Handlers", () => {
     }
 
     const response = await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: actor(host),
         type: "rematch",
         payload: {},
@@ -336,13 +336,13 @@ describe("Route Handlers", () => {
     const host = makeSession("Ana", code);
     const guest = makeSession("Beto", code);
 
-    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
     await joinRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/join`, { session: guest }),
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/join`, { session: guest }),
       context(code),
     );
     await actionRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/actions`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
         actor: actor(host),
         type: "start-game",
         payload: {},
@@ -350,7 +350,7 @@ describe("Route Handlers", () => {
       context(code),
     );
     const response = await presenceRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/presence`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/presence`, {
         actor: actor(host),
         online: false,
       }),
@@ -369,7 +369,7 @@ describe("Route Handlers", () => {
       )
       .run(code, host.id);
     const afterGrace = await presenceRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/presence`, {
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/presence`, {
         actor: actor(guest),
         online: true,
       }),
@@ -385,11 +385,11 @@ describe("Route Handlers", () => {
     const code = "SSE01";
     const host = makeSession("Ana", code);
     const guest = makeSession("Beto", code);
-    await createRoute(jsonRequest("http://stop.test/api/rooms", { code, host }));
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
 
     const abort = new AbortController();
     const response = await eventsRoute(
-      new Request(`http://stop.test/api/rooms/${code}/events`, {
+      new Request(`http://jogastop.test/api/rooms/${code}/events`, {
         signal: abort.signal,
       }),
       context(code),
@@ -402,7 +402,7 @@ describe("Route Handlers", () => {
     expect(initial).toContain("event: connected");
 
     await joinRoute(
-      jsonRequest(`http://stop.test/api/rooms/${code}/join`, { session: guest }),
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/join`, { session: guest }),
       context(code),
     );
     const update = decoder.decode((await reader.read()).value);

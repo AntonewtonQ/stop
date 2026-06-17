@@ -12,7 +12,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
       enableColorScheme={false}
       enableSystem={false}
-      storageKey="stop.ao:theme"
+      storageKey="jogastop:theme"
       themes={[...THEME_IDS]}
     >
       {children}

@@ -11,7 +11,7 @@ export function Logo({ compact = false, light = false }: LogoProps) {
       className={`${styles.logo} ${compact ? styles.compact : ""} ${
         light ? styles.light : ""
       }`}
-      aria-label="stop.ao"
+      aria-label="jogastop"
     >
       <svg
         className={styles.symbol}
@@ -52,7 +52,8 @@ export function Logo({ compact = false, light = false }: LogoProps) {
 
       {!compact && (
         <div className={styles.wordmark}>
-          stop<span>.</span>ao
+          <span className={styles.wordmarkPrimary}>joga</span>
+          <span className={styles.wordmarkAccent}>stop</span>
         </div>
       )}
     </div>

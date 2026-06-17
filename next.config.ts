@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           {
-            key: "X-Stop-AO-App",
+            key: "X-Jogastop-App",
             value: "1",
           },
         ],

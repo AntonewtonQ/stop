@@ -15,7 +15,7 @@ import {
   type TranslationKey,
 } from "./dictionaries";
 
-const STORAGE_KEY = "stop.ao:language";
+const STORAGE_KEY = "jogastop:language";
 const SERVER_ERROR_KEYS: Record<string, TranslationKey> = {
   "A ligação à sala falhou. Tenta novamente.": "error.connection",
   "A tua sessão expirou. Volta a entrar na sala.": "error.session",

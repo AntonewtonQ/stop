@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: stop-ao
+    name: jogastop
     runtime: node
     plan: free
     region: frankfurt

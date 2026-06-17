@@ -15,8 +15,8 @@ import type {
   RoundAnswers,
 } from "./types";
 
-const SESSION_PREFIX = "stop.ao:player:";
-const LAST_ROOM_KEY = "stop.ao:last-room";
+const SESSION_PREFIX = "jogastop:player:";
+const LAST_ROOM_KEY = "jogastop:last-room";
 
 export { createPlayerSession, makeRoomCode, normalizeRoomCode };
 

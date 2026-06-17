@@ -124,7 +124,7 @@ export const pt = {
   "theme.atlantic": "Atlântico",
   "theme.kizomba": "Kizomba",
   "theme.neon": "Neon",
-  "pwa.title": "Instala o stop.ao",
+  "pwa.title": "Instala o jogastop",
   "pwa.body": "Joga em ecrã completo e abre o jogo directamente do telemóvel.",
   "pwa.iosBody":
     "No iPhone, toca em Partilhar e depois em Adicionar ao ecrã principal.",
@@ -411,7 +411,7 @@ export const en: Dictionary = {
   "theme.atlantic": "Atlantic",
   "theme.kizomba": "Kizomba",
   "theme.neon": "Neon",
-  "pwa.title": "Install stop.ao",
+  "pwa.title": "Install jogastop",
   "pwa.body": "Play full screen and open the game directly from your phone.",
   "pwa.iosBody":
     "On iPhone, tap Share and then Add to Home Screen.",
@@ -693,7 +693,7 @@ export const fr: Dictionary = {
   "theme.atlantic": "Atlantique",
   "theme.kizomba": "Kizomba",
   "theme.neon": "Néon",
-  "pwa.title": "Installer stop.ao",
+  "pwa.title": "Installer jogastop",
   "pwa.body": "Joue en plein écran et ouvre le jeu depuis ton téléphone.",
   "pwa.iosBody":
     "Sur iPhone, touche Partager puis Ajouter à l'écran d'accueil.",

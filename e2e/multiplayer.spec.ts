@@ -33,12 +33,12 @@ test("dois jogadores entram e completam uma rodada sincronizada", async ({
   expect(
     await host.evaluate((roomCode) => {
       const session = JSON.parse(
-        localStorage.getItem(`stop.ao:player:${roomCode}`) ?? "{}",
+        localStorage.getItem(`jogastop:player:${roomCode}`) ?? "{}",
       ) as { color?: string };
       return session.color;
     }, code),
   ).toBe("#D96C4D");
-  expect(await host.evaluate(() => localStorage.getItem("stop.ao:theme"))).toBe(
+  expect(await host.evaluate(() => localStorage.getItem("jogastop:theme"))).toBe(
     "atlantic",
   );
 
@@ -107,7 +107,7 @@ test("recupera a partida após fechar e reabrir o navegador", async ({
 
   await expect(page.getByText("Tu decides", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => Object.keys(localStorage))).toContain(
-    `stop.ao:player:${code}`,
+    `jogastop:player:${code}`,
   );
 
   await page.close();
@@ -158,7 +158,7 @@ test("valida convite, sons e revanche com os mesmos jogadores", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Desactivar sons" }).click();
   await expect(page.getByRole("button", { name: "Activar sons" })).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem("stop.ao:sounds"))).toBe(
+  expect(await page.evaluate(() => localStorage.getItem("jogastop:sounds"))).toBe(
     "off",
   );
   await page.getByRole("button", { name: "Activar sons" }).click();
@@ -289,7 +289,7 @@ test("mantém a landing page legível sem cortar conteúdo em ecrãs compactos",
   }
 });
 
-test("mostra o loading do stop.ao enquanto cria a sala", async ({ page }) => {
+test("mostra o loading do jogastop enquanto cria a sala", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Qual é o teu nome?").fill("Ana");
   await page.route("**/api/rooms", async (route) => {
@@ -302,7 +302,7 @@ test("mostra o loading do stop.ao enquanto cria a sala", async ({ page }) => {
   await expect(
     page.getByRole("status", { name: "A criar a tua sala..." }),
   ).toBeVisible();
-  await expect(page.locator('[aria-label="stop.ao"]').last()).toBeVisible();
+  await expect(page.locator('[aria-label="jogastop"]').last()).toBeVisible();
   await expect(page).toHaveURL(/\/sala\/[A-Z0-9]+$/);
 });
 
@@ -320,8 +320,8 @@ test("expõe PWA instalável e regista o service worker", async ({
 
   expect(manifestResponse.ok()).toBe(true);
   expect(manifest).toMatchObject({
-    name: "stop.ao - Jogo Stop Online",
-    short_name: "stop.ao",
+    name: "jogastop - Jogo Stop Online",
+    short_name: "jogastop",
     display: "standalone",
   });
   expect(manifest.icons).toEqual(
@@ -340,10 +340,10 @@ test("expõe PWA instalável e regista o service worker", async ({
   );
 
   const appResponse = await request.get("/");
-  expect(appResponse.headers()["x-stop-ao-app"]).toBe("1");
+  expect(appResponse.headers()["x-jogastop-app"]).toBe("1");
 
   const instagramLogo = await request.get(
-    "/brand/stop-ao-logo-instagram.png",
+    "/brand/jogastop-logo-instagram.png",
   );
   expect(instagramLogo.ok()).toBe(true);
   expect(instagramLogo.headers()["content-type"]).toContain("image/png");

@@ -30,7 +30,7 @@ const pt: PrivacyPolicyCopy = {
   badge: "Privacidade e consentimento",
   title: "Joga tranquilo. Os teus dados ficam claros.",
   intro:
-    "Esta política explica que informações o stop.ao utiliza para criar salas, manter partidas sincronizadas e apresentar publicidade com respeito pelas tuas escolhas.",
+    "Esta política explica que informações o jogastop utiliza para criar salas, manter partidas sincronizadas e apresentar publicidade com respeito pelas tuas escolhas.",
   updated: "Última actualização: 11 de Junho de 2026",
   backHome: "Voltar ao jogo",
   overviewLabel: "Em resumo",
@@ -57,8 +57,8 @@ const pt: PrivacyPolicyCopy = {
       id: "ambito",
       title: "1. Âmbito desta política",
       body: [
-        "Esta política aplica-se ao site e à aplicação instalável stop.ao. O jogo permite criar salas temporárias, convidar outras pessoas e disputar rodadas online sem criar uma conta.",
-        "O stop.ao é o responsável pelo tratamento das informações necessárias ao funcionamento do jogo. Serviços de infraestrutura e publicidade podem tratar dados em nosso nome ou segundo as próprias políticas.",
+        "Esta política aplica-se ao site e à aplicação instalável jogastop. O jogo permite criar salas temporárias, convidar outras pessoas e disputar rodadas online sem criar uma conta.",
+        "O jogastop é o responsável pelo tratamento das informações necessárias ao funcionamento do jogo. Serviços de infraestrutura e publicidade podem tratar dados em nosso nome ou segundo as próprias políticas.",
       ],
     },
     {
@@ -96,7 +96,7 @@ const pt: PrivacyPolicyCopy = {
       id: "publicidade",
       title: "5. Publicidade, cookies e consentimento",
       body: [
-        "O stop.ao utiliza o Google AdSense. A Google e os seus parceiros podem usar cookies, armazenamento local, identificadores do dispositivo e dados técnicos para apresentar, limitar e medir anúncios.",
+        "O jogastop utiliza o Google AdSense. A Google e os seus parceiros podem usar cookies, armazenamento local, identificadores do dispositivo e dados técnicos para apresentar, limitar e medir anúncios.",
         "No Espaço Económico Europeu, Reino Unido e Suíça, uma Plataforma de Gestão de Consentimento certificada pela Google apresenta as opções Consentir, Não consentir e Gerir opções. Podes rever ou retirar as tuas escolhas através das opções de privacidade disponibilizadas pela mensagem da Google.",
         "Quando recusas anúncios personalizados, ainda podem ser apresentados anúncios não personalizados ou limitados, conforme permitido pelas tuas escolhas e pela legislação aplicável.",
       ],
@@ -140,7 +140,7 @@ const en: PrivacyPolicyCopy = {
   badge: "Privacy and consent",
   title: "Play with peace of mind. Your data stays clear.",
   intro:
-    "This policy explains what information stop.ao uses to create rooms, keep games in sync and show advertising while respecting your choices.",
+    "This policy explains what information jogastop uses to create rooms, keep games in sync and show advertising while respecting your choices.",
   updated: "Last updated: June 11, 2026",
   backHome: "Back to the game",
   overviewLabel: "At a glance",
@@ -167,8 +167,8 @@ const en: PrivacyPolicyCopy = {
       id: "scope",
       title: "1. Scope of this policy",
       body: [
-        "This policy applies to the stop.ao website and installable app. The game lets people create temporary rooms, invite others and play online rounds without creating an account.",
-        "stop.ao is responsible for processing the information needed to run the game. Infrastructure and advertising services may process data on our behalf or under their own policies.",
+        "This policy applies to the jogastop website and installable app. The game lets people create temporary rooms, invite others and play online rounds without creating an account.",
+        "jogastop is responsible for processing the information needed to run the game. Infrastructure and advertising services may process data on our behalf or under their own policies.",
       ],
     },
     {
@@ -206,7 +206,7 @@ const en: PrivacyPolicyCopy = {
       id: "advertising",
       title: "5. Advertising, cookies and consent",
       body: [
-        "stop.ao uses Google AdSense. Google and its partners may use cookies, local storage, device identifiers and technical data to show, limit and measure ads.",
+        "jogastop uses Google AdSense. Google and its partners may use cookies, local storage, device identifiers and technical data to show, limit and measure ads.",
         "In the European Economic Area, United Kingdom and Switzerland, a Google-certified Consent Management Platform presents Consent, Do not consent and Manage options. You can review or withdraw your choices through the privacy options made available by Google's message.",
         "When you refuse personalised ads, non-personalised or limited ads may still be shown, as allowed by your choices and applicable law.",
       ],
@@ -250,7 +250,7 @@ const fr: PrivacyPolicyCopy = {
   badge: "Confidentialité et consentement",
   title: "Joue sereinement. Tes données restent claires.",
   intro:
-    "Cette politique explique quelles informations stop.ao utilise pour créer des salles, synchroniser les parties et afficher de la publicité dans le respect de tes choix.",
+    "Cette politique explique quelles informations jogastop utilise pour créer des salles, synchroniser les parties et afficher de la publicité dans le respect de tes choix.",
   updated: "Dernière mise à jour : 11 juin 2026",
   backHome: "Retour au jeu",
   overviewLabel: "En bref",
@@ -277,8 +277,8 @@ const fr: PrivacyPolicyCopy = {
       id: "champ",
       title: "1. Champ d'application",
       body: [
-        "Cette politique s'applique au site et à l'application installable stop.ao. Le jeu permet de créer des salles temporaires, d'inviter d'autres personnes et de jouer en ligne sans créer de compte.",
-        "stop.ao est responsable du traitement des informations nécessaires au fonctionnement du jeu. Les services d'infrastructure et de publicité peuvent traiter des données pour notre compte ou selon leurs propres politiques.",
+        "Cette politique s'applique au site et à l'application installable jogastop. Le jeu permet de créer des salles temporaires, d'inviter d'autres personnes et de jouer en ligne sans créer de compte.",
+        "jogastop est responsable du traitement des informations nécessaires au fonctionnement du jeu. Les services d'infrastructure et de publicité peuvent traiter des données pour notre compte ou selon leurs propres politiques.",
       ],
     },
     {
@@ -316,7 +316,7 @@ const fr: PrivacyPolicyCopy = {
       id: "publicite",
       title: "5. Publicité, cookies et consentement",
       body: [
-        "stop.ao utilise Google AdSense. Google et ses partenaires peuvent utiliser des cookies, le stockage local, des identifiants d'appareil et des données techniques pour afficher, limiter et mesurer les annonces.",
+        "jogastop utilise Google AdSense. Google et ses partenaires peuvent utiliser des cookies, le stockage local, des identifiants d'appareil et des données techniques pour afficher, limiter et mesurer les annonces.",
         "Dans l'Espace économique européen, au Royaume-Uni et en Suisse, une plateforme de gestion du consentement certifiée par Google présente les choix Consentir, Ne pas consentir et Gérer les options. Tu peux revoir ou retirer tes choix grâce aux options de confidentialité proposées par le message de Google.",
         "Si tu refuses les annonces personnalisées, des annonces non personnalisées ou limitées peuvent tout de même être affichées, selon tes choix et la loi applicable.",
       ],

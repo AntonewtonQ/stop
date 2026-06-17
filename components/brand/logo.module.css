@@ -20,15 +20,21 @@
 .wordmark {
   font-size: 2rem;
   font-weight: 850;
-  letter-spacing: -0.09em;
+  letter-spacing: -0.08em;
   line-height: 1;
 }
 
-.wordmark span {
+.wordmarkPrimary,
+.wordmarkAccent {
   display: inline-block;
-  margin: 0 0.04em;
+}
+
+.wordmarkPrimary {
+  color: currentColor;
+}
+
+.wordmarkAccent {
   color: var(--amber);
-  font-size: 1.08em;
 }
 
 .compact .symbol {

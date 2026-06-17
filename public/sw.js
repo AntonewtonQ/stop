@@ -1,4 +1,4 @@
-const CACHE_VERSION = "stop-ao-v2";
+const CACHE_VERSION = "jogastop-v2";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -77,7 +77,7 @@ async function cacheFirstNavigation(request, event) {
 }
 
 function isAppResponse(response) {
-  return response.ok && response.headers.get("x-stop-ao-app") === "1";
+  return response.ok && response.headers.get("x-jogastop-app") === "1";
 }
 
 async function cacheFirst(request) {

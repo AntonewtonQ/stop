@@ -15,7 +15,7 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "stop.ao — Pensa rápido. Marca grande.",
+  title: "jogastop — Pensa rápido. Marca grande.",
   description:
     "Cria uma sala, desafia os teus e grita STOP antes dos outros.",
   icons: {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "stop.ao",
+    title: "jogastop",
   },
   formatDetection: {
     telephone: false,

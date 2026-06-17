@@ -4,8 +4,8 @@ import path from "node:path";
 
 import { defineConfig } from "vitest/config";
 
-const databasePath = path.join(tmpdir(), `stop-ao-vitest-${process.pid}.db`);
-process.env.STOP_DATABASE_PATH = databasePath;
+const databasePath = path.join(tmpdir(), `jogastop-vitest-${process.pid}.db`);
+process.env.JOGASTOP_DATABASE_PATH = databasePath;
 
 for (const suffix of ["", "-shm", "-wal"]) {
   rmSync(`${databasePath}${suffix}`, { force: true });
