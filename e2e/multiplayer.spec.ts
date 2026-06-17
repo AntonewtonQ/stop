@@ -219,6 +219,27 @@ test("permite ao anfitrião definir o número de rodadas", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("permite ao anfitrião criar categorias próprias", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Qual é o teu nome?").fill("Ana");
+  await page.getByRole("button", { name: "Criar uma sala" }).click();
+
+  await page.getByLabel("Criar categoria").fill("Marcas");
+  await page.getByRole("button", { name: "Adicionar" }).click();
+
+  await expect(page.getByText("Marcas", { exact: true })).toBeVisible();
+  await expect(page.getByText("6 seleccionadas")).toBeVisible();
+
+  await page.getByRole("button", { name: "Preparar primeira rodada" }).click();
+  await expect(
+    page.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /^A/ }).click();
+
+  await expect(page.getByText("Marcas", { exact: true })).toBeVisible();
+  await expect(page.getByPlaceholder("A...")).toHaveCount(6);
+});
+
 test("mantém acções e controlos flutuantes separados em ecrãs compactos", async ({
   page,
 }) => {

@@ -1,10 +1,12 @@
 import {
-  CATEGORY_OPTIONS,
   DEFAULT_CATEGORIES,
   MAX_ROUNDS_TO_PLAY,
+  MIN_CATEGORIES,
   MIN_ROUNDS_TO_PLAY,
   PLAYABLE_LETTERS,
   ROUND_DURATION_OPTIONS,
+  getSafeCategories,
+  normalizeCategories,
 } from "./constants";
 import {
   AVATAR_IDS,
@@ -139,7 +141,7 @@ export function normalizeRoom(room: Room): Room {
     status: room.status ?? "lobby",
     commanderOrder,
     settings: {
-      categories: room.settings?.categories ?? DEFAULT_CATEGORIES,
+      categories: getSafeCategories(room.settings?.categories),
       roundDuration: room.settings?.roundDuration ?? 60,
       roundsToPlay: isValidRoundsToPlay(room.settings?.roundsToPlay)
         ? room.settings.roundsToPlay
@@ -220,7 +222,7 @@ export function createRoom(
     players: [asRoomPlayer(host, true)],
     commanderOrder: [],
     settings: {
-      categories: settings?.categories ?? DEFAULT_CATEGORIES,
+      categories: getSafeCategories(settings?.categories ?? DEFAULT_CATEGORIES),
       roundDuration: settings?.roundDuration ?? 60,
       roundsToPlay: isValidRoundsToPlay(settings?.roundsToPlay ?? 1)
         ? (settings?.roundsToPlay ?? 1)
@@ -258,14 +260,13 @@ export function updateRoomSettings(
 ) {
   if (room.status !== "lobby" || room.hostId !== requesterId) return room;
 
-  const categories = settings.categories ?? room.settings.categories;
+  const categories =
+    settings.categories === undefined
+      ? room.settings.categories
+      : normalizeCategories(settings.categories);
   const roundDuration = settings.roundDuration ?? room.settings.roundDuration;
   const roundsToPlay = settings.roundsToPlay ?? room.settings.roundsToPlay;
-  const validCategories =
-    categories.length >= 3 &&
-    categories.every((category) =>
-      CATEGORY_OPTIONS.includes(category as (typeof CATEGORY_OPTIONS)[number]),
-    );
+  const validCategories = categories.length >= MIN_CATEGORIES;
   const validDuration = ROUND_DURATION_OPTIONS.includes(
     roundDuration as (typeof ROUND_DURATION_OPTIONS)[number],
   );

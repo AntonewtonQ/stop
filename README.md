@@ -28,7 +28,8 @@ O projecto já possui um MVP online jogável:
 - período de graça antes de marcar jogadores como offline;
 - lista de jogadores e identificação do anfitrião;
 - transferência automática do anfitrião e comandante quando ficam offline;
-- configuração de categorias, duração e número de rodadas pelo anfitrião;
+- configuração de categorias prontas ou personalizadas, duração e número de
+  rodadas pelo anfitrião;
 - ordem de comandantes definida pela entrada dos jogadores;
 - número de rodadas automático pelo total de jogadores ou fixado entre `1` e
   `19` pelo anfitrião;
@@ -78,7 +79,8 @@ expandido em `lib/game/word-validation.ts`.
 
 1. O jogador escreve o nome na página inicial.
 2. Cria uma sala ou entra numa sala existente.
-3. No lobby, o anfitrião configura categorias, tempo e número de rodadas.
+3. No lobby, o anfitrião configura categorias prontas ou personalizadas, tempo
+   e número de rodadas.
 4. Outros jogadores entram através do código ou convite.
 5. O anfitrião, primeiro comandante activo, escolhe uma letra ainda não utilizada.
 6. A escolha inicia a rodada e o relógio para todos.

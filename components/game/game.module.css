@@ -381,6 +381,92 @@
   color: var(--petroleum);
 }
 
+.customCategoryList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.customCategoryChip {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.45rem 0.45rem 0.65rem;
+  border: 1px solid rgb(var(--accent-rgb) / 55%);
+  border-radius: 999px;
+  background: rgb(var(--accent-rgb) / 12%);
+  color: var(--petroleum);
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.customCategoryChip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customCategoryChip button {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(var(--primary-rgb) / 8%);
+  color: var(--petroleum);
+  cursor: pointer;
+}
+
+.customCategoryChip button svg {
+  width: 0.8rem;
+}
+
+.customCategoryForm {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.customCategoryForm label {
+  color: var(--brand-muted);
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.customCategoryForm > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+}
+
+.customCategoryForm input {
+  min-height: 2.55rem;
+  border-radius: 0.75rem;
+  font-size: 0.72rem;
+}
+
+.customCategoryForm button {
+  min-height: 2.55rem;
+  padding-inline: 0.75rem;
+  border-color: rgb(var(--primary-rgb) / 10%);
+  color: var(--petroleum);
+  font-size: 0.65rem;
+  font-weight: 850;
+}
+
+.customCategoryForm small {
+  color: var(--brand-muted);
+  font-size: 0.58rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
 .durationOptions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1805,6 +1891,10 @@
 
 @media (max-width: 420px) {
   .categoryOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .customCategoryForm > div {
     grid-template-columns: 1fr;
   }
 

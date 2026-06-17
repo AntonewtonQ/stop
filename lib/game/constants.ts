@@ -17,6 +17,11 @@ export const DEFAULT_CATEGORIES = [
   "Animal",
 ];
 
+export const MIN_CATEGORIES = 3;
+export const MAX_CATEGORIES = 10;
+export const MIN_CATEGORY_LENGTH = 2;
+export const MAX_CATEGORY_LENGTH = 24;
+
 export const ROUND_DURATION_OPTIONS = [30, 45, 60, 90] as const;
 
 export const PRESENCE_HEARTBEAT_INTERVAL = 10_000;
@@ -48,3 +53,44 @@ export const PLAYABLE_LETTERS = [
 
 export const MIN_ROUNDS_TO_PLAY = 1;
 export const MAX_ROUNDS_TO_PLAY = PLAYABLE_LETTERS.length;
+
+export function normalizeCategoryName(category: string) {
+  const cleaned = category
+    .normalize("NFC")
+    .replace(/[^\p{L}\p{N}\s'’._-]/gu, "")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  return Array.from(cleaned).slice(0, MAX_CATEGORY_LENGTH).join("").trim();
+}
+
+export function normalizeCategoryKey(category: string) {
+  return normalizeCategoryName(category)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-AO");
+}
+
+export function normalizeCategories(categories: readonly string[]) {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  for (const category of categories) {
+    const name = normalizeCategoryName(category);
+    const key = normalizeCategoryKey(name);
+    if (name.length < MIN_CATEGORY_LENGTH || seen.has(key)) continue;
+
+    seen.add(key);
+    normalized.push(name);
+    if (normalized.length === MAX_CATEGORIES) break;
+  }
+
+  return normalized;
+}
+
+export function getSafeCategories(categories?: readonly string[]) {
+  const normalized = normalizeCategories(categories ?? DEFAULT_CATEGORIES);
+  return normalized.length >= MIN_CATEGORIES
+    ? normalized
+    : normalizeCategories(DEFAULT_CATEGORIES);
+}

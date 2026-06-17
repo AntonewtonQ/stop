@@ -55,6 +55,57 @@ describe("motor da partida", () => {
     expect(joined.settings.roundsToPlay).toBe(5);
   });
 
+  it("aceita categorias personalizadas e envia respostas desconhecidas para votação", () => {
+    const { room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
+    const configured = updateRoomSettings(room, sessions[0].id, {
+      categories: ["Nome", "País", "Marcas"],
+    });
+    const round = chooseRoundLetter(
+      startFirstRound(configured, sessions[0].id),
+      sessions[0].id,
+      "A",
+    );
+    const results = finishRound(
+      saveRoundAnswers(round, sessions[0].id, {
+        Nome: "Ana",
+        País: "Angola",
+        Marcas: "Apple",
+      }),
+      sessions[0].id,
+    );
+    const challenge = Object.values(results.round?.result?.challenges ?? {})[0];
+
+    expect(configured.settings.categories).toEqual(["Nome", "País", "Marcas"]);
+    expect(results.round?.result?.players[sessions[0].id].answers.Marcas).toMatchObject(
+      {
+        status: "doubtful",
+        validation: "doubtful",
+      },
+    );
+    expect(challenge).toMatchObject({
+      category: "Marcas",
+      answer: "Apple",
+    });
+  });
+
+  it("normaliza categorias criadas pelo anfitrião e ignora duplicados", () => {
+    const { room, sessions } = makeRoomWithPlayers(["Ana"]);
+    const configured = updateRoomSettings(room, sessions[0].id, {
+      categories: [" Nome ", "País", "Pais", "Marcas!!!", "  Clubes  "],
+    });
+    const invalid = updateRoomSettings(room, sessions[0].id, {
+      categories: ["A", "Nome", "Nome"],
+    });
+
+    expect(configured.settings.categories).toEqual([
+      "Nome",
+      "País",
+      "Marcas",
+      "Clubes",
+    ]);
+    expect(invalid).toBe(room);
+  });
+
   it("repete a ordem de comando até completar as rodadas escolhidas", () => {
     const { room, sessions } = makeRoomWithPlayers(["Ana", "Beto"]);
     const configured = updateRoomSettings(room, sessions[0].id, {

@@ -1,5 +1,7 @@
 "use client";
 
+import type { FormEvent } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -12,15 +14,23 @@ import {
   Plus,
   Settings2,
   UsersRound,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   CATEGORY_OPTIONS,
+  MAX_CATEGORIES,
+  MAX_CATEGORY_LENGTH,
+  MIN_CATEGORIES,
+  MIN_CATEGORY_LENGTH,
+  normalizeCategoryKey,
+  normalizeCategoryName,
   MAX_ROUNDS_TO_PLAY,
   MIN_ROUNDS_TO_PLAY,
   ROUND_DURATION_OPTIONS,
@@ -44,16 +54,84 @@ export function LobbyRoom({
 }) {
   const { category: categoryLabel, errorMessage, t } = useLanguage();
   const isHost = room.hostId === session.id;
+  const [customCategory, setCustomCategory] = useState("");
+  const customCategories = room.settings.categories.filter(
+    (category) =>
+      !CATEGORY_OPTIONS.some(
+        (option) => normalizeCategoryKey(option) === normalizeCategoryKey(category),
+      ),
+  );
 
   async function toggleCategory(category: string) {
     if (!isHost) return;
 
     const isSelected = room.settings.categories.includes(category);
+    if (!isSelected && room.settings.categories.length >= MAX_CATEGORIES) {
+      toast.error(t("lobby.maxCategories", { count: MAX_CATEGORIES }));
+      return;
+    }
+
     const categories = isSelected
       ? room.settings.categories.filter((item) => item !== category)
       : [...room.settings.categories, category];
 
-    if (categories.length < 3) {
+    if (categories.length < MIN_CATEGORIES) {
+      toast.error(t("lobby.minCategories"));
+      return;
+    }
+
+    try {
+      await updateRoomSettings(room.code, { categories });
+    } catch (error) {
+      toast.error(t("lobby.categoriesFailed"), {
+        description: errorMessage(error),
+      });
+    }
+  }
+
+  async function addCustomCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!isHost) return;
+
+    const category = normalizeCategoryName(customCategory);
+    const categoryExists = room.settings.categories.some(
+      (item) => normalizeCategoryKey(item) === normalizeCategoryKey(category),
+    );
+
+    if (category.length < MIN_CATEGORY_LENGTH) {
+      toast.error(t("lobby.categoryInvalid"));
+      return;
+    }
+
+    if (categoryExists) {
+      toast.error(t("lobby.categoryExists"));
+      return;
+    }
+
+    if (room.settings.categories.length >= MAX_CATEGORIES) {
+      toast.error(t("lobby.maxCategories", { count: MAX_CATEGORIES }));
+      return;
+    }
+
+    try {
+      await updateRoomSettings(room.code, {
+        categories: [...room.settings.categories, category],
+      });
+      setCustomCategory("");
+    } catch (error) {
+      toast.error(t("lobby.categoriesFailed"), {
+        description: errorMessage(error),
+      });
+    }
+  }
+
+  async function removeCategory(category: string) {
+    if (!isHost) return;
+    const categories = room.settings.categories.filter(
+      (item) => normalizeCategoryKey(item) !== normalizeCategoryKey(category),
+    );
+
+    if (categories.length < MIN_CATEGORIES) {
       toast.error(t("lobby.minCategories"));
       return;
     }
@@ -220,6 +298,47 @@ export function LobbyRoom({
                 );
               })}
             </div>
+            {customCategories.length > 0 && (
+              <div className={styles.customCategoryList}>
+                {customCategories.map((category) => (
+                  <div className={styles.customCategoryChip} key={category}>
+                    <span>{categoryLabel(category)}</span>
+                    {isHost && (
+                      <button
+                        aria-label={t("lobby.removeCategory", { category })}
+                        onClick={() => removeCategory(category)}
+                        type="button"
+                      >
+                        <X />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <form
+              className={styles.customCategoryForm}
+              onSubmit={addCustomCategory}
+            >
+              <Label htmlFor="custom-category">
+                {t("lobby.customCategory")}
+              </Label>
+              <div>
+                <Input
+                  disabled={!isHost}
+                  id="custom-category"
+                  maxLength={MAX_CATEGORY_LENGTH}
+                  onChange={(event) => setCustomCategory(event.target.value)}
+                  placeholder={t("lobby.customPlaceholder")}
+                  value={customCategory}
+                />
+                <Button disabled={!isHost} type="submit" variant="outline">
+                  <Plus />
+                  {t("lobby.addCategory")}
+                </Button>
+              </div>
+              <small>{t("lobby.customHint", { count: MAX_CATEGORIES })}</small>
+            </form>
           </div>
 
           <div className={styles.commanderSummary}>
