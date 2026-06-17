@@ -11,6 +11,7 @@ import { getPlayerTotal } from "@/lib/game/scoring";
 import { startRematch } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
+import { FinalShareCard } from "./final-share-card";
 import styles from "./game.module.css";
 
 export function FinalResults({
@@ -91,6 +92,12 @@ export function FinalResults({
           </article>
         ))}
       </section>
+
+      <FinalShareCard
+        ranking={ranking}
+        roomCode={room.code}
+        winner={winner}
+      />
 
       <div className={styles.finalActions}>
         {isHost ? (

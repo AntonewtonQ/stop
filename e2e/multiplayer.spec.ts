@@ -69,8 +69,8 @@ test("dois jogadores entram e completam uma rodada sincronizada", async ({
   await host.getByRole("button", { name: "Gritar STOP" }).click();
   await expect(host.getByText("Fim de jogo", { exact: true })).toBeVisible();
   await expect(guest.getByText("Fim de jogo", { exact: true })).toBeVisible();
-  await expect(host.getByText("Beto", { exact: true })).toBeVisible();
-  await expect(guest.getByText("Ana", { exact: true })).toBeVisible();
+  await expect(host.getByText("Beto", { exact: true }).first()).toBeVisible();
+  await expect(guest.getByText("Ana", { exact: true }).first()).toBeVisible();
 
   await hostContext.close();
   await guestContext.close();
@@ -177,6 +177,16 @@ test("valida convite, sons e revanche com os mesmos jogadores", async ({
   }
   await page.getByRole("button", { name: "Gritar STOP" }).click();
   await expect(page.getByText("Fim de jogo", { exact: true })).toBeVisible();
+  await expect(page.getByText("Joguei no jogastop.ao").first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Partilhar imagem" }),
+  ).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Transferir PNG" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^jogastop-[A-Z0-9]+\.png$/);
+
   await expect(page.getByRole("button", { name: "Iniciar revanche" })).toBeVisible();
   await page.getByRole("button", { name: "Iniciar revanche" }).click();
 
