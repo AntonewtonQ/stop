@@ -30,8 +30,8 @@ const pt: PrivacyPolicyCopy = {
   badge: "Privacidade e consentimento",
   title: "Joga tranquilo. Os teus dados ficam claros.",
   intro:
-    "Esta política explica que informações o jogastop utiliza para criar salas, manter partidas sincronizadas e apresentar publicidade com respeito pelas tuas escolhas.",
-  updated: "Última actualização: 11 de Junho de 2026",
+    "Esta política explica que informações o jogastop utiliza para criar salas, manter partidas sincronizadas, analisar visitas e apresentar publicidade com respeito pelas tuas escolhas.",
+  updated: "Última actualização: 17 de Junho de 2026",
   backHome: "Voltar ao jogo",
   overviewLabel: "Em resumo",
   overview: [
@@ -73,6 +73,7 @@ const pt: PrivacyPolicyCopy = {
         "Letras, categorias, respostas, votos, pontuações e resultados das rodadas.",
         "Identificadores técnicos e token privado de sessão; no servidor, o token é guardado como hash.",
         "Preferências guardadas no dispositivo, como idioma, tema, sons e último aviso de instalação.",
+        "Métricas anónimas de utilização, como páginas visitadas, origem do tráfego, país aproximado, dispositivo, navegador e sistema operativo.",
         "Dados técnicos básicos que a infraestrutura de alojamento pode processar, como endereço IP, navegador e registos de pedidos.",
       ],
     },
@@ -81,7 +82,7 @@ const pt: PrivacyPolicyCopy = {
       title: "3. Para que utilizamos os dados",
       body: [
         "Utilizamos estas informações para criar e sincronizar salas, autenticar ações, recuperar a tua sessão, calcular resultados, realizar votações, detetar ligações perdidas e proteger o jogo contra utilizações indevidas.",
-        "As preferências no dispositivo tornam a experiência mais confortável. A publicidade ajuda a financiar o funcionamento do jogo e é apresentada de acordo com as escolhas de consentimento aplicáveis.",
+        "As preferências no dispositivo tornam a experiência mais confortável. As métricas ajudam-nos a perceber que páginas funcionam melhor e onde melhorar. A publicidade ajuda a financiar o funcionamento do jogo e é apresentada de acordo com as escolhas de consentimento aplicáveis.",
       ],
     },
     {
@@ -94,8 +95,9 @@ const pt: PrivacyPolicyCopy = {
     },
     {
       id: "publicidade",
-      title: "5. Publicidade, cookies e consentimento",
+      title: "5. Analítica, publicidade, cookies e consentimento",
       body: [
+        "O jogastop utiliza Vercel Web Analytics para medir visitas e páginas vistas. Segundo a Vercel, estes dados são anonimizados e não utilizam cookies.",
         "O jogastop utiliza o Google AdSense. A Google e os seus parceiros podem usar cookies, armazenamento local, identificadores do dispositivo e dados técnicos para apresentar, limitar e medir anúncios.",
         "No Espaço Económico Europeu, Reino Unido e Suíça, uma Plataforma de Gestão de Consentimento certificada pela Google apresenta as opções Consentir, Não consentir e Gerir opções. Podes rever ou retirar as tuas escolhas através das opções de privacidade disponibilizadas pela mensagem da Google.",
         "Quando recusas anúncios personalizados, ainda podem ser apresentados anúncios não personalizados ou limitados, conforme permitido pelas tuas escolhas e pela legislação aplicável.",
@@ -140,8 +142,8 @@ const en: PrivacyPolicyCopy = {
   badge: "Privacy and consent",
   title: "Play with peace of mind. Your data stays clear.",
   intro:
-    "This policy explains what information jogastop uses to create rooms, keep games in sync and show advertising while respecting your choices.",
-  updated: "Last updated: June 11, 2026",
+    "This policy explains what information jogastop uses to create rooms, keep games in sync, analyse visits and show advertising while respecting your choices.",
+  updated: "Last updated: June 17, 2026",
   backHome: "Back to the game",
   overviewLabel: "At a glance",
   overview: [
@@ -183,6 +185,7 @@ const en: PrivacyPolicyCopy = {
         "Letters, categories, answers, votes, scores and round results.",
         "Technical identifiers and a private session token; the server stores the token as a hash.",
         "Preferences stored on your device, such as language, theme, sounds and the latest installation prompt.",
+        "Anonymous usage metrics, such as visited pages, traffic source, approximate country, device, browser and operating system.",
         "Basic technical data that the hosting infrastructure may process, such as IP address, browser and request logs.",
       ],
     },
@@ -191,7 +194,7 @@ const en: PrivacyPolicyCopy = {
       title: "3. Why we use data",
       body: [
         "We use this information to create and sync rooms, authenticate actions, recover your session, calculate results, run votes, detect lost connections and protect the game from misuse.",
-        "Device preferences make the experience more comfortable. Advertising helps fund the game and is shown according to applicable consent choices.",
+        "Device preferences make the experience more comfortable. Metrics help us understand which pages work best and where to improve. Advertising helps fund the game and is shown according to applicable consent choices.",
       ],
     },
     {
@@ -204,8 +207,9 @@ const en: PrivacyPolicyCopy = {
     },
     {
       id: "advertising",
-      title: "5. Advertising, cookies and consent",
+      title: "5. Analytics, advertising, cookies and consent",
       body: [
+        "jogastop uses Vercel Web Analytics to measure visits and page views. According to Vercel, this data is anonymized and does not use cookies.",
         "jogastop uses Google AdSense. Google and its partners may use cookies, local storage, device identifiers and technical data to show, limit and measure ads.",
         "In the European Economic Area, United Kingdom and Switzerland, a Google-certified Consent Management Platform presents Consent, Do not consent and Manage options. You can review or withdraw your choices through the privacy options made available by Google's message.",
         "When you refuse personalised ads, non-personalised or limited ads may still be shown, as allowed by your choices and applicable law.",
@@ -250,8 +254,8 @@ const fr: PrivacyPolicyCopy = {
   badge: "Confidentialité et consentement",
   title: "Joue sereinement. Tes données restent claires.",
   intro:
-    "Cette politique explique quelles informations jogastop utilise pour créer des salles, synchroniser les parties et afficher de la publicité dans le respect de tes choix.",
-  updated: "Dernière mise à jour : 11 juin 2026",
+    "Cette politique explique quelles informations jogastop utilise pour créer des salles, synchroniser les parties, analyser les visites et afficher de la publicité dans le respect de tes choix.",
+  updated: "Dernière mise à jour : 17 juin 2026",
   backHome: "Retour au jeu",
   overviewLabel: "En bref",
   overview: [
@@ -293,6 +297,7 @@ const fr: PrivacyPolicyCopy = {
         "Lettres, catégories, réponses, votes, scores et résultats des manches.",
         "Identifiants techniques et jeton de session privé ; le serveur conserve le jeton sous forme de hash.",
         "Préférences enregistrées sur l'appareil, comme la langue, le thème, les sons et la dernière invite d'installation.",
+        "Mesures d'utilisation anonymes, comme les pages visitées, la source du trafic, le pays approximatif, l'appareil, le navigateur et le système d'exploitation.",
         "Données techniques de base que l'hébergeur peut traiter, comme l'adresse IP, le navigateur et les journaux de requêtes.",
       ],
     },
@@ -301,7 +306,7 @@ const fr: PrivacyPolicyCopy = {
       title: "3. Pourquoi nous utilisons ces données",
       body: [
         "Nous utilisons ces informations pour créer et synchroniser les salles, authentifier les actions, récupérer ta session, calculer les résultats, organiser les votes, détecter les pertes de connexion et protéger le jeu contre les abus.",
-        "Les préférences de l'appareil rendent l'expérience plus agréable. La publicité aide à financer le jeu et s'affiche selon les choix de consentement applicables.",
+        "Les préférences de l'appareil rendent l'expérience plus agréable. Les métriques nous aident à comprendre quelles pages fonctionnent le mieux et où améliorer le jeu. La publicité aide à financer le jeu et s'affiche selon les choix de consentement applicables.",
       ],
     },
     {
@@ -314,8 +319,9 @@ const fr: PrivacyPolicyCopy = {
     },
     {
       id: "publicite",
-      title: "5. Publicité, cookies et consentement",
+      title: "5. Analyse, publicité, cookies et consentement",
       body: [
+        "jogastop utilise Vercel Web Analytics pour mesurer les visites et les pages vues. Selon Vercel, ces données sont anonymisées et n'utilisent pas de cookies.",
         "jogastop utilise Google AdSense. Google et ses partenaires peuvent utiliser des cookies, le stockage local, des identifiants d'appareil et des données techniques pour afficher, limiter et mesurer les annonces.",
         "Dans l'Espace économique européen, au Royaume-Uni et en Suisse, une plateforme de gestion du consentement certifiée par Google présente les choix Consentir, Ne pas consentir et Gérer les options. Tu peux revoir ou retirer tes choix grâce aux options de confidentialité proposées par le message de Google.",
         "Si tu refuses les annonces personnalisées, des annonces non personnalisées ou limitées peuvent tout de même être affichées, selon tes choix et la loi applicable.",

@@ -419,6 +419,7 @@ test("publica a política de privacidade e consentimento nos três idiomas", asy
     }),
   ).toBeVisible();
   await expect(page.getByText("Google AdSense")).toBeVisible();
+  await expect(page.getByText("Vercel Web Analytics")).toBeVisible();
 
   await page.getByLabel("Idioma").selectOption("en");
   await expect(

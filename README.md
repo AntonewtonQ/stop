@@ -63,6 +63,7 @@ O projecto já possui um MVP online jogável:
 - PostgreSQL/Neon em produção e SQLite local para salas, jogadores, rodadas,
   respostas e votos;
 - limpeza automática e configurável de salas antigas;
+- Vercel Web Analytics para métricas anónimas de visitas;
 - autorização das acções através de tokens privados de sessão.
 - testes automatizados das regras, SQLite, APIs, SSE e fluxo multiplayer.
 - configurações Vercel e Render com health check e limpeza programada.
