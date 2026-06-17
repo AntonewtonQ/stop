@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 test("dois jogadores entram e completam uma rodada sincronizada", async ({
   browser,
@@ -71,6 +71,61 @@ test("dois jogadores entram e completam uma rodada sincronizada", async ({
   await expect(guest.getByText("Fim de jogo", { exact: true })).toBeVisible();
   await expect(host.getByText("Beto", { exact: true }).first()).toBeVisible();
   await expect(guest.getByText("Ana", { exact: true }).first()).toBeVisible();
+
+  await hostContext.close();
+  await guestContext.close();
+});
+
+test("envia eventos de performance para criação, entrada, STOP e voto", async ({
+  browser,
+}) => {
+  const hostContext = await browser.newContext();
+  const guestContext = await browser.newContext();
+  await captureAnalyticsEvents(hostContext);
+  await captureAnalyticsEvents(guestContext);
+  const host = await hostContext.newPage();
+  const guest = await guestContext.newPage();
+
+  await host.goto("/");
+  await host.getByLabel("Qual é o teu nome?").fill("Ana");
+  await host.getByRole("button", { name: "Criar uma sala" }).click();
+  await expect(host).toHaveURL(/\/sala\/[A-Z0-9]{5}$/);
+  const code = host.url().split("/").at(-1)!;
+
+  await guest.goto(`/sala/${code}`);
+  await guest.getByLabel("O teu nome").fill("Beto");
+  await guest.getByRole("button", { name: "Entrar na sala" }).click();
+  await expect(host.getByText("Beto", { exact: true })).toBeVisible();
+
+  await host.getByRole("button", { name: "Preparar primeira rodada" }).click();
+  await expect(
+    host.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
+  await host.getByRole("button", { name: /^A/ }).click();
+
+  const answerInputs = host.getByPlaceholder("A...");
+  await expect(answerInputs).toHaveCount(5);
+  for (let index = 0; index < 5; index += 1) {
+    await answerInputs.nth(index).fill("Azzzzzz");
+  }
+
+  await host.getByRole("button", { name: "Gritar STOP" }).click();
+  await expect(guest.getByRole("button", { name: "Aceitar" }).first()).toBeVisible();
+  await guest.getByRole("button", { name: "Aceitar" }).first().click();
+
+  await expect
+    .poll(() => readAnalyticsEventNames(host))
+    .toEqual(
+      expect.arrayContaining([
+        "room_created",
+        "round_started",
+        "letter_chosen",
+        "stop_pressed",
+      ]),
+    );
+  await expect
+    .poll(() => readAnalyticsEventNames(guest))
+    .toEqual(expect.arrayContaining(["room_joined", "vote_cast"]));
 
   await hostContext.close();
   await guestContext.close();
@@ -335,6 +390,7 @@ test("mostra o loading do jogastop enquanto cria a sala", async ({ page }) => {
   ).toBeVisible();
   await expect(page.locator('[aria-label="jogastop"]').last()).toBeVisible();
   await expect(page).toHaveURL(/\/sala\/[A-Z0-9]+$/);
+  await expect(page.getByText("Sala criada")).toBeVisible();
 });
 
 test("expõe PWA instalável e regista o service worker", async ({
@@ -466,3 +522,33 @@ test("publica a política de privacidade e consentimento nos três idiomas", asy
     }),
   ).toBeVisible();
 });
+
+async function captureAnalyticsEvents(context: BrowserContext) {
+  await context.addInitScript(() => {
+    const windowWithAnalytics = window as typeof window & {
+      __jogastopAnalyticsEvents?: unknown[][];
+      va?: (...args: unknown[]) => void;
+    };
+
+    windowWithAnalytics.__jogastopAnalyticsEvents = [];
+    windowWithAnalytics.va = (...args: unknown[]) => {
+      windowWithAnalytics.__jogastopAnalyticsEvents?.push(args);
+    };
+  });
+}
+
+async function readAnalyticsEventNames(page: Page) {
+  return page.evaluate(() => {
+    const windowWithAnalytics = window as typeof window & {
+      __jogastopAnalyticsEvents?: unknown[][];
+    };
+
+    return (windowWithAnalytics.__jogastopAnalyticsEvents ?? [])
+      .filter((event) => event[0] === "event")
+      .map((event) => {
+        const payload = event[1] as { name?: string };
+        return payload.name;
+      })
+      .filter((name): name is string => typeof name === "string");
+  });
+}

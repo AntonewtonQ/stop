@@ -68,7 +68,16 @@ export async function GET(
 
       send(`retry: 2000\nevent: connected\ndata: {"code":"${code}"}\n\n`);
       unsubscribe = subscribeToRoom(code, sendEvent);
-      heartbeat = setInterval(() => send(`: heartbeat ${Date.now()}\n\n`), HEARTBEAT_INTERVAL);
+      heartbeat = setInterval(
+        () =>
+          send(
+            `event: heartbeat\ndata: ${JSON.stringify({
+              code,
+              at: Date.now(),
+            })}\n\n`,
+          ),
+        HEARTBEAT_INTERVAL,
+      );
       request.signal.addEventListener("abort", close, { once: true });
     },
     cancel() {

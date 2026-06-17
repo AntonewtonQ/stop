@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   PRESENCE_HEARTBEAT_INTERVAL,
+  ROOM_REALTIME_STALE_AFTER,
+  ROOM_SYNC_FALLBACK_POLL_INTERVAL,
+  ROOM_SYNC_HIDDEN_POLL_INTERVAL,
   ROOM_SYNC_POLL_INTERVAL,
 } from "./constants";
 import {
@@ -16,12 +19,31 @@ import type { PlayerSession, Room } from "./types";
 
 export type RoomConnectionStatus = "connected" | "reconnecting" | "offline";
 
+type RoomRealtimePayload = {
+  code: string;
+  updatedAt?: number;
+};
+
 export function useRoom(code: string) {
   const [room, setRoom] = useState<Room | null>(null);
   const [session, setSession] = useState<PlayerSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] =
     useState<RoomConnectionStatus>("connected");
+  const roomRef = useRef<Room | null>(null);
+  const lastRealtimeAtRef = useRef(0);
+
+  const applyRoomUpdate = useCallback((nextRoom: Room | null) => {
+    setRoom((currentRoom) => {
+      const resolvedRoom =
+        currentRoom && nextRoom && currentRoom.updatedAt > nextRoom.updatedAt
+          ? currentRoom
+          : nextRoom;
+
+      roomRef.current = resolvedRoom;
+      return resolvedRoom;
+    });
+  }, []);
 
   const markConnectionFailure = useCallback(() => {
     setConnectionStatus(navigator.onLine ? "reconnecting" : "offline");
@@ -30,13 +52,7 @@ export function useRoom(code: string) {
   const refresh = useCallback(async () => {
     try {
       const nextRoom = await readRoom(code);
-      setRoom((currentRoom) =>
-        currentRoom &&
-        nextRoom &&
-        currentRoom.updatedAt > nextRoom.updatedAt
-          ? currentRoom
-          : nextRoom,
-      );
+      applyRoomUpdate(nextRoom);
       setSession(readPlayerSession(code));
       setConnectionStatus("connected");
       return true;
@@ -46,7 +62,7 @@ export function useRoom(code: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [code, markConnectionFailure]);
+  }, [applyRoomUpdate, code, markConnectionFailure]);
 
   const reconnect = useCallback(async () => {
     setConnectionStatus(navigator.onLine ? "reconnecting" : "offline");
@@ -67,11 +83,7 @@ export function useRoom(code: string) {
     function handleLocalUpdate(event: Event) {
       const roomEvent = event as CustomEvent<Room>;
       if (roomEvent.detail.code === code) {
-        setRoom((currentRoom) =>
-          currentRoom && currentRoom.updatedAt > roomEvent.detail.updatedAt
-            ? currentRoom
-            : roomEvent.detail,
-        );
+        applyRoomUpdate(roomEvent.detail);
       }
     }
 
@@ -95,26 +107,44 @@ export function useRoom(code: string) {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [code, reconnect, refresh]);
+  }, [applyRoomUpdate, code, reconnect, refresh]);
 
   useEffect(() => {
     if (!room?.code) return;
 
     const events = new EventSource(`/api/rooms/${room.code}/events`);
-    const handleConnected = () => {
+    const markRealtimeHealthy = () => {
+      lastRealtimeAtRef.current = Date.now();
       setConnectionStatus("connected");
+    };
+    const handleConnected = () => {
+      markRealtimeHealthy();
+    };
+    const handleHeartbeat = () => {
+      markRealtimeHealthy();
+    };
+    const handleRealtimeUpdate = (event: Event) => {
+      markRealtimeHealthy();
+      const payload = readRealtimePayload(event);
+      const currentUpdatedAt = roomRef.current?.updatedAt ?? 0;
+
+      if (payload?.updatedAt && payload.updatedAt <= currentUpdatedAt) {
+        return;
+      }
+
       void refresh();
     };
-    const handleRealtimeUpdate = () => void refresh();
     const handleError = () => markConnectionFailure();
 
     events.addEventListener("connected", handleConnected);
+    events.addEventListener("heartbeat", handleHeartbeat);
     events.addEventListener("room-updated", handleRealtimeUpdate);
     events.addEventListener("error", handleError);
 
     return () => {
       events.close();
       events.removeEventListener("connected", handleConnected);
+      events.removeEventListener("heartbeat", handleHeartbeat);
       events.removeEventListener("room-updated", handleRealtimeUpdate);
       events.removeEventListener("error", handleError);
     };
@@ -126,20 +156,37 @@ export function useRoom(code: string) {
     let cancelled = false;
     let poll: number | undefined;
 
+    function getNextPollDelay() {
+      if (document.visibilityState === "hidden") {
+        return ROOM_SYNC_HIDDEN_POLL_INTERVAL;
+      }
+
+      const realtimeIsFresh =
+        connectionStatus === "connected" &&
+        Date.now() - lastRealtimeAtRef.current < ROOM_REALTIME_STALE_AFTER;
+
+      return realtimeIsFresh
+        ? ROOM_SYNC_POLL_INTERVAL
+        : ROOM_SYNC_FALLBACK_POLL_INTERVAL;
+    }
+
     async function refreshAfterDelay() {
-      await refresh();
+      if (navigator.onLine) {
+        await refresh();
+      }
+
       if (!cancelled) {
-        poll = window.setTimeout(refreshAfterDelay, ROOM_SYNC_POLL_INTERVAL);
+        poll = window.setTimeout(refreshAfterDelay, getNextPollDelay());
       }
     }
 
-    poll = window.setTimeout(refreshAfterDelay, ROOM_SYNC_POLL_INTERVAL);
+    poll = window.setTimeout(refreshAfterDelay, getNextPollDelay());
 
     return () => {
       cancelled = true;
       if (poll !== undefined) window.clearTimeout(poll);
     };
-  }, [refresh, room?.code]);
+  }, [connectionStatus, refresh, room?.code]);
 
   useEffect(() => {
     if (!room?.code || !session) return;
@@ -180,4 +227,16 @@ export function useRoom(code: string) {
     reconnect,
     refresh,
   };
+}
+
+function readRealtimePayload(event: Event): RoomRealtimePayload | null {
+  const data = (event as MessageEvent<string>).data;
+  if (!data) return null;
+
+  try {
+    const payload = JSON.parse(data) as RoomRealtimePayload;
+    return typeof payload.code === "string" ? payload : null;
+  } catch {
+    return null;
+  }
 }

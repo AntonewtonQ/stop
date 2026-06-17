@@ -1,0 +1,74 @@
+.toaster {
+  --width: min(24rem, calc(100vw - 1.6rem));
+  font-family: var(--font-geist-sans), "Arial Rounded MT Bold", Arial, sans-serif;
+}
+
+.toaster [data-sonner-toast][data-styled="true"] {
+  min-height: 4.25rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-width: 1px;
+  box-shadow: 0 1.1rem 3rem rgb(0 0 0 / 22%);
+  backdrop-filter: blur(18px);
+}
+
+.toaster [data-sonner-toast][data-styled="true"][data-type="success"] {
+  box-shadow: 0 1.1rem 3rem rgb(42 168 118 / 18%);
+}
+
+.toaster [data-sonner-toast][data-styled="true"][data-type="error"] {
+  box-shadow: 0 1.1rem 3rem rgb(217 108 77 / 18%);
+}
+
+.content {
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.title {
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.description {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.icon {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: none;
+  place-items: center;
+  margin-top: 0.05rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.icon svg {
+  width: 0.92rem;
+  height: 0.92rem;
+}
+
+.spinner {
+  animation: toastSpin 0.8s linear infinite;
+}
+
+@keyframes toastSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .toaster {
+    --width: calc(100vw - 1.6rem);
+  }
+}

@@ -65,7 +65,7 @@ export function JoinRoomGate({
     );
 
     try {
-      await joinRoom(room.code, session);
+      await joinRoom(room.code, session, "room_gate");
       savePlayerSession(session);
       toast.success(t("entry.joined"), { description: room.code });
       await onJoined();

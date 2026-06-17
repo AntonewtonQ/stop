@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Crown, Home, RotateCcw, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,8 +12,15 @@ import { getPlayerTotal } from "@/lib/game/scoring";
 import { startRematch } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
-import { FinalShareCard } from "./final-share-card";
 import styles from "./game.module.css";
+
+const FinalShareCard = dynamic(
+  () => import("./final-share-card").then((module) => module.FinalShareCard),
+  {
+    loading: () => <div className={styles.shareCardSkeleton} />,
+    ssr: false,
+  },
+);
 
 export function FinalResults({
   room,
