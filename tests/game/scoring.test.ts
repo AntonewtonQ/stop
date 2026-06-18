@@ -67,6 +67,42 @@ describe("scoreRound", () => {
     expect(result.players.b.answers.Nome.points).toBe(0);
   });
 
+  it("não pontua uma única letra mesmo quando o jogador está sozinho", () => {
+    const result = scoreRound({
+      players: [player("a")],
+      categories: ["Nome"],
+      letter: "A",
+      answers: { a: { Nome: "A" } },
+      stoppedBy: "a",
+      endedAt: 100,
+    });
+
+    expect(result.challenges).toEqual({});
+    expect(result.players.a.answers.Nome).toMatchObject({
+      answer: "A",
+      points: 0,
+      status: "invalid",
+      validation: "invalid",
+      challengeId: null,
+    });
+    expect(result.players.a.total).toBe(0);
+  });
+
+  it("não cria votação para aprovar uma resposta de uma única letra", () => {
+    const result = scoreRound({
+      players,
+      categories: ["Nome"],
+      letter: "A",
+      answers: { a: { Nome: "A" } },
+      stoppedBy: "a",
+      endedAt: 100,
+    });
+
+    expect(result.challenges).toEqual({});
+    expect(result.votingComplete).toBe(true);
+    expect(result.players.a.answers.Nome.points).toBe(0);
+  });
+
   it("mantém resposta desconhecida pendente até todos os jogadores online votarem", () => {
     const initial = scoreRound({
       players,

@@ -322,6 +322,11 @@ export function startsWithLetter(answer: string, letter: string) {
   return normalizeAnswer(answer).startsWith(normalizeAnswer(letter));
 }
 
+export function hasScorableLength(answer: string) {
+  const characters = normalizeAnswer(answer).replace(/[^\p{L}\p{N}]/gu, "");
+  return Array.from(characters).length > 1;
+}
+
 export function isKnownAnswer(category: string, answer: string) {
   const normalizedAnswer = normalizeAnswer(answer);
 

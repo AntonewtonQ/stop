@@ -8,6 +8,7 @@ import type {
   RoundResult,
 } from "./types";
 import {
+  hasScorableLength,
   isKnownAnswer,
   normalizeAnswer,
   startsWithLetter,
@@ -59,7 +60,11 @@ function buildChallenges({
   for (const category of categories) {
     for (const player of players) {
       const answer = answers[player.id]?.[category]?.trim() ?? "";
-      if (!startsWithLetter(answer, letter) || isKnownAnswer(category, answer)) {
+      if (
+        !startsWithLetter(answer, letter) ||
+        !hasScorableLength(answer) ||
+        isKnownAnswer(category, answer)
+      ) {
         continue;
       }
 
@@ -124,6 +129,7 @@ export function scoreRound({
         const challenge = challenges[makeChallengeId(category, answer)];
         const accepted =
           startsWithLetter(answer, letter) &&
+          hasScorableLength(answer) &&
           (isKnownAnswer(category, answer) || challenge?.status === "approved");
 
         return { playerId: player.id, answer, accepted };
@@ -144,6 +150,7 @@ export function scoreRound({
       const challenge = challenges[makeChallengeId(category, answer)];
       const known = isKnownAnswer(category, answer);
       const startsCorrectly = startsWithLetter(answer, letter);
+      const hasEnoughContent = hasScorableLength(answer);
       let score: AnswerScore = {
         answer,
         points: 0,
@@ -164,6 +171,7 @@ export function scoreRound({
         };
       } else if (
         startsCorrectly &&
+        hasEnoughContent &&
         (known || challenge?.status === "approved")
       ) {
         const count = answerCounts[normalizeAnswer(answer)] ?? 0;
