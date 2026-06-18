@@ -131,6 +131,54 @@ test("envia eventos de performance para criação, entrada, STOP e voto", async 
   await guestContext.close();
 });
 
+test("reflecte o STOP rapidamente mesmo quando o SSE falha", async ({
+  browser,
+}) => {
+  const hostContext = await browser.newContext();
+  const guestContext = await browser.newContext();
+  const host = await hostContext.newPage();
+  const guest = await guestContext.newPage();
+
+  await guest.route("**/api/rooms/*/events", (route) => route.abort());
+
+  await host.goto("/");
+  await host.getByLabel("Qual é o teu nome?").fill("Ana");
+  await host.getByRole("button", { name: "Criar uma sala" }).click();
+  await expect(host).toHaveURL(/\/sala\/[A-Z0-9]{5}$/);
+  const code = host.url().split("/").at(-1)!;
+
+  await guest.goto(`/sala/${code}`);
+  await guest.getByLabel("O teu nome").fill("Beto");
+  await guest.getByRole("button", { name: "Entrar na sala" }).click();
+
+  await host.getByRole("button", { name: "Preparar primeira rodada" }).click();
+  await expect(
+    host.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
+  await host.getByRole("button", { name: /^A/ }).click();
+
+  await expect(
+    guest.getByRole("button", { name: "Preenche tudo para gritar STOP" }),
+  ).toBeVisible({ timeout: 8_000 });
+
+  const answers = ["Ana", "Angola", "Arroz", "Actor", "Antílope"];
+  const answerInputs = host.getByPlaceholder("A...");
+  await expect(answerInputs).toHaveCount(answers.length);
+  for (const [index, answer] of answers.entries()) {
+    await answerInputs.nth(index).fill(answer);
+  }
+
+  const stoppedAt = Date.now();
+  await host.getByRole("button", { name: "Gritar STOP" }).click();
+  await expect(
+    guest.getByRole("heading", { name: "Palavras na mesa. Pontos a contar." }),
+  ).toBeVisible({ timeout: 2_800 });
+  expect(Date.now() - stoppedAt).toBeLessThan(2_800);
+
+  await hostContext.close();
+  await guestContext.close();
+});
+
 test("permite alternar e persistir o idioma da interface", async ({ page }) => {
   await page.goto("/");
 

@@ -5,9 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PRESENCE_HEARTBEAT_INTERVAL,
   ROOM_REALTIME_STALE_AFTER,
+  ROOM_SYNC_ACTIVE_POLL_INTERVAL,
   ROOM_SYNC_FALLBACK_POLL_INTERVAL,
   ROOM_SYNC_HIDDEN_POLL_INTERVAL,
+  ROOM_SYNC_LOBBY_POLL_INTERVAL,
   ROOM_SYNC_POLL_INTERVAL,
+  ROOM_SYNC_RESULTS_POLL_INTERVAL,
 } from "./constants";
 import {
   readPlayerSession,
@@ -161,6 +164,24 @@ export function useRoom(code: string) {
         return ROOM_SYNC_HIDDEN_POLL_INTERVAL;
       }
 
+      const currentRoom = roomRef.current;
+
+      if (currentRoom?.status === "round") {
+        return ROOM_SYNC_ACTIVE_POLL_INTERVAL;
+      }
+
+      if (currentRoom?.status === "letter-selection") {
+        return ROOM_SYNC_ACTIVE_POLL_INTERVAL;
+      }
+
+      if (currentRoom?.status === "lobby") {
+        return ROOM_SYNC_LOBBY_POLL_INTERVAL;
+      }
+
+      if (currentRoom?.status === "results") {
+        return ROOM_SYNC_RESULTS_POLL_INTERVAL;
+      }
+
       const realtimeIsFresh =
         connectionStatus === "connected" &&
         Date.now() - lastRealtimeAtRef.current < ROOM_REALTIME_STALE_AFTER;
@@ -186,7 +207,14 @@ export function useRoom(code: string) {
       cancelled = true;
       if (poll !== undefined) window.clearTimeout(poll);
     };
-  }, [connectionStatus, refresh, room?.code]);
+  }, [
+    connectionStatus,
+    refresh,
+    room?.code,
+    room?.round?.number,
+    room?.round?.result?.votingComplete,
+    room?.status,
+  ]);
 
   useEffect(() => {
     if (!room?.code || !session) return;
