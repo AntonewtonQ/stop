@@ -66,6 +66,10 @@
   justify-self: end;
 }
 
+.mobileLobbyActions {
+  display: none;
+}
+
 .headerInviteActions .copyButton {
   justify-self: auto;
 }
@@ -2028,11 +2032,15 @@
 
 @media (max-width: 640px) {
   .gamePage,
-  .roundPage,
   .commanderPage,
   .resultsPage,
   .finalPage {
-    padding: 0.8rem;
+    padding: 0.75rem;
+  }
+
+  .roundPage {
+    overflow: visible;
+    padding: 0.75rem 0.75rem calc(7.2rem + env(safe-area-inset-bottom));
   }
 
   .gameHeader,
@@ -2050,7 +2058,12 @@
     font-size: 0.6rem;
   }
 
+  .headerInviteActions {
+    display: none;
+  }
+
   .copyButton {
+    min-height: 3rem;
     font-size: 0;
   }
 
@@ -2058,39 +2071,205 @@
     margin: 0;
   }
 
-  .headerInviteActions {
-    gap: 0.3rem;
+  .mobileLobbyActions {
+    display: grid;
+    width: min(100%, 76rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin: 1rem auto 0;
+    padding: 0.75rem;
+    border: 1px solid rgb(var(--primary-rgb) / 8%);
+    border-radius: 1.2rem;
+    background: rgb(255 255 255 / 88%);
+    box-shadow: 0 1rem 2.6rem rgb(var(--primary-rgb) / 10%);
+  }
+
+  .mobileLobbyActions button {
+    justify-content: center;
+    min-height: 3.1rem;
+    border-radius: 0.9rem;
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .mobileLobbyActions svg {
+    width: 1rem;
+  }
+
+  .mobileLobbyActions .mobileStartButton,
+  .mobileLobbyActions .mobileWaitingHost {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .mobileLobbyActions .mobileStartButton {
+    min-height: 3.65rem;
+    font-size: 0.8rem;
+  }
+
+  .mobileLobbyActions .mobileWaitingHost {
+    min-height: 3.2rem;
+  }
+
+  .settingsPanel > .startButton,
+  .settingsPanel > .waitingHost {
+    display: none;
+  }
+
+  .lobbyLayout {
+    gap: 0.85rem;
+    margin-top: 0.85rem;
+  }
+
+  .lobbyMain,
+  .settingsPanel {
+    padding: 1rem;
+    border-radius: 1.2rem;
   }
 
   .sectionTitle,
   .answerBoardHeader,
-  .roundHero,
   .resultsHero,
   .letterPickerHeader {
     align-items: flex-start;
     flex-direction: column;
+    gap: 0.85rem;
   }
 
   .sectionTitle h1 {
-    font-size: 2.7rem;
+    max-width: 12ch;
+    margin-top: 0.35rem;
+    font-size: 2rem;
+  }
+
+  .playerCount {
+    min-width: auto;
+    padding: 0.6rem 0.7rem;
+  }
+
+  .playerList {
+    gap: 0.55rem;
+    margin-top: 1rem;
+  }
+
+  .playerCard {
+    padding: 0.75rem;
+  }
+
+  .playerAvatar {
+    width: 2.65rem;
+    height: 2.65rem;
   }
 
   .inviteCallout {
-    grid-template-columns: auto 1fr;
+    display: none;
   }
 
   .inviteActions {
     grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .inviteActions button {
+    min-height: 3rem;
+    justify-content: center;
+    font-size: 0.7rem;
+  }
+
+  .panelTitle {
+    padding-bottom: 0.75rem;
+  }
+
+  .settingGroup,
+  .commanderSummary {
+    margin-top: 1rem;
+  }
+
+  .settingLabel {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .categoryOption {
+    min-height: 3rem;
+    padding: 0.75rem 0.65rem;
+    font-size: 0.7rem;
+  }
+
+  .categoryOption > svg {
+    right: 0.55rem;
+  }
+
+  .customCategoryForm input,
+  .customCategoryForm button,
+  .durationOptions button {
+    min-height: 3rem;
+    font-size: 0.72rem;
+  }
+
+  .roundCountControl {
+    grid-template-columns: 3.1rem minmax(0, 1fr) 3.1rem;
+  }
+
+  .roundCountControl button {
+    min-height: 3.25rem;
   }
 
   .roundHero {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: 2.5rem;
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: 0.85rem;
+    margin: 1.4rem auto 0.85rem;
+  }
+
+  .roundHero > div:first-child {
+    min-width: 0;
+    grid-template-columns: auto 1fr;
+    gap: 0.2rem 0.65rem;
+  }
+
+  .roundBadge {
+    padding: 0.34rem 0.5rem;
+    font-size: 0.56rem;
+  }
+
+  .roundKicker {
+    max-width: 8ch;
+    font-size: 0.58rem;
+  }
+
+  .roundLetter {
+    font-size: clamp(4.8rem, 30vw, 7.4rem);
   }
 
   .roundTimer {
-    width: 100%;
+    width: auto;
+    min-width: 0;
+    align-self: center;
+    padding: 0.72rem 0.75rem;
+    border-radius: 0.85rem;
+  }
+
+  .roundTimer svg {
+    width: 1.1rem;
+  }
+
+  .roundTimer span {
+    font-size: 0.48rem;
+  }
+
+  .roundTimer strong {
+    font-size: 1rem;
+  }
+
+  .roundProgress {
+    height: 0.5rem;
+    margin-bottom: 0.75rem;
   }
 
   .letterGrid {
@@ -2098,19 +2277,71 @@
   }
 
   .answerBoard {
-    border-radius: 1.3rem;
+    padding: 0.9rem 0.85rem 5.8rem;
+    border-radius: 1.2rem;
+  }
+
+  .answerBoardHeader h1 {
+    max-width: 12ch;
+    font-size: 1.85rem;
   }
 
   .answerCounter {
     display: none;
   }
 
+  .roundAnswers {
+    gap: 0.7rem;
+    margin-top: 1rem;
+  }
+
   .roundAnswer {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr;
+    gap: 0.55rem 0.65rem;
+    padding: 0.75rem;
+    border-radius: 0.95rem;
+  }
+
+  .answerNumber {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .roundAnswer small {
+    display: none;
   }
 
   .roundAnswer input {
     grid-column: 1 / -1;
+    min-height: 3.35rem;
+    padding-inline: 0.9rem;
+    font-size: 1rem;
+  }
+
+  .validAnswer {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+  }
+
+  .stopRoundButton {
+    position: fixed;
+    z-index: 90;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    left: 0.75rem;
+    width: auto;
+    min-height: 3.75rem;
+    margin-top: 0;
+    border-radius: 1rem;
+    box-shadow:
+      0 0.45rem 0 var(--amber-deep),
+      0 1rem 2.5rem rgb(0 0 0 / 24%);
+    font-size: 0.84rem;
+  }
+
+  .commanderClockNotice {
+    display: none;
   }
 
   .resultsHero {
@@ -2158,8 +2389,42 @@
     grid-template-columns: 1fr;
   }
 
+  .mobileLobbyActions button,
+  .inviteActions button {
+    padding-inline: 0.5rem;
+    font-size: 0.68rem;
+  }
+
+  .durationOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .customCategoryForm > div {
     grid-template-columns: 1fr;
+  }
+
+  .commanderSummary small,
+  .answerBoardHeader .eyebrow,
+  .roundTimer span {
+    display: none;
+  }
+
+  .roundHero {
+    gap: 0.55rem;
+  }
+
+  .roundTimer {
+    padding: 0.65rem;
+  }
+
+  .answerBoardHeader h1 {
+    font-size: 1.65rem;
+  }
+
+  .stopRoundButton {
+    right: 0.6rem;
+    bottom: calc(0.65rem + env(safe-area-inset-bottom));
+    left: 0.6rem;
   }
 
   .shareCardHeader,

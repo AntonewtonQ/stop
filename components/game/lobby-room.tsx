@@ -224,6 +224,31 @@ export function LobbyRoom({
         </div>
       </header>
 
+      <div className={styles.mobileLobbyActions}>
+        <Button variant="outline" onClick={inviteOnWhatsApp}>
+          <MessageCircle />
+          {t("lobby.whatsappInvite")}
+        </Button>
+        <Button variant="outline" onClick={copyInvite}>
+          <Copy />
+          {t("lobby.copyInvite")}
+        </Button>
+        {isHost ? (
+          <Button
+            className={`${styles.startButton} ${styles.mobileStartButton}`}
+            onClick={handleStart}
+          >
+            <Play />
+            {t("lobby.prepareFirst")}
+          </Button>
+        ) : (
+          <div className={`${styles.waitingHost} ${styles.mobileWaitingHost}`}>
+            <span />
+            {t("lobby.hostPreparing")}
+          </div>
+        )}
+      </div>
+
       <div className={styles.lobbyLayout}>
         <section className={styles.lobbyMain}>
           <div className={styles.sectionTitle}>

@@ -335,6 +335,41 @@ test("mantém acções e controlos flutuantes separados em ecrãs compactos", as
   expect(resumeRoom!.y).toBeGreaterThan(createRoom!.y + createRoom!.height + 8);
 });
 
+test("mantém o lobby directo e o STOP sempre visível no mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await page.goto("/");
+  await page.getByLabel("Qual é o teu nome?").fill("Lia");
+  await page.getByRole("button", { name: "Criar uma sala" }).click();
+
+  const quickStart = page
+    .getByRole("button", { name: "Preparar primeira rodada" })
+    .first();
+  await expect(quickStart).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Convidar no WhatsApp" }).first(),
+  ).toBeVisible();
+
+  await quickStart.click();
+  await expect(
+    page.getByRole("heading", { name: "O comando é teu." }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /^A/ }).click();
+
+  const stopButton = page.getByRole("button", {
+    name: "Preenche tudo para gritar STOP",
+  });
+  await expect(stopButton).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(stopButton).toBeVisible();
+
+  const stopBox = await stopButton.boundingBox();
+  expect(stopBox).not.toBeNull();
+  expect(stopBox!.y).toBeGreaterThanOrEqual(0);
+  expect(stopBox!.y + stopBox!.height).toBeLessThanOrEqual(640);
+});
+
 test("mantém a landing page legível sem cortar conteúdo em ecrãs compactos", async ({
   page,
 }) => {
