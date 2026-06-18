@@ -12,6 +12,7 @@ import { AvatarPicker } from "@/components/game/avatar-picker";
 import { GameLoading } from "@/components/game/game-loading";
 import { ProfileColorPicker } from "@/components/game/profile-color-picker";
 import { ThemePicker } from "@/components/game/theme-picker";
+import { trackGameEvent } from "@/lib/analytics/game-events";
 import { DEFAULT_AVATAR_ID, type AvatarId } from "@/lib/game/avatars";
 import {
   DEFAULT_PROFILE_COLOR,
@@ -46,6 +47,7 @@ export function RoomActions() {
   >(null);
 
   useEffect(() => {
+    trackGameEvent("landing_viewed");
     const timeout = window.setTimeout(
       () => setRecentSession(readLastPlayerSession()),
       0,
@@ -59,6 +61,10 @@ export function RoomActions() {
 
     const feedback = t("entry.nameFeedback");
     setMessage(feedback);
+    trackGameEvent("player_name_invalid", {
+      source: "home",
+      length: name.length,
+    });
     toast.error(t("entry.nameMissing"), { description: feedback });
     return null;
   }
@@ -71,6 +77,11 @@ export function RoomActions() {
     const code = makeRoomCode();
     const session = createPlayerSession(name, code, avatarId, profileColor);
     setPendingAction("creating");
+    trackGameEvent("room_create_intent", {
+      has_recent_room: Boolean(recentSession),
+      custom_avatar: avatarId !== DEFAULT_AVATAR_ID,
+      custom_color: profileColor !== DEFAULT_PROFILE_COLOR,
+    });
 
     try {
       await createRoom(code, session);
@@ -98,12 +109,21 @@ export function RoomActions() {
     if (code.length < 4) {
       const feedback = t("entry.invalidCodeFeedback");
       setMessage(feedback);
+      trackGameEvent("room_join_blocked", {
+        reason: "invalid_code",
+        code_length: code.length,
+      });
       toast.error(t("entry.invalidCode"), { description: feedback });
       return;
     }
 
     let room;
     setPendingAction("joining");
+    trackGameEvent("room_join_intent", {
+      code_length: code.length,
+      custom_avatar: avatarId !== DEFAULT_AVATAR_ID,
+      custom_color: profileColor !== DEFAULT_PROFILE_COLOR,
+    });
     try {
       room = await readRoom(code);
     } catch (error) {
@@ -116,6 +136,10 @@ export function RoomActions() {
     if (!room) {
       const feedback = t("entry.roomUnavailableFeedback");
       setMessage(feedback);
+      trackGameEvent("room_join_blocked", {
+        reason: "not_found",
+        code_length: code.length,
+      });
       toast.error(t("entry.roomUnavailable"), { description: feedback });
       setPendingAction(null);
       return;
@@ -124,6 +148,10 @@ export function RoomActions() {
     if (room.status !== "lobby") {
       const feedback = t("entry.gameStartedFeedback");
       setMessage(feedback);
+      trackGameEvent("room_join_blocked", {
+        reason: "already_started",
+        status: room.status,
+      });
       toast.error(t("entry.gameStarted"), { description: feedback });
       setPendingAction(null);
       return;
@@ -201,7 +229,10 @@ export function RoomActions() {
           className={styles.resumeButton}
           type="button"
           variant="outline"
-          onClick={() => router.push(`/sala/${recentSession.roomCode}`)}
+          onClick={() => {
+            trackGameEvent("room_resume_clicked");
+            router.push(`/sala/${recentSession.roomCode}`);
+          }}
           disabled={Boolean(pendingAction)}
         >
           <History />

@@ -5,6 +5,7 @@ import { CheckCircle2, Clock3, Send, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
+import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,33 @@ export function RoundRoom({
   const canStop = room.settings.categories.every((category) =>
     answers[category]?.trim(),
   );
+  const roomProgress = useMemo(
+    () =>
+      room.players.map((player) => {
+        const savedProgress = round.answerProgress?.[player.id];
+        const answered =
+          player.id === session.id
+            ? Math.max(savedProgress?.answered ?? 0, answeredCount)
+            : (savedProgress?.answered ?? 0);
+        const total = savedProgress?.total ?? room.settings.categories.length;
+        const completed =
+          player.id === session.id
+            ? canStop || savedProgress?.completed === true
+            : savedProgress?.completed === true;
+
+        return { player, answered, total, completed };
+      }),
+    [
+      answeredCount,
+      canStop,
+      room.players,
+      room.settings.categories.length,
+      round.answerProgress,
+      session.id,
+    ],
+  );
+  const onlineProgress = roomProgress.filter(({ player }) => player.isOnline);
+  const completedPlayers = onlineProgress.filter(({ completed }) => completed).length;
 
   useEffect(() => {
     if (remaining === 0) {
@@ -131,6 +159,47 @@ export function RoundRoom({
       </section>
 
       <Progress value={progress} className={styles.roundProgress} />
+
+      <section className={styles.roundActivity} aria-live="polite">
+        <div className={styles.roundActivityHeader}>
+          <span>{t("round.progressTitle")}</span>
+          <strong>
+            {t("round.progressSummary", {
+              completed: completedPlayers,
+              total: onlineProgress.length,
+            })}
+          </strong>
+        </div>
+        <div className={styles.roundActivityList}>
+          {roomProgress.map(({ player, answered, total, completed }) => (
+            <div
+              className={`${styles.roundActivityPlayer} ${
+                completed ? styles.roundActivityReady : ""
+              }`}
+              key={player.id}
+            >
+              <PlayerAvatar
+                avatarId={player.avatarId}
+                className={styles.roundActivityAvatar}
+                color={player.color}
+              />
+              <div>
+                <strong>
+                  {player.id === session.id
+                    ? t("round.playerYou", { name: player.name })
+                    : player.name}
+                </strong>
+                <span>
+                  {completed
+                    ? t("round.completed")
+                    : t("round.answerProgress", { answered, total })}
+                </span>
+              </div>
+              {completed && <CheckCircle2 />}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className={styles.answerBoard}>
         <div className={styles.answerBoardHeader}>

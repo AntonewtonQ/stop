@@ -7,9 +7,31 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import styles from "./page.module.css";
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "jogastop",
+  alternateName: "Joga Stop",
+  url: "https://jogastop.ao",
+  applicationCategory: "GameApplication",
+  operatingSystem: "Web, Android, iOS",
+  description:
+    "Jogo Stop online em tempo real para jogar com amigos por sala privada.",
+  image: "https://jogastop.ao/brand/jogastop-logo-instagram.png",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "AOA",
+  },
+};
+
 export default function Home() {
   return (
     <main className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <SiteHeader />
       <HeroSection />
       <FeatureStrip />

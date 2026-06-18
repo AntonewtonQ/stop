@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Download, Share2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { trackGameEvent } from "@/lib/analytics/game-events";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./install-prompt.module.css";
 
@@ -39,10 +40,12 @@ export function InstallPrompt() {
 
     function handleInstallPrompt(event: Event) {
       event.preventDefault();
+      trackGameEvent("pwa_prompt_available");
       setInstallEvent(event as BeforeInstallPromptEvent);
     }
 
     function handleInstalled() {
+      trackGameEvent("pwa_installed");
       setIsStandalone(true);
       setInstallEvent(null);
     }
@@ -58,13 +61,21 @@ export function InstallPrompt() {
 
   function dismiss() {
     window.sessionStorage.setItem("jogastop:pwa-dismissed", "1");
+    trackGameEvent("pwa_prompt_dismissed", {
+      platform: isIOS ? "ios" : "web",
+    });
     setDismissed(true);
   }
 
   async function install() {
     if (!installEvent) return;
+    trackGameEvent("pwa_install_clicked");
     await installEvent.prompt();
     const choice = await installEvent.userChoice;
+    trackGameEvent("pwa_install_choice", {
+      outcome: choice.outcome,
+      platform: choice.platform,
+    });
     if (choice.outcome === "accepted") setIsStandalone(true);
     setInstallEvent(null);
   }

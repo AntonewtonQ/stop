@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { trackGameEvent } from "@/lib/analytics/game-events";
 import {
   PRESENCE_HEARTBEAT_INTERVAL,
   ROOM_REALTIME_STALE_AFTER,
@@ -35,6 +36,8 @@ export function useRoom(code: string) {
     useState<RoomConnectionStatus>("connected");
   const roomRef = useRef<Room | null>(null);
   const lastRealtimeAtRef = useRef(0);
+  const trackedRealtimeErrorRef = useRef(false);
+  const trackedRoomStateRef = useRef("");
 
   const applyRoomUpdate = useCallback((nextRoom: Room | null) => {
     setRoom((currentRoom) => {
@@ -137,7 +140,15 @@ export function useRoom(code: string) {
 
       void refresh();
     };
-    const handleError = () => markConnectionFailure();
+    const handleError = () => {
+      if (!trackedRealtimeErrorRef.current) {
+        trackedRealtimeErrorRef.current = true;
+        trackGameEvent("room_realtime_error", {
+          online: navigator.onLine,
+        });
+      }
+      markConnectionFailure();
+    };
 
     events.addEventListener("connected", handleConnected);
     events.addEventListener("heartbeat", handleHeartbeat);
@@ -152,6 +163,22 @@ export function useRoom(code: string) {
       events.removeEventListener("error", handleError);
     };
   }, [markConnectionFailure, refresh, room?.code]);
+
+  useEffect(() => {
+    if (!room) return;
+
+    const stateKey = `${room.status}:${room.round?.number ?? 0}`;
+    if (trackedRoomStateRef.current === stateKey) return;
+    trackedRoomStateRef.current = stateKey;
+
+    trackGameEvent("room_status_seen", {
+      categories: room.settings.categories.length,
+      online_players: room.players.filter((player) => player.isOnline).length,
+      players: room.players.length,
+      round: room.round?.number ?? 0,
+      status: room.status,
+    });
+  }, [room]);
 
   useEffect(() => {
     if (!room?.code) return;

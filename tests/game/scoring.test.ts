@@ -88,12 +88,16 @@ describe("scoreRound", () => {
     expect(result.players.a.total).toBe(0);
   });
 
-  it("não cria votação para aprovar uma resposta de uma única letra", () => {
+  it("não cria votação para aprovar resposta curta sem conteúdo real", () => {
     const result = scoreRound({
       players,
       categories: ["Nome"],
       letter: "A",
-      answers: { a: { Nome: "A" } },
+      answers: {
+        a: { Nome: "A" },
+        b: { Nome: "AA" },
+        c: { Nome: "A." },
+      },
       stoppedBy: "a",
       endedAt: 100,
     });
@@ -101,6 +105,8 @@ describe("scoreRound", () => {
     expect(result.challenges).toEqual({});
     expect(result.votingComplete).toBe(true);
     expect(result.players.a.answers.Nome.points).toBe(0);
+    expect(result.players.b.answers.Nome.points).toBe(0);
+    expect(result.players.c.answers.Nome.points).toBe(0);
   });
 
   it("mantém resposta desconhecida pendente até todos os jogadores online votarem", () => {

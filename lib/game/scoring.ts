@@ -8,7 +8,7 @@ import type {
   RoundResult,
 } from "./types";
 import {
-  hasScorableLength,
+  hasScorableContent,
   isKnownAnswer,
   normalizeAnswer,
   startsWithLetter,
@@ -62,7 +62,7 @@ function buildChallenges({
       const answer = answers[player.id]?.[category]?.trim() ?? "";
       if (
         !startsWithLetter(answer, letter) ||
-        !hasScorableLength(answer) ||
+        !hasScorableContent(answer) ||
         isKnownAnswer(category, answer)
       ) {
         continue;
@@ -129,7 +129,7 @@ export function scoreRound({
         const challenge = challenges[makeChallengeId(category, answer)];
         const accepted =
           startsWithLetter(answer, letter) &&
-          hasScorableLength(answer) &&
+          hasScorableContent(answer) &&
           (isKnownAnswer(category, answer) || challenge?.status === "approved");
 
         return { playerId: player.id, answer, accepted };
@@ -150,7 +150,7 @@ export function scoreRound({
       const challenge = challenges[makeChallengeId(category, answer)];
       const known = isKnownAnswer(category, answer);
       const startsCorrectly = startsWithLetter(answer, letter);
-      const hasEnoughContent = hasScorableLength(answer);
+      const hasEnoughContent = hasScorableContent(answer);
       let score: AnswerScore = {
         answer,
         points: 0,

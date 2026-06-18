@@ -576,6 +576,30 @@ test("publica a autorização do Google AdSense em ads.txt", async ({
   );
 });
 
+test("publica metadata SEO, robots e sitemap públicos", async ({ request }) => {
+  const home = await request.get("/");
+  const html = await home.text();
+
+  expect(home.ok()).toBe(true);
+  expect(html).toContain("jogastop | Jogo Stop Online");
+  expect(html).toContain('property="og:title"');
+  expect(html).toContain("https://jogastop.ao");
+  expect(html).toContain("application/ld+json");
+
+  const robots = await request.get("/robots.txt");
+  const robotsText = await robots.text();
+  expect(robots.ok()).toBe(true);
+  expect(robotsText).toContain("Disallow: /api/");
+  expect(robotsText).toContain("Disallow: /sala/");
+  expect(robotsText).toContain("Sitemap: https://jogastop.ao/sitemap.xml");
+
+  const sitemap = await request.get("/sitemap.xml");
+  const sitemapText = await sitemap.text();
+  expect(sitemap.ok()).toBe(true);
+  expect(sitemapText).toContain("<loc>https://jogastop.ao</loc>");
+  expect(sitemapText).toContain("<loc>https://jogastop.ao/privacidade</loc>");
+});
+
 test("publica a política de privacidade e consentimento nos três idiomas", async ({
   page,
 }) => {

@@ -1067,6 +1067,91 @@
   background: var(--amber);
 }
 
+.roundActivity {
+  width: min(100%, 68rem);
+  margin: 0 auto 1rem;
+  padding: 0.8rem;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 1.1rem;
+  background: rgb(255 255 255 / 7%);
+  color: white;
+}
+
+.roundActivityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.roundActivityHeader span {
+  color: rgb(255 255 255 / 52%);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.roundActivityHeader strong {
+  color: var(--amber);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.roundActivityList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.roundActivityPlayer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.55rem;
+  align-items: center;
+  min-width: 0;
+  padding: 0.55rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 0.85rem;
+  background: rgb(255 255 255 / 7%);
+}
+
+.roundActivityReady {
+  border-color: rgb(var(--accent-rgb) / 34%);
+  background: rgb(var(--accent-rgb) / 12%);
+}
+
+.roundActivityAvatar {
+  width: 2rem;
+  height: 2rem;
+}
+
+.roundActivityPlayer > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.08rem;
+}
+
+.roundActivityPlayer strong {
+  overflow: hidden;
+  font-size: 0.64rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roundActivityPlayer span {
+  color: rgb(255 255 255 / 48%);
+  font-size: 0.56rem;
+  font-weight: 750;
+}
+
+.roundActivityPlayer > svg {
+  width: 1rem;
+  color: var(--amber);
+}
+
 .answerBoard {
   width: min(100%, 68rem);
   margin: 0 auto;
@@ -2270,6 +2355,27 @@
   .roundProgress {
     height: 0.5rem;
     margin-bottom: 0.75rem;
+  }
+
+  .roundActivity {
+    padding: 0.65rem;
+    border-radius: 1rem;
+  }
+
+  .roundActivityHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .roundActivityList {
+    grid-template-columns: 1fr;
+    max-height: 8.5rem;
+    overflow: auto;
+  }
+
+  .roundActivityPlayer {
+    padding: 0.5rem;
   }
 
   .letterGrid {

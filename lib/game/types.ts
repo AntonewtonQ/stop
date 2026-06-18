@@ -78,6 +78,13 @@ export type RoundResult = {
   votingComplete: boolean;
 };
 
+export type RoundAnswerProgress = {
+  playerId: string;
+  answered: number;
+  total: number;
+  completed: boolean;
+};
+
 export type RoundState = {
   number: number;
   commanderId: string;
@@ -87,6 +94,7 @@ export type RoundState = {
   stoppedAt: number | null;
   stoppedBy: string | null;
   answers: Record<string, RoundAnswers>;
+  answerProgress?: Record<string, RoundAnswerProgress>;
   result: RoundResult | null;
 };
 

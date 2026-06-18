@@ -220,6 +220,10 @@ describe("Route Handlers", () => {
     );
 
     expect(publicRoom.room?.round?.answers).toEqual({});
+    expect(publicRoom.room?.round?.answerProgress).toMatchObject({
+      [host.id]: { answered: 1, total: 5, completed: false },
+      [guest.id]: { answered: 1, total: 5, completed: false },
+    });
     expect(hostRoom.room?.round?.answers).toEqual({
       [host.id]: { Nome: "Ana" },
     });
