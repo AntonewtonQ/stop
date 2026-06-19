@@ -111,7 +111,13 @@ test("envia eventos de performance para criação, entrada, STOP e voto", async 
 
   await host.getByRole("button", { name: "Gritar STOP" }).click();
   await expect(guest.getByRole("button", { name: "Aceitar" }).first()).toBeVisible();
+  await expect(guest.getByText("Resumo da rodada")).toBeVisible();
+  await expect(guest.getByText("Quem parou")).toBeVisible();
+  await expect(guest.getByText("Quem completou")).toBeVisible();
+  await expect(guest.getByText("Falta votar").first()).toBeVisible();
+  await expect(guest.getByText("Ainda sem votos").first()).toBeVisible();
   await guest.getByRole("button", { name: "Aceitar" }).first().click();
+  await expect(guest.getByText(/Beto \(tu\) aceitou/).first()).toBeVisible();
 
   await expect
     .poll(() => readAnalyticsEventNames(host))

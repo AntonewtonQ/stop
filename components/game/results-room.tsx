@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  CheckCircle2,
   Flag,
   Scale,
   Trophy,
@@ -58,6 +59,11 @@ export function ResultsRoom({
     (challenge) => challenge.status === "pending",
   );
   const stoppedBy = room.players.find((player) => player.id === result.stoppedBy);
+  const completedPlayers = room.players.filter((player) =>
+    room.settings.categories.every((category) =>
+      round.answers[player.id]?.[category]?.trim(),
+    ),
+  );
   const ranking = [...room.players]
     .map((player) => ({
       ...player,
@@ -228,6 +234,43 @@ export function ResultsRoom({
         </section>
 
         <aside className={styles.rankingPanel}>
+          <section className={styles.roundRecapPanel}>
+            <span>{t("results.roundSnapshot")}</span>
+            <div className={styles.roundRecapGrid}>
+              <article className={styles.roundRecapCard}>
+                <Flag />
+                <div>
+                  <small>{t("results.whoStopped")}</small>
+                  <strong>
+                    {stoppedBy?.name ?? t("results.timerStopped")}
+                  </strong>
+                </div>
+              </article>
+              <article className={styles.roundRecapCard}>
+                <CheckCircle2 />
+                <div>
+                  <small>{t("results.whoCompleted")}</small>
+                  {completedPlayers.length > 0 ? (
+                    <div className={styles.roundRecapPlayers}>
+                      {completedPlayers.map((player) => (
+                        <span className={styles.roundRecapPlayer} key={player.id}>
+                          <PlayerAvatar
+                            avatarId={player.avatarId}
+                            className={styles.roundRecapAvatar}
+                            color={player.color}
+                          />
+                          {player.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <strong>{t("results.noCompletedPlayers")}</strong>
+                  )}
+                </div>
+              </article>
+            </div>
+          </section>
+
           <div className={styles.panelTitle}>
             <UsersRound />
             <div>

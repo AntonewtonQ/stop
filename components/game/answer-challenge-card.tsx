@@ -32,6 +32,19 @@ export function AnswerChallengeCard({
     (player) =>
       player.isOnline && !challenge.playerIds.includes(player.id),
   );
+  const votedPlayers = Object.entries(challenge.votes)
+    .map(([playerId, vote]) => ({
+      player: players.find((candidate) => candidate.id === playerId),
+      vote,
+    }))
+    .filter(
+      (entry): entry is { player: Player; vote: AnswerVote } =>
+        entry.player !== undefined,
+    );
+  const missingVoters = eligibleVoters.filter(
+    (player) => challenge.votes[player.id] === undefined,
+  );
+  const recentVotes = votedPlayers.slice(-3).reverse();
   const canVote =
     challenge.status === "pending" &&
     eligibleVoters.some((player) => player.id === sessionId);
@@ -60,6 +73,40 @@ export function AnswerChallengeCard({
             total: eligibleVoters.length,
           })}
         </small>
+        <div className={styles.challengeVoteTrail}>
+          {challenge.status === "pending" && (
+            <div>
+              <span>{t("challenge.missingVotes")}</span>
+              <strong>
+                {formatPlayerNames(
+                  missingVoters,
+                  sessionId,
+                  t("challenge.noMissingVotes"),
+                  t("common.you"),
+                )}
+              </strong>
+            </div>
+          )}
+          <div>
+            <span>{t("challenge.recentVotes")}</span>
+            <strong>
+              {recentVotes.length > 0
+                ? recentVotes
+                    .map(({ player, vote }) =>
+                      t("challenge.recentVote", {
+                        name: player.id === sessionId
+                          ? `${player.name} (${t("common.you")})`
+                          : player.name,
+                        vote: vote === "approve"
+                          ? t("challenge.voteAcceptShort")
+                          : t("challenge.voteRejectShort"),
+                      }),
+                    )
+                    .join(", ")
+                : t("challenge.noVotesYet")}
+            </strong>
+          </div>
+        </div>
       </div>
 
       {canVote ? (
@@ -98,4 +145,19 @@ export function AnswerChallengeCard({
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatPlayerNames(
+  players: Player[],
+  sessionId: string,
+  fallback: string,
+  youLabel: string,
+) {
+  if (players.length === 0) return fallback;
+
+  return players
+    .map((player) =>
+      player.id === sessionId ? `${player.name} (${youLabel})` : player.name,
+    )
+    .join(", ");
 }
