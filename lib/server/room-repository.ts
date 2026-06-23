@@ -2,6 +2,12 @@ import "server-only";
 
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { PRESENCE_DISCONNECT_GRACE } from "@/lib/game/constants";
+import {
+  buildAdminDashboardStats,
+  buildWeeklyRankingSnapshot,
+  weeklyWindowStart,
+} from "@/lib/server/admin-insights";
+import { getRecentServerErrors } from "@/lib/server/admin-events";
 import { assertProductionDatabaseConfigured } from "./database";
 
 export { RoomRepositoryError } from "./room-repository-error";
@@ -86,6 +92,28 @@ export async function updateStoredPresence(
   return withAutomaticCleanup(async () => {
     const adapter = await getAdapter();
     return adapter.updateStoredPresence(code, playerId, token, isOnline);
+  });
+}
+
+export async function getWeeklyRanking(now = Date.now()) {
+  const adapter = await getAdapter();
+  const rooms = await adapter.listRoomsForInsights({
+    since: weeklyWindowStart(now),
+    limit: 1000,
+  });
+
+  return buildWeeklyRankingSnapshot(rooms, now);
+}
+
+export async function getAdminDashboardStats(now = Date.now()) {
+  const adapter = await getAdapter();
+  const rooms = await adapter.listRoomsForInsights({ limit: 1000 });
+
+  return buildAdminDashboardStats({
+    rooms,
+    database: isPostgresConfigured() ? "postgresql" : "sqlite",
+    recentErrors: getRecentServerErrors(),
+    now,
   });
 }
 

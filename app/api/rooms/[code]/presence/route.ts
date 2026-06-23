@@ -3,6 +3,7 @@ import {
   RoomRepositoryError,
   updateStoredPresence,
 } from "@/lib/server/room-repository";
+import { recordServerError } from "@/lib/server/admin-events";
 import { publishRoomUpdate } from "@/lib/server/realtime";
 import { getRoomView } from "@/lib/server/room-view";
 
@@ -37,6 +38,7 @@ export async function POST(
       return Response.json({ error: error.message }, { status: error.status });
     }
 
+    recordServerError("api.rooms.presence", error);
     console.error(error);
     return Response.json(
       { error: "Algo correu mal. Tenta novamente." },

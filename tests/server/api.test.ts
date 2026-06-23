@@ -1,17 +1,23 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { GET as getRoomRoute } from "@/app/api/rooms/[code]/route";
+import { GET as adminSummaryRoute } from "@/app/api/admin/summary/route";
 import { POST as actionRoute } from "@/app/api/rooms/[code]/actions/route";
 import { GET as eventsRoute } from "@/app/api/rooms/[code]/events/route";
 import { POST as joinRoute } from "@/app/api/rooms/[code]/join/route";
 import { POST as presenceRoute } from "@/app/api/rooms/[code]/presence/route";
 import { POST as createRoute } from "@/app/api/rooms/route";
 import { GET as healthRoute } from "@/app/api/health/route";
+import { GET as rankingRoute } from "@/app/api/ranking/weekly/route";
 import {
   GET as cleanupCronRoute,
   POST as cleanupRoute,
 } from "@/app/api/maintenance/cleanup/route";
 import type { PlayerSession, Room } from "@/lib/game/types";
+import type {
+  AdminDashboardStats,
+  WeeklyRankingSnapshot,
+} from "@/lib/admin/types";
 import { getDatabase } from "@/lib/server/database-sqlite";
 import { clearTestDatabase, makeSession } from "../helpers/game";
 
@@ -98,6 +104,67 @@ describe("Route Handlers", () => {
 
     expect(response.status).toBe(200);
     delete process.env.CRON_SECRET;
+  });
+
+  it("protege o admin e expõe ranking semanal sem login", async () => {
+    const code = "RNK01";
+    const host = makeSession("Ana", code);
+    const answers = {
+      Nome: "Ana",
+      País: "Angola",
+      Comida: "Arroz",
+      Profissão: "Actor",
+      Animal: "Antílope",
+    };
+
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
+    for (const [type, payload] of [
+      ["start-game", {}],
+      ["choose-letter", { letter: "A" }],
+      ["finish-round", { answers }],
+    ] as const) {
+      await actionRoute(
+        jsonRequest(`http://jogastop.test/api/rooms/${code}/actions`, {
+          actor: actor(host),
+          type,
+          payload,
+        }),
+        context(code),
+      );
+    }
+
+    const rankingResponse = await rankingRoute();
+    const ranking = (await rankingResponse.json()) as WeeklyRankingSnapshot;
+    process.env.ADMIN_PASSWORD = "admin-test-password";
+    const unauthorized = await adminSummaryRoute(
+      new Request("http://jogastop.test/api/admin/summary"),
+    );
+    const authorized = await adminSummaryRoute(
+      new Request("http://jogastop.test/api/admin/summary", {
+        headers: { authorization: "Bearer admin-test-password" },
+      }),
+    );
+    const cleanupWithAdminPassword = await cleanupRoute(
+      new Request("http://jogastop.test/api/maintenance/cleanup", {
+        method: "POST",
+        headers: { authorization: "Bearer admin-test-password" },
+      }),
+    );
+    const summary = (await authorized.json()) as AdminDashboardStats;
+
+    expect(rankingResponse.status).toBe(200);
+    expect(ranking.ranking[0]).toMatchObject({
+      name: "Ana",
+      gamesCompleted: 1,
+      wins: 1,
+    });
+    expect(ranking.ranking[0]?.points).toBeGreaterThan(0);
+    expect(unauthorized.status).toBe(401);
+    expect(authorized.status).toBe(200);
+    expect(cleanupWithAdminPassword.status).toBe(401);
+    expect(summary.usage.finishedRooms).toBe(1);
+    expect(summary.weeklyRanking[0]?.name).toBe("Ana");
+    delete process.env.ADMIN_PASSWORD;
   });
 
   it("executa criação, entrada e acções autenticadas", async () => {

@@ -6,6 +6,7 @@ import {
   createStoredRoom,
   RoomRepositoryError,
 } from "@/lib/server/room-repository";
+import { recordServerError } from "@/lib/server/admin-events";
 import { getRoomView } from "@/lib/server/room-view";
 import { publishRoomUpdate } from "@/lib/server/realtime";
 
@@ -67,6 +68,7 @@ function handleError(error: unknown) {
     return Response.json({ error: error.message }, { status: error.status });
   }
 
+  recordServerError("api.rooms.create", error);
   console.error(error);
   return Response.json(
     { error: "Algo correu mal. Tenta novamente." },

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/language-provider";
@@ -17,6 +19,7 @@ export function SiteHeader() {
       <nav className={styles.nav} aria-label={t("landing.navAria")}>
         <a href="#pontuacao">{t("landing.scoreNav")}</a>
         <a href="#como-jogar">{t("landing.howNav")}</a>
+        <Link href="/ranking">{t("landing.rankingNav")}</Link>
       </nav>
 
       <Button asChild variant="outline" className={styles.headerCta}>

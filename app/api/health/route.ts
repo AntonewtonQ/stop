@@ -1,4 +1,5 @@
 import { checkDatabaseHealth } from "@/lib/server/database";
+import { recordServerError } from "@/lib/server/admin-events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +20,7 @@ export async function GET() {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
+    recordServerError("api.health", error);
     console.error(error);
     return Response.json(
       { status: "error", service: "jogastop" },

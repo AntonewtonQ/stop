@@ -72,6 +72,11 @@ type AnswerRow = {
   answer: string;
 };
 
+type ListRoomsOptions = {
+  since?: number;
+  limit?: number;
+};
+
 function parseJson<T>(value: T | string): T {
   return typeof value === "string" ? (JSON.parse(value) as T) : value;
 }
@@ -194,6 +199,39 @@ async function getRoomFrom(database: Queryable, code: string) {
 export async function getRoom(code: string) {
   await ensurePostgresSchema();
   return withPostgresRetry(() => getRoomFrom(getPostgresPool(), code));
+}
+
+export async function listRoomsForInsights({
+  since,
+  limit = 1000,
+}: ListRoomsOptions = {}) {
+  await ensurePostgresSchema();
+  const safeLimit = Math.max(1, Math.min(limit, 5000));
+
+  return withPostgresRetry(async () => {
+    const database = getPostgresPool();
+    const result =
+      since === undefined
+        ? await database.query<{ code: string }>(
+            "SELECT code FROM rooms ORDER BY updated_at DESC LIMIT $1",
+            [safeLimit],
+          )
+        : await database.query<{ code: string }>(
+            `SELECT code FROM rooms
+             WHERE updated_at >= $1
+             ORDER BY updated_at DESC
+             LIMIT $2`,
+            [since, safeLimit],
+          );
+    const rooms: Room[] = [];
+
+    for (const row of result.rows) {
+      const room = await getRoomFrom(database, row.code);
+      if (room) rooms.push(room);
+    }
+
+    return rooms;
+  });
 }
 
 async function persistRoom(

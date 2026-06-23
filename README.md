@@ -189,6 +189,7 @@ partida chegam a instâncias diferentes.
      `-pooler` no hostname;
    - `CRON_SECRET` com um segredo longo para a limpeza diária;
    - `MAINTENANCE_SECRET` com outro segredo longo para limpezas manuais;
+   - `ADMIN_PASSWORD` com a palavra-passe usada para entrar em `/admin`;
    - `POSTGRES_CONNECTION_TIMEOUT_MS=30000`;
    - `ROOM_RETENTION_ACTIVE_HOURS=24`;
    - `ROOM_RETENTION_FINISHED_HOURS=168`;
@@ -233,8 +234,9 @@ Node.js `24.14.1` e utiliza PostgreSQL quando `DATABASE_URL` estiver definida.
 6. Cria uma sala de teste, faz outro deploy e confirma que a sala continua
    disponível.
 
-Não coloques `DATABASE_URL`, `CRON_SECRET` ou `MAINTENANCE_SECRET` no Git. O
-ficheiro `.env.example` documenta as variáveis sem expor segredos.
+Não coloques `DATABASE_URL`, `CRON_SECRET`, `MAINTENANCE_SECRET` ou
+`ADMIN_PASSWORD` no Git. O ficheiro `.env.example` documenta as variáveis sem
+expor segredos.
 
 As salas existentes no SQLite temporário do Render não são copiadas
 automaticamente para a Neon. A activação causa um reset único das salas abertas;
@@ -294,6 +296,8 @@ Variáveis disponíveis:
 - `POST /api/rooms/[code]/presence` — actualiza presença e reconcilia liderança;
 - `GET /api/rooms/[code]/events` — mantém o canal SSE realtime da sala.
 - `GET /api/health` — valida o processo Node e a ligação à base de dados.
+- `GET /api/admin/summary` — alimenta o painel interno `/admin` com Bearer
+  através de `ADMIN_PASSWORD` ou `MAINTENANCE_SECRET`.
 - `GET|POST /api/maintenance/cleanup` — remove salas antigas com autorização
   Bearer através de `CRON_SECRET` ou `MAINTENANCE_SECRET`.
 

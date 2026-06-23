@@ -1,0 +1,251 @@
+.page {
+  min-height: 100vh;
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at 85% 8%, rgb(var(--accent-rgb) / 20%), transparent 20rem),
+    linear-gradient(180deg, #fffefa 0%, #f7f3ed 100%);
+  color: var(--petroleum);
+}
+
+.header,
+.hero,
+.meta,
+.ranking,
+.empty {
+  width: min(100%, 64rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0 2rem;
+}
+
+.header a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.playButton {
+  min-height: 2.8rem;
+  padding: 0 1rem;
+  border-radius: 0.9rem;
+  font-weight: 900;
+}
+
+.hero {
+  padding: 2rem;
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 1.8rem 4rem rgb(var(--primary-rgb) / 10%);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--amber-deep);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow svg {
+  width: 1rem;
+}
+
+.hero h1 {
+  max-width: 11ch;
+  margin: 1rem 0 0;
+  font-size: clamp(2.9rem, 9vw, 6rem);
+  font-weight: 900;
+  letter-spacing: -0.085em;
+  line-height: 0.9;
+}
+
+.hero p {
+  max-width: 38rem;
+  color: var(--brand-muted);
+  font-weight: 650;
+  line-height: 1.75;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.meta article {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
+  border-radius: 1.2rem;
+  background: white;
+}
+
+.meta svg {
+  width: 1.35rem;
+  color: var(--amber-deep);
+}
+
+.meta span {
+  display: block;
+  color: var(--brand-muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meta strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+}
+
+.ranking {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0 0 2rem;
+  list-style: none;
+}
+
+.ranking li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
+  border-radius: 1.2rem;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 1rem 2.5rem rgb(var(--primary-rgb) / 7%);
+}
+
+.ranking li.champion {
+  border-color: rgb(var(--accent-rgb) / 45%);
+  background:
+    linear-gradient(135deg, rgb(var(--accent-rgb) / 18%), transparent 52%),
+    white;
+}
+
+.position {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--petroleum);
+  color: white;
+  font-weight: 900;
+}
+
+.champion .position {
+  background: var(--amber);
+  color: var(--petroleum);
+}
+
+.player {
+  min-width: 0;
+}
+
+.player strong {
+  display: block;
+  overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player small {
+  color: var(--brand-muted);
+  font-weight: 650;
+}
+
+.ranking b {
+  color: var(--amber-deep);
+  font-size: 1.6rem;
+  font-weight: 950;
+  letter-spacing: -0.06em;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1.25rem;
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
+  border-radius: 1.5rem;
+  background: white;
+  text-align: center;
+}
+
+.empty svg {
+  width: 2rem;
+  color: var(--amber-deep);
+}
+
+.empty h2,
+.empty p {
+  margin: 0;
+}
+
+.empty h2 {
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.empty p {
+  max-width: 24rem;
+  color: var(--brand-muted);
+  font-weight: 650;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 0.85rem;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .playButton {
+    width: 100%;
+  }
+
+  .hero {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.55rem, 14vw, 4.2rem);
+  }
+
+  .meta {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ranking b {
+    grid-column: 2;
+    font-size: 1.35rem;
+  }
+}

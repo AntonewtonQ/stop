@@ -59,6 +59,11 @@ type AnswerRow = {
   answer: string;
 };
 
+type ListRoomsOptions = {
+  since?: number;
+  limit?: number;
+};
+
 function parseJson<T>(value: string): T {
   return JSON.parse(value) as T;
 }
@@ -158,6 +163,31 @@ export function getRoom(code: string): Room | null {
     history: rounds.filter((round) => round.result !== null),
     updatedAt: roomRow.updated_at,
   });
+}
+
+export function listRoomsForInsights({
+  since,
+  limit = 1000,
+}: ListRoomsOptions = {}) {
+  const database = getDatabase();
+  const safeLimit = Math.max(1, Math.min(limit, 5000));
+  const rows =
+    since === undefined
+      ? (database
+          .prepare("SELECT code FROM rooms ORDER BY updated_at DESC LIMIT ?")
+          .all(safeLimit) as Array<{ code: string }>)
+      : (database
+          .prepare(
+            `SELECT code FROM rooms
+             WHERE updated_at >= ?
+             ORDER BY updated_at DESC
+             LIMIT ?`,
+          )
+          .all(since, safeLimit) as Array<{ code: string }>);
+
+  return rows
+    .map((row) => getRoom(row.code))
+    .filter((room): room is Room => Boolean(room));
 }
 
 function persistRoom(room: Room, sessionTokens: Record<string, string> = {}) {

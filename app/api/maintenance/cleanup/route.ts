@@ -1,34 +1,11 @@
-import { timingSafeEqual } from "node:crypto";
-
+import { isAuthorizedMaintenanceRequest } from "@/lib/server/admin-auth";
 import { cleanupExpiredRooms } from "@/lib/server/room-repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function authorized(request: Request) {
-  const authorization = request.headers.get("authorization");
-  const supplied = authorization?.startsWith("Bearer ")
-    ? authorization.slice(7)
-    : "";
-  const secrets = [
-    process.env.MAINTENANCE_SECRET,
-    process.env.CRON_SECRET,
-  ].filter((secret): secret is string => Boolean(secret));
-
-  if (!supplied || secrets.length === 0) return false;
-
-  const suppliedBuffer = Buffer.from(supplied);
-  return secrets.some((secret) => {
-    const expectedBuffer = Buffer.from(secret);
-    return (
-      expectedBuffer.length === suppliedBuffer.length &&
-      timingSafeEqual(expectedBuffer, suppliedBuffer)
-    );
-  });
-}
-
 async function cleanup(request: Request) {
-  if (!authorized(request)) {
+  if (!isAuthorizedMaintenanceRequest(request)) {
     return Response.json({ error: "Não autorizado." }, { status: 401 });
   }
 

@@ -6,6 +6,7 @@ import {
   joinStoredRoom,
   RoomRepositoryError,
 } from "@/lib/server/room-repository";
+import { recordServerError } from "@/lib/server/admin-events";
 import { getRoomView } from "@/lib/server/room-view";
 import { publishRoomUpdate } from "@/lib/server/realtime";
 
@@ -29,6 +30,7 @@ export async function POST(
       return Response.json({ error: error.message }, { status: error.status });
     }
 
+    recordServerError("api.rooms.join", error);
     console.error(error);
     return Response.json(
       { error: "Algo correu mal. Tenta novamente." },

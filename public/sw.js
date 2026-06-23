@@ -1,4 +1,8 @@
 const CACHE_VERSION = "jogastop-v2";
+const IS_LOCALHOST =
+  self.location.hostname === "localhost" ||
+  self.location.hostname === "127.0.0.1" ||
+  self.location.hostname === "[::1]";
 const CORE_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -10,6 +14,11 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
+  if (IS_LOCALHOST) {
+    self.skipWaiting();
+    return;
+  }
+
   event.waitUntil(
     caches
       .open(CACHE_VERSION)
@@ -19,6 +28,17 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
+  if (IS_LOCALHOST) {
+    event.waitUntil(
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+        .then(() => self.registration.unregister())
+        .then(() => self.clients.claim()),
+    );
+    return;
+  }
+
   event.waitUntil(
     caches
       .keys()
@@ -34,6 +54,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (IS_LOCALHOST) return;
+
   const request = event.request;
   const url = new URL(request.url);
 
@@ -51,7 +73,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (
-    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/static/media/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname === "/icon.svg" ||
     url.pathname === "/manifest.webmanifest"
