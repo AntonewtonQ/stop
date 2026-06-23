@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Medal, Trophy, Users } from "lucide-react";
+import { Medal, Plus, Trophy, Users } from "lucide-react";
 
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,10 @@ export default async function RankingPage() {
           <Logo />
         </Link>
         <Button asChild className={styles.playButton}>
-          <Link href="/#jogar">Criar sala</Link>
+          <Link href="/#jogar">
+            <Plus aria-hidden="true" />
+            <span>Criar sala</span>
+          </Link>
         </Button>
       </header>
 
