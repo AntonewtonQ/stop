@@ -1,3 +1,4 @@
+import { AdSenseScript } from "@/components/ads/adsense-script";
 import { FeatureStrip } from "@/components/landing/feature-strip";
 import { HeroSection } from "@/components/landing/hero-section";
 import { HowToSection } from "@/components/landing/how-to-section";
@@ -28,6 +29,7 @@ const structuredData = {
 export default function Home() {
   return (
     <main className={styles.page}>
+      <AdSenseScript />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

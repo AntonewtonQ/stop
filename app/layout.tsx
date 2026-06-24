@@ -117,13 +117,6 @@ export default function RootLayout({
       className={`${geistSans.variable} antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          async
-          crossOrigin="anonymous"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068523374327625"
-        />
-      </head>
       <body>
         <ThemeProvider>
           <LanguageProvider>

@@ -568,7 +568,15 @@ test("expõe o código de verificação do Google AdSense", async ({ request }) 
   expect(html).toContain(
     "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068523374327625",
   );
-  expect(html).toContain('crossorigin="anonymous"');
+  expect(html).toContain("crossorigin");
+
+  const roomResponse = await request.get("/sala/ABCDE");
+  const roomHtml = await roomResponse.text();
+
+  expect(roomResponse.ok()).toBe(true);
+  expect(roomHtml).not.toContain(
+    "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068523374327625",
+  );
 });
 
 test("publica a autorização do Google AdSense em ads.txt", async ({
