@@ -13,7 +13,12 @@ import {
   DEFAULT_PROFILE_COLOR,
   isProfileColor,
 } from "@/lib/game/profile-colors";
-import type { PlayerSession, Room, RoundState } from "@/lib/game/types";
+import type {
+  PlayerSession,
+  Room,
+  RoundAnswers,
+  RoundState,
+} from "@/lib/game/types";
 import { ensureTursoSchema, getTursoClient } from "./database-turso";
 import { RoomRepositoryError } from "./room-repository-error";
 
@@ -81,6 +86,22 @@ function number(value: string | number | bigint | null | undefined) {
 
 function boolean(value: string | number | bigint | null | undefined) {
   return Boolean(number(value));
+}
+
+function answersFromResult(result: RoundState["result"]) {
+  const answers: RoundState["answers"] = {};
+  if (!result) return answers;
+
+  for (const [playerId, score] of Object.entries(result.players)) {
+    answers[playerId] = Object.fromEntries(
+      Object.entries(score.answers).map(([category, answer]) => [
+        category,
+        answer.answer,
+      ]),
+    );
+  }
+
+  return answers;
 }
 
 async function query<T>(
@@ -153,20 +174,31 @@ async function getRoomFrom(database: TursoQueryable, code: string) {
   );
   const answerRows = await query<AnswerRow>(
     database,
-    `SELECT round_number, player_id, category, answer
-     FROM answers WHERE room_code = ?`,
+    `SELECT answers.round_number, answers.player_id, answers.category, answers.answer
+     FROM answers
+     INNER JOIN rounds
+       ON rounds.room_code = answers.room_code
+      AND rounds.number = answers.round_number
+     WHERE answers.room_code = ? AND rounds.result_json IS NULL`,
     [code],
   );
 
   const rounds = roundRows.map((roundRow) => {
-    const answers: RoundState["answers"] = {};
+    const result = roundRow.result_json
+      ? parseJson<RoundState["result"]>(roundRow.result_json)
+      : null;
+    const answers: RoundState["answers"] = result
+      ? answersFromResult(result)
+      : {};
 
-    for (const answerRow of answerRows) {
-      if (Number(answerRow.round_number) !== Number(roundRow.number)) continue;
-      answers[answerRow.player_id] = {
-        ...(answers[answerRow.player_id] ?? {}),
-        [answerRow.category]: answerRow.answer,
-      };
+    if (!result) {
+      for (const answerRow of answerRows) {
+        if (Number(answerRow.round_number) !== Number(roundRow.number)) continue;
+        answers[answerRow.player_id] = {
+          ...(answers[answerRow.player_id] ?? {}),
+          [answerRow.category]: answerRow.answer,
+        };
+      }
     }
 
     return {
@@ -178,9 +210,7 @@ async function getRoomFrom(database: TursoQueryable, code: string) {
       stoppedAt: number(roundRow.stopped_at),
       stoppedBy: roundRow.stopped_by,
       answers,
-      result: roundRow.result_json
-        ? parseJson<RoundState["result"]>(roundRow.result_json)
-        : null,
+      result,
     } satisfies RoundState;
   });
 
@@ -501,6 +531,63 @@ export function mutateStoredRoom(
   });
 }
 
+export function saveStoredRoundAnswers(
+  code: string,
+  playerId: string,
+  token: string,
+  answers: RoundAnswers,
+) {
+  return withTransaction(async (database) => {
+    await authenticateWith(database, code, playerId, token);
+
+    const roomRow = await queryOne<
+      Pick<RoomRow, "categories_json" | "current_round_number" | "status">
+    >(
+      database,
+      "SELECT categories_json, current_round_number, status FROM rooms WHERE code = ?",
+      [code],
+    );
+
+    if (!roomRow) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
+    if (roomRow.status !== "round" || roomRow.current_round_number === null) {
+      throw new RoomRepositoryError("Esta acção já não está disponível.", 409);
+    }
+
+    const categories = parseJson<string[]>(roomRow.categories_json);
+    const roundNumber = Number(roomRow.current_round_number);
+
+    await execute(
+      database,
+      `DELETE FROM answers
+       WHERE room_code = ? AND round_number = ? AND player_id = ?`,
+      [code, roundNumber, playerId],
+    );
+
+    for (const category of categories) {
+      const answer = answers[category];
+      if (typeof answer !== "string") continue;
+
+      await execute(
+        database,
+        `INSERT INTO answers (
+          room_code, round_number, player_id, category, answer, points,
+          score_status, validation_status, challenge_id
+        ) VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL)`,
+        [code, roundNumber, playerId, category, answer],
+      );
+    }
+
+    await execute(database, "UPDATE rooms SET updated_at = ? WHERE code = ?", [
+      Date.now(),
+      code,
+    ]);
+
+    const room = await getRoomFrom(database, code);
+    if (!room) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
+    return room;
+  });
+}
+
 export async function authenticatePlayer(
   code: string,
   playerId: string,
@@ -567,6 +654,72 @@ export function updateStoredPresence(
         stalePlayers.rowsAffected > 0 ||
         leadershipChanged,
     };
+  });
+}
+
+export function updateStoredPresenceLight(
+  code: string,
+  playerId: string,
+  token: string,
+  isOnline: boolean,
+) {
+  return withTransaction(async (database) => {
+    await authenticateWith(database, code, playerId, token);
+
+    const previous = await queryOne<{ is_online: number }>(
+      database,
+      "SELECT is_online FROM players WHERE room_code = ? AND id = ?",
+      [code, playerId],
+    );
+    const now = Date.now();
+
+    if (isOnline) {
+      await execute(
+        database,
+        `UPDATE players SET is_online = 1, last_seen_at = ?
+         WHERE room_code = ? AND id = ?`,
+        [now, code, playerId],
+      );
+    } else {
+      await execute(
+        database,
+        `UPDATE players SET last_seen_at = ?
+         WHERE room_code = ? AND id = ?`,
+        [now, code, playerId],
+      );
+    }
+
+    const stalePlayers = await execute(
+      database,
+      `UPDATE players
+       SET is_online = 0
+       WHERE room_code = ? AND is_online = 1 AND last_seen_at < ?`,
+      [code, now - PRESENCE_DISCONNECT_GRACE],
+    );
+    const wentOnline = isOnline && !boolean(previous?.is_online);
+    const hasStalePlayers = stalePlayers.rowsAffected > 0;
+
+    if (!wentOnline && !hasStalePlayers) {
+      return { code, changed: false, updatedAt: now };
+    }
+
+    if (hasStalePlayers) {
+      const room = await getRoomFrom(database, code);
+      if (!room) throw new RoomRepositoryError("Não encontramos esta sala.", 404);
+
+      const reconciledRoom = reconcileRoomPresence(room);
+      if (reconciledRoom !== room) {
+        const nextRoom = await persistRoom(database, reconciledRoom);
+        return { code: nextRoom.code, changed: true, updatedAt: nextRoom.updatedAt };
+      }
+    }
+
+    await execute(database, "UPDATE rooms SET updated_at = ? WHERE code = ?", [
+      now,
+      code,
+    ]);
+
+    return { code, changed: true, updatedAt: now };
   });
 }
 

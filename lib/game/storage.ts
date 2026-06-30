@@ -105,6 +105,30 @@ async function requestRoom(url: string, init?: RequestInit) {
   return data.room;
 }
 
+async function requestPresence(url: string, init?: RequestInit) {
+  const response = await fetch(url, {
+    ...init,
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+  const data = (await response.json().catch(() => ({}))) as {
+    ok?: boolean;
+    error?: string;
+  };
+
+  if (!response.ok || data.ok !== true) {
+    throw new GameApiError(
+      data.error ?? "Não conseguimos actualizar a tua presença.",
+      response.status,
+    );
+  }
+
+  return data;
+}
+
 function getActor(code: string) {
   const session = readPlayerSession(code);
   if (!session) {
@@ -266,7 +290,7 @@ export function syncPlayerPresence(
   online = true,
 ) {
   const normalizedCode = normalizeRoomCode(code);
-  return requestRoom(`/api/rooms/${normalizedCode}/presence`, {
+  return requestPresence(`/api/rooms/${normalizedCode}/presence?light=1`, {
     method: "POST",
     body: JSON.stringify({
       actor: getActor(normalizedCode),
@@ -283,7 +307,7 @@ export function signalPlayerDisconnect(code: string) {
   }
 
   return navigator.sendBeacon(
-    `/api/rooms/${normalizedCode}/presence`,
+    `/api/rooms/${normalizedCode}/presence?light=1`,
     new Blob(
       [
         JSON.stringify({

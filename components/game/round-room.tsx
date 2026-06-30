@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Clock3, Send, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,6 +14,8 @@ import { finishRound, saveRoundAnswers } from "@/lib/game/storage";
 import type { PlayerSession, Room, RoundAnswers } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
 import styles from "./game.module.css";
+
+const ANSWER_AUTOSAVE_DELAY = 900;
 
 export function RoundRoom({
   room,
@@ -33,6 +35,7 @@ export function RoundRoom({
   );
   const [now, setNow] = useState(round.startedAt);
   const [isStopping, setIsStopping] = useState(false);
+  const lastSavedAnswersRef = useRef(JSON.stringify(round.answers[session.id] ?? {}));
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 250);
@@ -95,11 +98,18 @@ export function RoundRoom({
   }
 
   useEffect(() => {
+    const serializedAnswers = JSON.stringify(answers);
+    if (serializedAnswers === lastSavedAnswersRef.current) return;
+
     const timeout = window.setTimeout(() => {
-      void saveRoundAnswers(room.code, answers).catch(() => {
-        // The final answers are sent atomically when the player presses STOP.
-      });
-    }, 250);
+      void saveRoundAnswers(room.code, answers)
+        .then(() => {
+          lastSavedAnswersRef.current = serializedAnswers;
+        })
+        .catch(() => {
+          // The final answers are sent atomically when the player presses STOP.
+        });
+    }, ANSWER_AUTOSAVE_DELAY);
 
     return () => window.clearTimeout(timeout);
   }, [answers, room.code]);

@@ -6,7 +6,6 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   chooseRoundLetter,
   joinRoom,
-  saveRoundAnswers,
   startFirstRound,
 } from "@/lib/game/engine";
 import {
@@ -19,7 +18,9 @@ import {
   getRoom,
   joinStoredRoom,
   mutateStoredRoom,
+  saveStoredRoundAnswers,
   updateStoredPresence,
+  updateStoredPresenceLight,
 } from "@/lib/server/room-repository-turso";
 import { RoomRepositoryError } from "@/lib/server/room-repository-error";
 import { makeRoomWithPlayers } from "../helpers/game";
@@ -76,8 +77,11 @@ describe("RoomRepository Turso", () => {
     await mutateStoredRoom(code, sessions[0].id, sessions[0].token, (storedRoom, id) =>
       chooseRoundLetter(storedRoom, id, "A"),
     );
-    await mutateStoredRoom(code, sessions[1].id, sessions[1].token, (storedRoom, id) =>
-      saveRoundAnswers(storedRoom, id, { Nome: "Abel" }),
+    await saveStoredRoundAnswers(
+      code,
+      sessions[1].id,
+      sessions[1].token,
+      { Nome: "Abel" },
     );
     const presence = await updateStoredPresence(
       code,
@@ -91,5 +95,22 @@ describe("RoomRepository Turso", () => {
     expect(stored?.round).toMatchObject({ letter: "A" });
     expect(stored?.round?.answers[sessions[1].id]).toEqual({ Nome: "Abel" });
     expect(presence.room.players.find((player) => player.id === sessions[1].id)?.isOnline).toBe(true);
+  });
+
+  it("actualiza presença leve sem carregar a sala quando nada visível muda", async () => {
+    const { code, room, sessions } = makeRoomWithPlayers(["Ana"]);
+    await createStoredRoom(room, sessions[0].token);
+
+    const heartbeat = await updateStoredPresenceLight(
+      code,
+      sessions[0].id,
+      sessions[0].token,
+      true,
+    );
+
+    expect(heartbeat).toMatchObject({
+      code,
+      changed: false,
+    });
   });
 });

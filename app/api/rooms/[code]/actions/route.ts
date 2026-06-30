@@ -19,6 +19,7 @@ import type {
 import {
   mutateStoredRoom,
   RoomRepositoryError,
+  saveStoredRoundAnswers,
 } from "@/lib/server/room-repository";
 import { recordServerError } from "@/lib/server/admin-events";
 import { getRoomView } from "@/lib/server/room-view";
@@ -41,13 +42,28 @@ export async function POST(
     const code = normalizeRoomCode(rawCode);
     const body = (await request.json()) as ActionBody;
     const actor = parseActor(body.actor);
-    const action = parseAction(body);
-    const room = await mutateStoredRoom(code, actor.id, actor.token, action);
-    if (body.type !== "save-answers") {
-      publishRoomUpdate(room.code, room.updatedAt);
+    if (body.type === "save-answers") {
+      const room = await saveStoredRoundAnswers(
+        code,
+        actor.id,
+        actor.token,
+        parseAnswers(body.payload?.answers),
+      );
+
+      return Response.json(
+        { room: getRoomView(room, actor.id) },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     }
 
-    return Response.json({ room: getRoomView(room, actor.id) });
+    const action = parseAction(body);
+    const room = await mutateStoredRoom(code, actor.id, actor.token, action);
+    publishRoomUpdate(room.code, room.updatedAt);
+
+    return Response.json(
+      { room: getRoomView(room, actor.id) },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     if (error instanceof RoomRepositoryError) {
       return Response.json({ error: error.message }, { status: error.status });

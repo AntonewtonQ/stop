@@ -1,6 +1,7 @@
 import "server-only";
 
-import type { PlayerSession, Room } from "@/lib/game/types";
+import { saveRoundAnswers as saveRoundAnswersInMemory } from "@/lib/game/engine";
+import type { PlayerSession, Room, RoundAnswers } from "@/lib/game/types";
 import { PRESENCE_DISCONNECT_GRACE } from "@/lib/game/constants";
 import {
   buildAdminDashboardStats,
@@ -17,6 +18,27 @@ export { RoomRepositoryError } from "./room-repository-error";
 
 type RoomMutation = (room: Room, playerId: string) => Room;
 type RoomJoin = (room: Room, session: PlayerSession) => Room;
+type PresenceLightResult = {
+  code: string;
+  changed: boolean;
+  updatedAt: number;
+};
+type PresenceLightAdapter = {
+  updateStoredPresenceLight: (
+    code: string,
+    playerId: string,
+    token: string,
+    isOnline: boolean,
+  ) => Promise<PresenceLightResult> | PresenceLightResult;
+};
+type SaveAnswersAdapter = {
+  saveStoredRoundAnswers: (
+    code: string,
+    playerId: string,
+    token: string,
+    answers: RoundAnswers,
+  ) => Promise<Room> | Room;
+};
 
 const HOUR = 60 * 60 * 1000;
 const DEFAULT_ACTIVE_RETENTION_HOURS = 24;
@@ -41,6 +63,20 @@ function getAdapter() {
 function positiveNumber(value: string | undefined, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function hasLightPresenceAdapter(adapter: unknown): adapter is PresenceLightAdapter {
+  return (
+    typeof (adapter as PresenceLightAdapter).updateStoredPresenceLight ===
+    "function"
+  );
+}
+
+function hasSaveAnswersAdapter(adapter: unknown): adapter is SaveAnswersAdapter {
+  return (
+    typeof (adapter as SaveAnswersAdapter).saveStoredRoundAnswers ===
+    "function"
+  );
 }
 
 export async function getRoom(code: string) {
@@ -78,6 +114,24 @@ export async function mutateStoredRoom(
   });
 }
 
+export async function saveStoredRoundAnswers(
+  code: string,
+  playerId: string,
+  token: string,
+  answers: RoundAnswers,
+) {
+  return withAutomaticCleanup(async () => {
+    const adapter = await getAdapter();
+    if (hasSaveAnswersAdapter(adapter)) {
+      return adapter.saveStoredRoundAnswers(code, playerId, token, answers);
+    }
+
+    return adapter.mutateStoredRoom(code, playerId, token, (room, actorId) =>
+      saveRoundAnswersInMemory(room, actorId, answers),
+    );
+  });
+}
+
 export async function authenticatePlayer(
   code: string,
   playerId: string,
@@ -96,6 +150,28 @@ export async function updateStoredPresence(
   return withAutomaticCleanup(async () => {
     const adapter = await getAdapter();
     return adapter.updateStoredPresence(code, playerId, token, isOnline);
+  });
+}
+
+export async function updateStoredPresenceLight(
+  code: string,
+  playerId: string,
+  token: string,
+  isOnline: boolean,
+) {
+  return withAutomaticCleanup(async () => {
+    const adapter = await getAdapter();
+    if (hasLightPresenceAdapter(adapter)) {
+      return adapter.updateStoredPresenceLight(code, playerId, token, isOnline);
+    }
+
+    const { room, changed } = await adapter.updateStoredPresence(
+      code,
+      playerId,
+      token,
+      isOnline,
+    );
+    return { code: room.code, changed, updatedAt: room.updatedAt };
   });
 }
 

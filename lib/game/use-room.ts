@@ -6,10 +6,13 @@ import { trackGameEvent } from "@/lib/analytics/game-events";
 import {
   PRESENCE_HEARTBEAT_INTERVAL,
   ROOM_REALTIME_STALE_AFTER,
+  ROOM_SYNC_ACTIVE_CONNECTED_POLL_INTERVAL,
   ROOM_SYNC_ACTIVE_POLL_INTERVAL,
   ROOM_SYNC_FALLBACK_POLL_INTERVAL,
+  ROOM_SYNC_LOBBY_CONNECTED_POLL_INTERVAL,
   ROOM_SYNC_HIDDEN_POLL_INTERVAL,
   ROOM_SYNC_LOBBY_POLL_INTERVAL,
+  ROOM_SYNC_RESULTS_CONNECTED_POLL_INTERVAL,
   ROOM_SYNC_POLL_INTERVAL,
   ROOM_SYNC_RESULTS_POLL_INTERVAL,
 } from "./constants";
@@ -192,26 +195,33 @@ export function useRoom(code: string) {
       }
 
       const currentRoom = roomRef.current;
-
-      if (currentRoom?.status === "round") {
-        return ROOM_SYNC_ACTIVE_POLL_INTERVAL;
-      }
-
-      if (currentRoom?.status === "letter-selection") {
-        return ROOM_SYNC_ACTIVE_POLL_INTERVAL;
-      }
-
-      if (currentRoom?.status === "lobby") {
-        return ROOM_SYNC_LOBBY_POLL_INTERVAL;
-      }
-
-      if (currentRoom?.status === "results") {
-        return ROOM_SYNC_RESULTS_POLL_INTERVAL;
-      }
-
       const realtimeIsFresh =
         connectionStatus === "connected" &&
         Date.now() - lastRealtimeAtRef.current < ROOM_REALTIME_STALE_AFTER;
+
+      if (currentRoom?.status === "round") {
+        return realtimeIsFresh
+          ? ROOM_SYNC_ACTIVE_CONNECTED_POLL_INTERVAL
+          : ROOM_SYNC_ACTIVE_POLL_INTERVAL;
+      }
+
+      if (currentRoom?.status === "letter-selection") {
+        return realtimeIsFresh
+          ? ROOM_SYNC_ACTIVE_CONNECTED_POLL_INTERVAL
+          : ROOM_SYNC_ACTIVE_POLL_INTERVAL;
+      }
+
+      if (currentRoom?.status === "lobby") {
+        return realtimeIsFresh
+          ? ROOM_SYNC_LOBBY_CONNECTED_POLL_INTERVAL
+          : ROOM_SYNC_LOBBY_POLL_INTERVAL;
+      }
+
+      if (currentRoom?.status === "results") {
+        return realtimeIsFresh
+          ? ROOM_SYNC_RESULTS_CONNECTED_POLL_INTERVAL
+          : ROOM_SYNC_RESULTS_POLL_INTERVAL;
+      }
 
       return realtimeIsFresh
         ? ROOM_SYNC_POLL_INTERVAL

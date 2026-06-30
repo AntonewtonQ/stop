@@ -2,6 +2,7 @@ import { normalizeRoomCode } from "@/lib/game/engine";
 import {
   RoomRepositoryError,
   updateStoredPresence,
+  updateStoredPresenceLight,
 } from "@/lib/server/room-repository";
 import { recordServerError } from "@/lib/server/admin-events";
 import { publishRoomUpdate } from "@/lib/server/realtime";
@@ -23,6 +24,24 @@ export async function POST(
     const code = normalizeRoomCode(rawCode);
     const body = await parseBody(request);
     const actor = parseActor(body.actor);
+    const isLightRequest = isLightPresenceRequest(request);
+
+    if (isLightRequest) {
+      const result = await updateStoredPresenceLight(
+        code,
+        actor.id,
+        actor.token,
+        body.online !== false,
+      );
+
+      if (result.changed) publishRoomUpdate(result.code, result.updatedAt);
+
+      return Response.json(
+        { ok: true, changed: result.changed },
+        { headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     const { room, changed } = await updateStoredPresence(
       code,
       actor.id,
@@ -32,7 +51,10 @@ export async function POST(
 
     if (changed) publishRoomUpdate(room.code, room.updatedAt);
 
-    return Response.json({ room: getRoomView(room, actor.id) });
+    return Response.json(
+      { room: getRoomView(room, actor.id) },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     if (error instanceof RoomRepositoryError) {
       return Response.json({ error: error.message }, { status: error.status });
@@ -71,4 +93,13 @@ function parseActor(actor: PresenceBody["actor"]) {
   }
 
   return { id: actor.id, token: actor.token };
+}
+
+function isLightPresenceRequest(request: Request) {
+  const url = new URL(request.url);
+  return (
+    url.searchParams.get("light") === "1" ||
+    request.headers.get("x-stop-presence-mode") === "light" ||
+    request.headers.get("x-jogastop-presence-mode") === "light"
+  );
 }
