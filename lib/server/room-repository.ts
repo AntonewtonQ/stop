@@ -8,7 +8,10 @@ import {
   weeklyWindowStart,
 } from "@/lib/server/admin-insights";
 import { getRecentServerErrors } from "@/lib/server/admin-events";
-import { assertProductionDatabaseConfigured } from "./database";
+import {
+  assertProductionDatabaseConfigured,
+  getConfiguredDatabaseDriver,
+} from "./database";
 
 export { RoomRepositoryError } from "./room-repository-error";
 
@@ -22,16 +25,17 @@ const DEFAULT_CLEANUP_INTERVAL_MINUTES = 15;
 
 let lastCleanupAt = 0;
 
-function isPostgresConfigured() {
-  return Boolean(process.env.DATABASE_URL);
-}
-
 function getAdapter() {
   assertProductionDatabaseConfigured();
 
-  return isPostgresConfigured()
-    ? import("./room-repository-postgres")
-    : import("./room-repository-sqlite");
+  switch (getConfiguredDatabaseDriver()) {
+    case "turso":
+      return import("./room-repository-turso");
+    case "postgresql":
+      return import("./room-repository-postgres");
+    case "sqlite":
+      return import("./room-repository-sqlite");
+  }
 }
 
 function positiveNumber(value: string | undefined, fallback: number) {
@@ -111,7 +115,7 @@ export async function getAdminDashboardStats(now = Date.now()) {
 
   return buildAdminDashboardStats({
     rooms,
-    database: isPostgresConfigured() ? "postgresql" : "sqlite",
+    database: getConfiguredDatabaseDriver(),
     recentErrors: getRecentServerErrors(),
     now,
   });

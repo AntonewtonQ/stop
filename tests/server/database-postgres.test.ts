@@ -35,19 +35,41 @@ describe("configuração PostgreSQL", () => {
     expect(isTransientPostgresError({ code: "23505" })).toBe(false);
   });
 
-  it("exige PostgreSQL quando a aplicação está na Vercel", () => {
+  it("exige uma base persistente quando a aplicação está na Vercel", () => {
     const previousVercel = process.env.VERCEL;
     const previousDatabaseUrl = process.env.DATABASE_URL;
+    const previousTursoDatabaseUrl = process.env.TURSO_DATABASE_URL;
     process.env.VERCEL = "1";
     delete process.env.DATABASE_URL;
+    delete process.env.TURSO_DATABASE_URL;
 
     expect(() => assertProductionDatabaseConfigured()).toThrow(
-      "DATABASE_URL is required on Vercel",
+      "TURSO_DATABASE_URL or DATABASE_URL is required on Vercel",
     );
 
     if (previousVercel === undefined) delete process.env.VERCEL;
     else process.env.VERCEL = previousVercel;
     if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
     else process.env.DATABASE_URL = previousDatabaseUrl;
+    if (previousTursoDatabaseUrl === undefined) delete process.env.TURSO_DATABASE_URL;
+    else process.env.TURSO_DATABASE_URL = previousTursoDatabaseUrl;
+  });
+
+  it("aceita Turso como base persistente na Vercel", () => {
+    const previousVercel = process.env.VERCEL;
+    const previousDatabaseUrl = process.env.DATABASE_URL;
+    const previousTursoDatabaseUrl = process.env.TURSO_DATABASE_URL;
+    process.env.VERCEL = "1";
+    process.env.TURSO_DATABASE_URL = "libsql://jogastop-example.turso.io";
+    delete process.env.DATABASE_URL;
+
+    expect(() => assertProductionDatabaseConfigured()).not.toThrow();
+
+    if (previousVercel === undefined) delete process.env.VERCEL;
+    else process.env.VERCEL = previousVercel;
+    if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
+    else process.env.DATABASE_URL = previousDatabaseUrl;
+    if (previousTursoDatabaseUrl === undefined) delete process.env.TURSO_DATABASE_URL;
+    else process.env.TURSO_DATABASE_URL = previousTursoDatabaseUrl;
   });
 });

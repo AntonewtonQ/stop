@@ -61,7 +61,7 @@ O projecto já possui um MVP online jogável:
 - API HTTP para todas as operações da partida;
 - actualizações realtime através de Server-Sent Events com consulta periódica
   como fallback entre instâncias;
-- PostgreSQL/Neon em produção e SQLite local para salas, jogadores, rodadas,
+- Turso/libSQL em produção e SQLite local para salas, jogadores, rodadas,
   respostas e votos;
 - limpeza automática e configurável de salas antigas;
 - Vercel Web Analytics para métricas anónimas de visitas;
@@ -138,15 +138,15 @@ mostra o estado de reconexão até a internet voltar.
 O backend utiliza Route Handlers do Next.js e escolhe a base de dados através
 do ambiente:
 
-- com `DATABASE_URL`, utiliza PostgreSQL/Neon;
-- sem `DATABASE_URL`, utiliza SQLite nativo do Node em `data/jogastop.db`;
+- com `TURSO_DATABASE_URL`, utiliza Turso/libSQL;
+- com `DATABASE_URL` e sem `TURSO_DATABASE_URL`, utiliza PostgreSQL como fallback;
+- sem URLs remotas, utiliza SQLite nativo do Node em `data/jogastop.db`;
 - jogadores, rodadas, respostas, desafios e votos possuem tabelas próprias;
 - cada mutação é validada pelo servidor e executada numa transacção;
-- no PostgreSQL, a sala é bloqueada durante cada mutação para evitar conflitos
-  entre acções simultâneas;
-- a ligação PostgreSQL tolera o cold start da Neon, repete aquisições de ligação
-  transitórias e usa verificação SSL completa;
-- o esquema PostgreSQL é criado automaticamente na primeira ligação;
+- no Turso, cada mutação usa uma transacção `write` para serializar alterações
+  de sala e evitar conflitos entre acções simultâneas;
+- a ligação PostgreSQL continua disponível como fallback de rollback;
+- o esquema Turso/libSQL é criado automaticamente na primeira ligação;
 - tokens privados autorizam as acções e são guardados como hashes SHA-256;
 - a identidade do jogador é guardada em `localStorage` e recuperada ao reabrir
   o navegador;
@@ -169,39 +169,39 @@ do ambiente:
 - salas com jogadores online recentes nunca são removidas pela limpeza.
 
 O SQLite é adequado para desenvolvimento, demonstração e uma única instância do
-servidor. O PostgreSQL/Neon é a persistência recomendada para produção.
+servidor. O Turso/libSQL é a persistência recomendada para produção na Vercel.
 
 ## Publicar gratuitamente
 
 ### Vercel
 
-A aplicação está preparada para a **Vercel Hobby** com PostgreSQL/Neon. O
-ficheiro `vercel.json` activa uma limpeza diária às `03:00 UTC`, e a
-sincronização periódica mantém as salas consistentes quando pedidos da mesma
-partida chegam a instâncias diferentes.
+A aplicação está preparada para a **Vercel Hobby** com Turso/libSQL em
+`https://jogastop.ao`. O ficheiro `vercel.json` activa uma limpeza diária às
+`03:00 UTC`, e a sincronização periódica mantém as salas consistentes quando
+pedidos da mesma partida chegam a instâncias diferentes.
 
 1. Envia estas alterações para o GitHub.
 2. Na [Vercel](https://vercel.com/), escolhe **Add New → Project** e importa o
    repositório do `jogastop`.
 3. Mantém o framework detectado como **Next.js** e o build padrão.
 4. Em **Environment Variables**, adiciona para `Production`:
-   - `DATABASE_URL` com a connection string **pooled** da Neon, contendo
-     `-pooler` no hostname;
+   - `TURSO_DATABASE_URL` com a URL libSQL da base Turso;
+   - `TURSO_AUTH_TOKEN` com um token de acesso à base Turso;
    - `CRON_SECRET` com um segredo longo para a limpeza diária;
    - `MAINTENANCE_SECRET` com outro segredo longo para limpezas manuais;
    - `ADMIN_PASSWORD` com a palavra-passe usada para entrar em `/admin`;
-   - `POSTGRES_CONNECTION_TIMEOUT_MS=30000`;
    - `ROOM_RETENTION_ACTIVE_HOURS=24`;
    - `ROOM_RETENTION_FINISHED_HOURS=168`;
    - `ROOM_CLEANUP_INTERVAL_MINUTES=15`.
-5. Publica e abre `/api/health`. A resposta deve incluir
-   `"database":"postgresql"`.
-6. Cria uma sala e testa a entrada através de outro navegador ou telemóvel.
+5. Garante que o domínio `jogastop.ao` está ligado ao projecto na Vercel.
+6. Publica e abre `https://jogastop.ao/api/health`. A resposta deve incluir
+   `"database":"turso"`.
+7. Cria uma sala e testa a entrada através de outro navegador ou telemóvel.
 
 A Vercel utiliza Node.js `24.x`, executa o Cron apenas no deployment de
 produção e envia automaticamente `Authorization: Bearer <CRON_SECRET>`. Sem
-`DATABASE_URL`, o backend recusa iniciar na Vercel para impedir perda de salas
-num SQLite temporário.
+`TURSO_DATABASE_URL` ou `DATABASE_URL`, o backend recusa iniciar na Vercel para
+impedir perda de salas num SQLite temporário.
 
 ### Render
 
@@ -212,34 +212,33 @@ Esta opção mantém todas as ligações SSE na mesma instância.
 2. Cria uma conta em [Render](https://render.com/).
 3. No dashboard, escolhe **New → Blueprint**.
 4. Liga o repositório do `jogastop`.
-5. Cria um projecto gratuito na [Neon](https://neon.com/) e copia a connection
-   string **pooled**, que contém `-pooler` no hostname.
+5. Cria uma base no [Turso](https://turso.tech/) e copia `TURSO_DATABASE_URL`
+   e `TURSO_AUTH_TOKEN`.
 6. Confirma o serviço definido em `render.yaml`, escolhe o plano **Free** e
-   define `DATABASE_URL` com a connection string da Neon.
-7. Depois do deploy, abre a URL `https://jogastop.onrender.com` atribuída pelo
-   Render.
+   define as variáveis Turso.
+7. Depois do deploy, abre a URL atribuída pelo Render.
 8. Confirma o estado do servidor em `/api/health`.
 
 O Blueprint executa `npm ci && npm run build`, inicia `npm run start`, utiliza
-Node.js `24.14.1` e utiliza PostgreSQL quando `DATABASE_URL` estiver definida.
+Node.js `24.14.1` e utiliza Turso quando `TURSO_DATABASE_URL` estiver definida.
 
-### Configurar Neon
+### Configurar Turso
 
-1. Na Neon, cria um projecto e selecciona uma região próxima do alojamento.
-2. Abre **Connect**, activa **Pooled connection** e copia o URL PostgreSQL.
-3. No alojamento, define `DATABASE_URL` com esse URL.
+1. No Turso, cria uma base de dados para produção.
+2. Copia a URL libSQL da base para `TURSO_DATABASE_URL`.
+3. Cria/copia um token de acesso e define `TURSO_AUTH_TOKEN` no alojamento.
 4. Confirma que os segredos de manutenção possuem valores longos e privados.
 5. Faz um novo deploy e abre `/api/health`; a primeira ligação cria o esquema e
-   a resposta deverá apresentar `"database":"postgresql"`.
+   a resposta deverá apresentar `"database":"turso"`.
 6. Cria uma sala de teste, faz outro deploy e confirma que a sala continua
    disponível.
 
-Não coloques `DATABASE_URL`, `CRON_SECRET`, `MAINTENANCE_SECRET` ou
-`ADMIN_PASSWORD` no Git. O ficheiro `.env.example` documenta as variáveis sem
-expor segredos.
+Não coloques `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `DATABASE_URL`,
+`CRON_SECRET`, `MAINTENANCE_SECRET` ou `ADMIN_PASSWORD` no Git. O ficheiro
+`.env.example` documenta as variáveis sem expor segredos.
 
-As salas existentes no SQLite temporário do Render não são copiadas
-automaticamente para a Neon. A activação causa um reset único das salas abertas;
+As salas existentes no SQLite temporário do alojamento não são copiadas
+automaticamente para o Turso. A activação causa um reset único das salas abertas;
 as salas criadas depois disso passam a sobreviver a reinícios e deploys.
 
 ### Limpeza de salas antigas
@@ -266,7 +265,7 @@ Variáveis disponíveis:
 - `ROOM_RETENTION_ACTIVE_HOURS=24` — retenção de salas abandonadas;
 - `ROOM_RETENTION_FINISHED_HOURS=168` — retenção de partidas concluídas;
 - `ROOM_CLEANUP_INTERVAL_MINUTES=15` — intervalo da limpeza oportunística.
-- `POSTGRES_CONNECTION_TIMEOUT_MS=30000` — tolerância para o cold start da Neon.
+- `POSTGRES_CONNECTION_TIMEOUT_MS=30000` — opcional, usado apenas no fallback PostgreSQL.
 
 ### Limitações da beta gratuita
 
@@ -306,7 +305,7 @@ votos, próxima rodada, fim da partida e revanche.
 
 ## Base de dados
 
-O mesmo esquema é criado automaticamente em SQLite ou PostgreSQL:
+O mesmo esquema é criado automaticamente em SQLite, Turso/libSQL ou PostgreSQL:
 
 - `rooms` — estado e configuração das salas;
 - `players` — jogadores, ordem de entrada e tokens de sessão protegidos;
@@ -347,7 +346,7 @@ automaticamente para não bloquear a partida.
 - Next.js `16.2.7` com App Router
 - React `19.2.4`
 - Node.js `24` com SQLite nativo
-- PostgreSQL/Neon em produção
+- Turso/libSQL em produção
 - SQLite em desenvolvimento e testes
 - TypeScript
 - Tailwind CSS v4
@@ -384,10 +383,11 @@ lib/
   game/types.ts            Tipos do domínio
   game/use-room.ts         Sincronização reactiva via SSE
   game/word-validation.ts  Léxico local e normalização de respostas
-  server/database.ts       Inicialização dos esquemas SQLite e PostgreSQL
+  server/database.ts       Selecção e health check de SQLite, Turso e PostgreSQL
   server/realtime.ts       Broker SSE por sala
   server/room-repository.ts Escolha e limpeza da persistência
-  server/room-repository-postgres.ts Persistência PostgreSQL/Neon
+  server/room-repository-turso.ts Persistência Turso/libSQL
+  server/room-repository-postgres.ts Persistência PostgreSQL de fallback
   server/room-repository-sqlite.ts Persistência SQLite local
   server/room-view.ts      Visão pública/privada da sala
   utils.ts                 Utilitários partilhados

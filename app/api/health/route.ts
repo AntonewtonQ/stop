@@ -1,4 +1,7 @@
-import { checkDatabaseHealth } from "@/lib/server/database";
+import {
+  checkDatabaseHealth,
+  getConfiguredDatabaseDriver,
+} from "@/lib/server/database";
 import { recordServerError } from "@/lib/server/admin-events";
 
 export const runtime = "nodejs";
@@ -14,7 +17,7 @@ export async function GET() {
       {
         status: "ok",
         service: "jogastop",
-        database: process.env.DATABASE_URL ? "postgresql" : "sqlite",
+        database: getConfiguredDatabaseDriver(),
         timestamp: new Date().toISOString(),
       },
       { headers: { "Cache-Control": "no-store" } },

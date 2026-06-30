@@ -52,7 +52,7 @@ export type ServerErrorEvent = {
 export type AdminDashboardStats = {
   generatedAt: number;
   since: number;
-  database: "postgresql" | "sqlite";
+  database: "turso" | "postgresql" | "sqlite";
   usage: AdminUsageSummary;
   activeRooms: AdminRoomSummary[];
   recentFinishedRooms: AdminRoomSummary[];
