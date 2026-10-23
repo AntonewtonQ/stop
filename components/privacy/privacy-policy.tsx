@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Cookie,
   Database,
   ExternalLink,
   Gamepad2,
   ShieldCheck,
+  Smartphone,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +18,7 @@ import { useLanguage } from "@/lib/i18n/language-provider";
 import { privacyPolicies } from "@/lib/i18n/privacy";
 import styles from "./privacy-policy.module.css";
 
-const overviewIcons = [Gamepad2, Database, Cookie];
+const overviewIcons = [Gamepad2, Database, Smartphone];
 
 export function PrivacyPolicy() {
   const { locale } = useLanguage();
@@ -97,19 +97,22 @@ export function PrivacyPolicy() {
                   ))}
                 </ul>
               )}
-              {section.id === "publicidade" ||
-              section.id === "advertising" ||
-              section.id === "publicite" ? (
-                <a
-                  className={styles.externalLink}
-                  href="https://policies.google.com/privacy"
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {copy.googlePrivacy}
-                  <ExternalLink aria-hidden="true" />
-                </a>
-              ) : null}
+              {section.links && (
+                <div className={styles.sectionLinks}>
+                  {section.links.map((link) => (
+                    <a
+                      className={styles.externalLink}
+                      href={link.href}
+                      key={link.href}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {link.label}
+                      <ExternalLink aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </section>
           ))}
         </article>
