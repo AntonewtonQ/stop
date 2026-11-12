@@ -1,4 +1,5 @@
-const CACHE_VERSION = "jogastop-v2";
+// Bump when the caching strategy changes so stale entries are purged.
+const CACHE_VERSION = "jogastop-v3";
 const IS_LOCALHOST =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1" ||
@@ -68,7 +69,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
-    event.respondWith(cacheFirstNavigation(request, event));
+    event.respondWith(networkFirstNavigation(request));
     return;
   }
 
@@ -82,20 +83,23 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-async function cacheFirstNavigation(request, event) {
+// HTML must come from the network: every deploy renames the hashed CSS/JS
+// files and the old ones stop being served, so a cached page from a previous
+// deploy renders without styles. The cache is only an offline fallback.
+async function networkFirstNavigation(request) {
   const cache = await caches.open(CACHE_VERSION);
-  const cached = await cache.match(request, { ignoreSearch: true });
-  const networkUpdate = fetch(request).then(async (response) => {
+
+  try {
+    const response = await fetch(request);
     if (isAppResponse(response)) await cache.put(request, response.clone());
     return response;
-  });
-
-  if (cached) {
-    event.waitUntil(networkUpdate.catch(() => undefined));
-    return cached;
+  } catch (error) {
+    const cached =
+      (await cache.match(request, { ignoreSearch: true })) ??
+      (await cache.match("/"));
+    if (cached) return cached;
+    throw error;
   }
-
-  return networkUpdate.catch(() => cache.match("/"));
 }
 
 function isAppResponse(response) {
