@@ -79,6 +79,12 @@ function hasSaveAnswersAdapter(adapter: unknown): adapter is SaveAnswersAdapter 
   );
 }
 
+/** Lightweight status/version lookup used by realtime watchers. */
+export async function getRoomSignature(code: string) {
+  const adapter = await getAdapter();
+  return adapter.getRoomSignature(code);
+}
+
 export async function getRoom(code: string) {
   const adapter = await getAdapter();
   return adapter.getRoom(code);

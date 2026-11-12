@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
 import type { Client, InArgs, ResultSet, Transaction } from "@libsql/client";
 
 import { DEFAULT_AVATAR_ID, isAvatarId } from "@/lib/game/avatars";
@@ -20,6 +19,14 @@ import type {
   RoundState,
 } from "@/lib/game/types";
 import { ensureTursoSchema, getTursoClient } from "./database-turso";
+import {
+  hashToken,
+  nullableNumber as number,
+  parseJson,
+  ROOM_SIGNATURE_SQL,
+  toRoomSignature,
+  type RoomSignatureRow,
+} from "./repository-shared";
 import { RoomRepositoryError } from "./room-repository-error";
 
 type TursoQueryable = Pick<Client | Transaction, "execute">;
@@ -71,18 +78,6 @@ type ListRoomsOptions = {
   since?: number;
   limit?: number;
 };
-
-function parseJson<T>(value: string): T {
-  return JSON.parse(value) as T;
-}
-
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
-
-function number(value: string | number | bigint | null | undefined) {
-  return value === null || value === undefined ? null : Number(value);
-}
 
 function boolean(value: string | number | bigint | null | undefined) {
   return Boolean(number(value));
@@ -247,6 +242,17 @@ async function getRoomFrom(database: TursoQueryable, code: string) {
     history: rounds.filter((round) => round.result !== null),
     updatedAt: Number(roomRow.updated_at),
   });
+}
+
+export async function getRoomSignature(code: string) {
+  await ensureTursoSchema();
+  const row = await queryOne<RoomSignatureRow>(
+    getTursoClient(),
+    `${ROOM_SIGNATURE_SQL}?`,
+    [code],
+  );
+
+  return toRoomSignature(row);
 }
 
 export async function getRoom(code: string) {

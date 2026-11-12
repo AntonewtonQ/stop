@@ -10,25 +10,28 @@ import {
   startFirstRound,
   updateRoomSettings,
 } from "@/lib/game/engine";
-import type {
-  AnswerVote,
-  Room,
-  RoomSettings,
-  RoundAnswers,
-} from "@/lib/game/types";
+import type { AnswerVote, Room, RoomSettings } from "@/lib/game/types";
+import {
+  enforceRateLimit,
+  handleRouteError,
+  jsonNoStore,
+  parseActor,
+  parseAnswers,
+  readJsonBody,
+} from "@/lib/server/http";
+import { RATE_LIMITS } from "@/lib/server/rate-limit";
+import { publishRoomUpdate } from "@/lib/server/realtime";
 import {
   mutateStoredRoom,
   RoomRepositoryError,
   saveStoredRoundAnswers,
 } from "@/lib/server/room-repository";
-import { recordServerError } from "@/lib/server/admin-events";
 import { getRoomView } from "@/lib/server/room-view";
-import { publishRoomUpdate } from "@/lib/server/realtime";
 
 export const runtime = "nodejs";
 
 type ActionBody = {
-  actor?: { id?: unknown; token?: unknown };
+  actor?: unknown;
   type?: unknown;
   payload?: Record<string, unknown>;
 };
@@ -40,9 +43,12 @@ export async function POST(
   try {
     const { code: rawCode } = await params;
     const code = normalizeRoomCode(rawCode);
-    const body = (await request.json()) as ActionBody;
+    const body = await readJsonBody<ActionBody>(request);
     const actor = parseActor(body.actor);
+    enforceRateLimit(request, RATE_LIMITS.roomAction, actor.id);
+
     if (body.type === "save-answers") {
+      // Answers stay private while the clock runs: no realtime broadcast.
       const room = await saveStoredRoundAnswers(
         code,
         actor.id,
@@ -50,47 +56,17 @@ export async function POST(
         parseAnswers(body.payload?.answers),
       );
 
-      return Response.json(
-        { room: getRoomView(room, actor.id) },
-        { headers: { "Cache-Control": "no-store" } },
-      );
+      return jsonNoStore({ room: getRoomView(room, actor.id) });
     }
 
     const action = parseAction(body);
     const room = await mutateStoredRoom(code, actor.id, actor.token, action);
     publishRoomUpdate(room.code, room.updatedAt);
 
-    return Response.json(
-      { room: getRoomView(room, actor.id) },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return jsonNoStore({ room: getRoomView(room, actor.id) });
   } catch (error) {
-    if (error instanceof RoomRepositoryError) {
-      return Response.json({ error: error.message }, { status: error.status });
-    }
-
-    recordServerError("api.rooms.actions", error);
-    console.error(error);
-    return Response.json(
-      { error: "Algo correu mal. Tenta novamente." },
-      { status: 500 },
-    );
+    return handleRouteError("api.rooms.actions", error);
   }
-}
-
-function parseActor(actor: ActionBody["actor"]) {
-  if (
-    !actor ||
-    typeof actor.id !== "string" ||
-    typeof actor.token !== "string"
-  ) {
-    throw new RoomRepositoryError(
-      "A tua sessão expirou. Volta a entrar na sala.",
-      401,
-    );
-  }
-
-  return { id: actor.id, token: actor.token };
 }
 
 function parseAction(body: ActionBody) {
@@ -155,18 +131,6 @@ function parseAction(body: ActionBody) {
     default:
       throw new RoomRepositoryError("Esta acção não é válida.", 400);
   }
-}
-
-function parseAnswers(value: unknown): RoundAnswers {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new RoomRepositoryError("Não conseguimos guardar as respostas.", 400);
-  }
-
-  return Object.fromEntries(
-    Object.entries(value).filter(
-      (entry): entry is [string, string] => typeof entry[1] === "string",
-    ),
-  );
 }
 
 function parseVote(value: unknown): AnswerVote {

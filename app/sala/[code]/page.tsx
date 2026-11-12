@@ -1,4 +1,5 @@
 import { GameRoom } from "@/components/game/game-room";
+import { isVoiceConfigured } from "@/lib/server/voice";
 
 export default async function RoomPage({
   params,
@@ -7,5 +8,7 @@ export default async function RoomPage({
 }) {
   const { code } = await params;
 
-  return <GameRoom code={code.toUpperCase()} />;
+  return (
+    <GameRoom code={code.toUpperCase()} voiceEnabled={isVoiceConfigured()} />
+  );
 }

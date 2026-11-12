@@ -1,6 +1,6 @@
 import Script from "next/script";
 
-const ADSENSE_CLIENT_ID = "ca-pub-9068523374327625";
+import { ADSENSE_CLIENT_ID } from "./adsense-config";
 
 export function AdSenseScript() {
   return (

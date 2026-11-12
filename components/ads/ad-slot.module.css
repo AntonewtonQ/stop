@@ -1,0 +1,33 @@
+.slot {
+  display: grid;
+  gap: 0.4rem;
+  width: min(100% - 2.5rem, 75rem);
+  margin: 2.5rem auto;
+  text-align: center;
+}
+
+.slot:has(ins[data-ad-status="unfilled"]) {
+  display: none;
+}
+
+.label {
+  color: var(--brand-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.unit {
+  display: block;
+  min-height: 250px;
+  border-radius: 0.75rem;
+  background: rgb(var(--primary-rgb) / 3%);
+}
+
+@media (max-width: 640px) {
+  .slot {
+    width: calc(100% - 2rem);
+    margin: 2rem auto;
+  }
+}

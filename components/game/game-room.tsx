@@ -18,9 +18,16 @@ import { LobbyRoom } from "./lobby-room";
 import { ResultsRoom } from "./results-room";
 import { RoundRoom } from "./round-room";
 import { SoundToggle } from "./sound-toggle";
+import { VoiceChat } from "./voice-chat";
 import styles from "./game.module.css";
 
-export function GameRoom({ code }: { code: string }) {
+export function GameRoom({
+  code,
+  voiceEnabled = false,
+}: {
+  code: string;
+  voiceEnabled?: boolean;
+}) {
   const { t } = useLanguage();
   const normalizedCode = normalizeRoomCode(code);
   const {
@@ -32,6 +39,10 @@ export function GameRoom({ code }: { code: string }) {
     refresh,
   } = useRoom(normalizedCode);
   useGameSounds(room);
+
+  const isMember = Boolean(
+    room && session && room.players.some((player) => player.id === session.id),
+  );
 
   function renderRoom() {
     if (isLoading) {
@@ -76,11 +87,7 @@ export function GameRoom({ code }: { code: string }) {
       );
     }
 
-    const belongsToRoom = session
-      ? room.players.some((player) => player.id === session.id)
-      : false;
-
-    if (!session || !belongsToRoom) {
+    if (!session || !isMember) {
       return <JoinRoomGate room={room} onJoined={refresh} />;
     }
 
@@ -107,6 +114,10 @@ export function GameRoom({ code }: { code: string }) {
     <>
       <ConnectionNotice status={connectionStatus} onRetry={reconnect} />
       <SoundToggle />
+      {voiceEnabled && room && isMember ? (
+        // Rendered outside the phase views so the call survives round changes.
+        <VoiceChat key={room.code} code={room.code} players={room.players} />
+      ) : null}
       {renderRoom()}
     </>
   );

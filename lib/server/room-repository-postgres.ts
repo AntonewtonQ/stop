@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
 import type { PoolClient, QueryResult, QueryResultRow } from "pg";
 
 import { DEFAULT_AVATAR_ID, isAvatarId } from "@/lib/game/avatars";
@@ -20,6 +19,14 @@ import {
   getPostgresPool,
   withPostgresRetry,
 } from "./database-postgres";
+import {
+  hashToken,
+  nullableNumber as number,
+  parseJson,
+  ROOM_SIGNATURE_SQL,
+  toRoomSignature,
+  type RoomSignatureRow,
+} from "./repository-shared";
 import { RoomRepositoryError } from "./room-repository-error";
 
 type Queryable = {
@@ -76,18 +83,6 @@ type ListRoomsOptions = {
   since?: number;
   limit?: number;
 };
-
-function parseJson<T>(value: T | string): T {
-  return typeof value === "string" ? (JSON.parse(value) as T) : value;
-}
-
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
-
-function number(value: string | number | null) {
-  return value === null ? null : Number(value);
-}
 
 async function withTransaction<T>(
   operation: (client: PoolClient) => Promise<T>,
@@ -194,6 +189,17 @@ async function getRoomFrom(database: Queryable, code: string) {
     history: rounds.filter((round) => round.result !== null),
     updatedAt: Number(roomRow.updated_at),
   });
+}
+
+export async function getRoomSignature(code: string) {
+  await ensurePostgresSchema();
+  const result = await withPostgresRetry(() =>
+    getPostgresPool().query<RoomSignatureRow>(`${ROOM_SIGNATURE_SQL}$1`, [
+      code,
+    ]),
+  );
+
+  return toRoomSignature(result.rows[0]);
 }
 
 export async function getRoom(code: string) {

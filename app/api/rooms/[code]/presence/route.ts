@@ -1,17 +1,21 @@
 import { normalizeRoomCode } from "@/lib/game/engine";
 import {
-  RoomRepositoryError,
+  handleRouteError,
+  jsonNoStore,
+  parseActor,
+  readJsonBody,
+} from "@/lib/server/http";
+import { publishRoomUpdate } from "@/lib/server/realtime";
+import {
   updateStoredPresence,
   updateStoredPresenceLight,
 } from "@/lib/server/room-repository";
-import { recordServerError } from "@/lib/server/admin-events";
-import { publishRoomUpdate } from "@/lib/server/realtime";
 import { getRoomView } from "@/lib/server/room-view";
 
 export const runtime = "nodejs";
 
 type PresenceBody = {
-  actor?: { id?: unknown; token?: unknown };
+  actor?: unknown;
   online?: unknown;
 };
 
@@ -22,7 +26,7 @@ export async function POST(
   try {
     const { code: rawCode } = await params;
     const code = normalizeRoomCode(rawCode);
-    const body = await parseBody(request);
+    const body = await readJsonBody<PresenceBody>(request);
     const actor = parseActor(body.actor);
     const isLightRequest = isLightPresenceRequest(request);
 
@@ -36,10 +40,7 @@ export async function POST(
 
       if (result.changed) publishRoomUpdate(result.code, result.updatedAt);
 
-      return Response.json(
-        { ok: true, changed: result.changed },
-        { headers: { "Cache-Control": "no-store" } },
-      );
+      return jsonNoStore({ ok: true, changed: result.changed });
     }
 
     const { room, changed } = await updateStoredPresence(
@@ -51,48 +52,10 @@ export async function POST(
 
     if (changed) publishRoomUpdate(room.code, room.updatedAt);
 
-    return Response.json(
-      { room: getRoomView(room, actor.id) },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return jsonNoStore({ room: getRoomView(room, actor.id) });
   } catch (error) {
-    if (error instanceof RoomRepositoryError) {
-      return Response.json({ error: error.message }, { status: error.status });
-    }
-
-    recordServerError("api.rooms.presence", error);
-    console.error(error);
-    return Response.json(
-      { error: "Algo correu mal. Tenta novamente." },
-      { status: 500 },
-    );
+    return handleRouteError("api.rooms.presence", error);
   }
-}
-
-async function parseBody(request: Request) {
-  try {
-    return (await request.json()) as PresenceBody;
-  } catch {
-    throw new RoomRepositoryError(
-      "Não conseguimos actualizar a tua presença.",
-      400,
-    );
-  }
-}
-
-function parseActor(actor: PresenceBody["actor"]) {
-  if (
-    !actor ||
-    typeof actor.id !== "string" ||
-    typeof actor.token !== "string"
-  ) {
-    throw new RoomRepositoryError(
-      "A tua sessão expirou. Volta a entrar na sala.",
-      401,
-    );
-  }
-
-  return { id: actor.id, token: actor.token };
 }
 
 function isLightPresenceRequest(request: Request) {
