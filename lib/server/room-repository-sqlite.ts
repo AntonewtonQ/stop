@@ -1,7 +1,5 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
-
 import {
   normalizeRoom,
   reconcileRoomPresence,
@@ -14,6 +12,13 @@ import {
 } from "@/lib/game/profile-colors";
 import type { PlayerSession, Room, RoundState } from "@/lib/game/types";
 import { getDatabase } from "./database-sqlite";
+import {
+  hashToken,
+  parseJson,
+  ROOM_SIGNATURE_SQL,
+  toRoomSignature,
+  type RoomSignatureRow,
+} from "./repository-shared";
 import { RoomRepositoryError } from "./room-repository-error";
 
 type RoomRow = {
@@ -64,14 +69,6 @@ type ListRoomsOptions = {
   limit?: number;
 };
 
-function parseJson<T>(value: string): T {
-  return JSON.parse(value) as T;
-}
-
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
-
 function withTransaction<T>(operation: () => T) {
   const database = getDatabase();
   database.exec("BEGIN IMMEDIATE");
@@ -84,6 +81,14 @@ function withTransaction<T>(operation: () => T) {
     database.exec("ROLLBACK");
     throw error;
   }
+}
+
+export function getRoomSignature(code: string) {
+  const row = getDatabase()
+    .prepare(`${ROOM_SIGNATURE_SQL}?`)
+    .get(code) as RoomSignatureRow | undefined;
+
+  return toRoomSignature(row);
 }
 
 export function getRoom(code: string): Room | null {

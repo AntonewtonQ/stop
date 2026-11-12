@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { LETTER_GUIDES } from "@/lib/content/word-lists";
+
 const SITE_URL = "https://jogastop.ao";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -25,5 +27,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.7,
     },
+    ...["/regras", "/dicas", "/palavras", "/sobre"].map((path) => ({
+      url: `${SITE_URL}${path}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    ...LETTER_GUIDES.map((guide) => ({
+      url: `${SITE_URL}/palavras/${guide.letter.toLowerCase()}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
   ];
 }

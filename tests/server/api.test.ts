@@ -5,6 +5,7 @@ import { GET as adminSummaryRoute } from "@/app/api/admin/summary/route";
 import { POST as actionRoute } from "@/app/api/rooms/[code]/actions/route";
 import { GET as eventsRoute } from "@/app/api/rooms/[code]/events/route";
 import { POST as joinRoute } from "@/app/api/rooms/[code]/join/route";
+import { POST as voiceRoute } from "@/app/api/rooms/[code]/voice/route";
 import { POST as presenceRoute } from "@/app/api/rooms/[code]/presence/route";
 import { POST as createRoute } from "@/app/api/rooms/route";
 import { GET as healthRoute } from "@/app/api/health/route";
@@ -19,6 +20,7 @@ import type {
   WeeklyRankingSnapshot,
 } from "@/lib/admin/types";
 import { getDatabase } from "@/lib/server/database-sqlite";
+import { resetRateLimits } from "@/lib/server/rate-limit";
 import { clearTestDatabase, makeSession } from "../helpers/game";
 
 type RouteResponse = { room?: Room; error?: string };
@@ -44,7 +46,10 @@ function actor(session: PlayerSession) {
 }
 
 describe("Route Handlers", () => {
-  beforeEach(clearTestDatabase);
+  beforeEach(() => {
+    clearTestDatabase();
+    resetRateLimits();
+  });
 
   it("expõe um health check que valida a base de dados", async () => {
     const response = await healthRoute();
@@ -482,5 +487,114 @@ describe("Route Handlers", () => {
     expect(update).toContain(`"code":"${code}"`);
     abort.abort();
     await reader.cancel();
+  });
+
+  it("recusa nomes demasiado longos", async () => {
+    const code = "LONG1";
+    const host = { ...makeSession("Ana", code), name: "A".repeat(25) };
+    const response = await createRoute(
+      jsonRequest("http://jogastop.test/api/rooms", { code, host }),
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it("detecta mudanças feitas por outra instância através do SSE", async () => {
+    process.env.ROOM_REALTIME_WATCH_INTERVAL_MS = "250";
+    const code = "SSE02";
+    const host = makeSession("Ana", code);
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
+
+    const abort = new AbortController();
+    const response = await eventsRoute(
+      new Request(`http://jogastop.test/api/rooms/${code}/events`, {
+        signal: abort.signal,
+      }),
+      context(code),
+    );
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    decoder.decode((await reader.read()).value);
+
+    // Let the watcher take its first snapshot, then mutate the database
+    // directly, bypassing publishRoomUpdate, like another instance would.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    getDatabase()
+      .prepare("UPDATE rooms SET updated_at = updated_at + 1000 WHERE code = ?")
+      .run(code);
+
+    const update = decoder.decode((await reader.read()).value);
+    expect(update).toContain("event: room-updated");
+
+    abort.abort();
+    await reader.cancel();
+    delete process.env.ROOM_REALTIME_WATCH_INTERVAL_MS;
+  });
+
+  describe("chat de voz", () => {
+    const env = ["LIVEKIT_URL", "LIVEKIT_API_KEY", "LIVEKIT_API_SECRET"] as const;
+
+    function configureVoice() {
+      process.env.LIVEKIT_URL = "wss://jogastop-test.livekit.cloud";
+      process.env.LIVEKIT_API_KEY = "test-key";
+      process.env.LIVEKIT_API_SECRET = "test-secret-with-enough-length-123";
+    }
+
+    function clearVoice() {
+      for (const key of env) delete process.env[key];
+    }
+
+    it("responde 503 quando a LiveKit não está configurada", async () => {
+      clearVoice();
+      const code = "VOX01";
+      const host = makeSession("Ana", code);
+      await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
+
+      const response = await voiceRoute(
+        jsonRequest(`http://jogastop.test/api/rooms/${code}/voice`, {
+          actor: actor(host),
+        }),
+        context(code),
+      );
+
+      expect(response.status).toBe(503);
+    });
+
+    it("emite token apenas para jogadores autenticados da sala", async () => {
+      configureVoice();
+      try {
+        const code = "VOX02";
+        const host = makeSession("Ana", code);
+        await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
+
+        const denied = await voiceRoute(
+          jsonRequest(`http://jogastop.test/api/rooms/${code}/voice`, {
+            actor: { id: host.id, token: "wrong-token" },
+          }),
+          context(code),
+        );
+        expect(denied.status).toBe(401);
+
+        const allowed = await voiceRoute(
+          jsonRequest(`http://jogastop.test/api/rooms/${code}/voice`, {
+            actor: actor(host),
+          }),
+          context(code),
+        );
+        const data = (await allowed.json()) as { url: string; token: string };
+
+        expect(allowed.status).toBe(200);
+        expect(data.url).toBe("wss://jogastop-test.livekit.cloud");
+
+        const claims = JSON.parse(
+          Buffer.from(data.token.split(".")[1]!, "base64url").toString(),
+        ) as { sub: string; name: string; video: { room: string } };
+        expect(claims.sub).toBe(host.id);
+        expect(claims.name).toBe("Ana");
+        expect(claims.video.room).toBe(`jogastop-${code}`);
+      } finally {
+        clearVoice();
+      }
+    });
   });
 });

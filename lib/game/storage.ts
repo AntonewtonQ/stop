@@ -162,6 +162,30 @@ function sendAction(
     : action();
 }
 
+export type VoiceAccess = { url: string; token: string };
+
+export async function requestVoiceAccess(code: string): Promise<VoiceAccess> {
+  const normalizedCode = normalizeRoomCode(code);
+  const response = await fetch(`/api/rooms/${normalizedCode}/voice`, {
+    method: "POST",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ actor: getActor(normalizedCode) }),
+  });
+  const data = (await response.json().catch(() => ({}))) as Partial<
+    VoiceAccess & { error: string }
+  >;
+
+  if (!response.ok || !data.url || !data.token) {
+    throw new GameApiError(
+      data.error ?? "Não foi possível ligar o chat de voz.",
+      response.status,
+    );
+  }
+
+  return { url: data.url, token: data.token };
+}
+
 export async function readRoom(code: string) {
   const normalizedCode = normalizeRoomCode(code);
   const session = readPlayerSession(normalizedCode);

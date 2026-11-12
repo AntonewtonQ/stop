@@ -730,8 +730,10 @@
 
 .footerCopy {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  justify-content: flex-end;
+  gap: 0.5rem 1rem;
 }
 
 .footerCopy a {

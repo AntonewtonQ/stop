@@ -250,6 +250,12 @@
   color: var(--amber-deep);
 }
 
+.sectionLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .externalLink {
   display: inline-flex;
   align-items: center;
@@ -261,10 +267,12 @@
   text-decoration-color: var(--amber);
   text-decoration-thickness: 2px;
   text-underline-offset: 0.25rem;
+  overflow-wrap: anywhere;
 }
 
 .externalLink svg {
   width: 0.9rem;
+  flex-shrink: 0;
 }
 
 .footer {

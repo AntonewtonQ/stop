@@ -1,3 +1,5 @@
+import { AdSlot } from "@/components/ads/ad-slot";
+import { ADSENSE_SLOTS } from "@/components/ads/adsense-config";
 import { AdSenseScript } from "@/components/ads/adsense-script";
 import { FeatureStrip } from "@/components/landing/feature-strip";
 import { HeroSection } from "@/components/landing/hero-section";
@@ -37,8 +39,10 @@ export default function Home() {
       <SiteHeader />
       <HeroSection />
       <FeatureStrip />
+      <AdSlot slot={ADSENSE_SLOTS.homeMiddle} />
       <ScoringSection />
       <HowToSection />
+      <AdSlot slot={ADSENSE_SLOTS.homeBottom} />
       <SiteFooter />
       <InstallPrompt />
     </main>

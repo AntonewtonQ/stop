@@ -94,6 +94,25 @@ expandido em `lib/game/word-validation.ts`.
 13. A partida termina depois de completar o número de rodadas definido.
 14. O anfitrião pode iniciar uma revanche com os mesmos jogadores.
 
+## Chat de voz
+
+As salas têm chat de voz opcional (botão «Entrar na voz»), servido pela
+[LiveKit Cloud](https://cloud.livekit.io). O servidor do jogo apenas emite
+tokens de curta duração em `POST /api/rooms/[code]/voice` para jogadores
+autenticados; o áudio não passa pela nossa API nem é gravado.
+
+1. Cria um projecto na LiveKit Cloud e gera uma chave em *Settings → Keys*.
+2. Define `LIVEKIT_URL`, `LIVEKIT_API_KEY` e `LIVEKIT_API_SECRET` na Vercel
+   (ou no Render). Sem estas variáveis o botão de voz fica escondido.
+
+## Anúncios (AdSense)
+
+A página inicial tem dois blocos `<AdSlot>` (entre os destaques e a pontuação,
+e antes do rodapé). Cria dois blocos *Anúncio de display* responsivos no
+AdSense e define `NEXT_PUBLIC_ADSENSE_SLOT_HOME_MIDDLE` e
+`NEXT_PUBLIC_ADSENSE_SLOT_HOME_BOTTOM` com os respectivos `data-ad-slot`. Um
+bloco sem id não é apresentado. As páginas de jogo não têm anúncios.
+
 ## Testar localmente
 
 Instala as dependências e inicia o servidor:

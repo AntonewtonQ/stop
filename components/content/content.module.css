@@ -1,0 +1,364 @@
+.page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 8% 6%, rgb(var(--accent-rgb) / 18%), transparent 22rem),
+    linear-gradient(180deg, #fffefa 0%, #f7faf9 100%);
+  color: var(--petroleum);
+}
+
+.header,
+.main,
+.footer {
+  width: min(100% - 2.5rem, 50rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  padding: 1.25rem 0;
+}
+
+.header a {
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+
+.nav a {
+  color: var(--petroleum);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.nav a:hover {
+  color: var(--amber-deep);
+}
+
+.nav .playLink {
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.7rem;
+  background: var(--petroleum);
+  color: #ffffff;
+}
+
+.nav .playLink:hover {
+  color: var(--amber-light);
+}
+
+.main {
+  padding-bottom: 3rem;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+  color: var(--brand-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.breadcrumbs span {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.breadcrumbs a {
+  color: inherit;
+}
+
+.hero {
+  padding: 2.5rem 0 1.5rem;
+}
+
+.eyebrow {
+  color: var(--amber-deep);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0.6rem 0 0;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.hero p {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  color: var(--brand-muted);
+  font-size: 1.08rem;
+  font-weight: 550;
+  line-height: 1.6;
+}
+
+.article {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.article h2 {
+  margin: 2.4rem 0 0.6rem;
+  font-size: 1.5rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.article h3 {
+  margin: 1.6rem 0 0.4rem;
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.article p,
+.article ul,
+.article ol {
+  margin: 0.7rem 0;
+}
+
+.article ul,
+.article ol {
+  padding-left: 1.3rem;
+}
+
+.article li {
+  margin: 0.35rem 0;
+}
+
+.article a {
+  color: var(--petroleum);
+  font-weight: 750;
+  text-decoration-color: var(--amber);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2rem;
+}
+
+.article strong {
+  font-weight: 800;
+}
+
+.table {
+  width: 100%;
+  margin: 1rem 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+  font-size: 0.92rem;
+}
+
+.table th,
+.table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.table th {
+  background: var(--warm-white);
+  font-weight: 850;
+}
+
+.callout {
+  margin: 1.5rem 0;
+  padding: 1rem 1.2rem;
+  border-left: 4px solid var(--amber);
+  border-radius: 0 0.8rem 0.8rem 0;
+  background: rgb(var(--accent-rgb) / 12%);
+}
+
+.callout p {
+  margin: 0.3rem 0;
+}
+
+.letterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.2rem, 1fr));
+  gap: 0.6rem;
+  margin: 1.2rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.letterGrid li {
+  margin: 0;
+}
+
+.letterGrid a {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: #ffffff;
+  color: var(--petroleum);
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-decoration: none;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.letterGrid a:hover,
+.letterGrid a[aria-current="page"] {
+  border-color: var(--amber);
+  transform: translateY(-2px);
+}
+
+.letterGrid a[aria-current="page"] {
+  background: var(--petroleum);
+  color: #ffffff;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.9rem;
+  margin: 1.2rem 0;
+}
+
+.categoryCard {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: #ffffff;
+}
+
+.article .categoryCard h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.1rem;
+}
+
+.article .categoryCard ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.article .categoryCard li {
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--warm-white);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.difficulty {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--warm-white);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.cta {
+  margin-top: 2.5rem;
+  padding: 1.8rem;
+  border-radius: 1.2rem;
+  background: var(--petroleum);
+  color: #ffffff;
+}
+
+.cta h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 850;
+}
+
+.cta p {
+  margin: 0.6rem 0 1.2rem;
+  color: rgb(255 255 255 / 80%);
+  line-height: 1.6;
+}
+
+.ctaButton {
+  display: inline-block;
+  padding: 0.75rem 1.2rem;
+  border-radius: 0.8rem;
+  background: var(--amber);
+  color: var(--petroleum);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 0 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.footer a {
+  color: var(--petroleum);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration-color: var(--amber);
+  text-underline-offset: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .header,
+  .main,
+  .footer {
+    width: calc(100% - 2rem);
+  }
+
+  .nav a:not(.playLink) {
+    font-size: 0.78rem;
+  }
+
+  .table {
+    font-size: 0.85rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.55rem 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letterGrid a {
+    transition: none;
+  }
+}
