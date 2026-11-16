@@ -70,7 +70,11 @@ export function FinalResults({
           {winner.name}
           <span>{t("final.winner")}</span>
         </h1>
-        <p>{t("final.body", { count: room.settings.roundsToPlay })}</p>
+        <p>
+          {room.settings.roundsToPlay === 1
+            ? t("final.bodyOne")
+            : t("final.body", { count: room.settings.roundsToPlay })}
+        </p>
       </section>
 
       <section className={styles.finalRanking}>

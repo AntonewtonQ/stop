@@ -10,13 +10,14 @@ import styles from "./language-switcher.module.css";
 export function LanguageSwitcher() {
   const { locale, setLocale, t } = useLanguage();
   const pathname = usePathname();
+  // Inside a room the bottom edge holds the STOP bar, so the switcher becomes
+  // a compact round button stacked above the sound toggle.
+  const inRoom = pathname.startsWith("/sala/");
+  const variant =
+    pathname === "/" ? styles.landingSwitcher : inRoom ? styles.roomSwitcher : "";
 
   return (
-    <label
-      className={`${styles.switcher} ${
-        pathname === "/" ? styles.landingSwitcher : ""
-      }`}
-    >
+    <label className={`${styles.switcher} ${variant}`}>
       <Languages aria-hidden="true" />
       <span className="sr-only">{t("language.label")}</span>
       <select
@@ -24,9 +25,11 @@ export function LanguageSwitcher() {
         value={locale}
         onChange={(event) => setLocale(event.target.value as Locale)}
       >
-        <option value="pt">{t("language.pt")}</option>
-        <option value="en">{t("language.en")}</option>
-        <option value="fr">{t("language.fr")}</option>
+        {(["pt", "en", "fr"] as const).map((code) => (
+          <option key={code} value={code}>
+            {inRoom ? code.toUpperCase() : t(`language.${code}`)}
+          </option>
+        ))}
       </select>
     </label>
   );
