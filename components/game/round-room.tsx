@@ -164,7 +164,12 @@ export function RoundRoom({
         <div className={`${styles.roundTimer} ${remaining <= 10 ? styles.timerDanger : ""}`}>
           <Clock3 />
           <span>{t("round.timeLeft")}</span>
-          <strong>00:{remaining.toString().padStart(2, "0")}</strong>
+          <strong>
+            {Math.floor(remaining / 60)
+              .toString()
+              .padStart(2, "0")}
+            :{(remaining % 60).toString().padStart(2, "0")}
+          </strong>
         </div>
       </section>
 
