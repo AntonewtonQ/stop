@@ -308,7 +308,47 @@ const CATEGORY_WORDS: Record<string, readonly string[]> = {
     "Rocky",
     "Titanic",
   ],
+  Objecto: [
+    "Agulha", "Almofada", "Balde", "Bola", "Borracha", "Cadeira", "Caneta",
+    "Chave", "Colher", "Copo", "Espelho", "Faca", "Garfo", "Garrafa",
+    "Isqueiro", "Lápis", "Livro", "Mesa", "Mochila", "Navalha", "Óculos",
+    "Panela", "Pente", "Prato", "Relógio", "Sofá", "Telemóvel", "Tesoura",
+    "Vassoura", "Vela",
+  ],
+  Marca: [
+    "Adidas", "Africell", "Apple", "BMW", "Coca-Cola", "Cuca", "Dell",
+    "Fanta", "Ferrari", "Gucci", "Honda", "Hyundai", "Ikea", "Jeep", "Kero",
+    "Lego", "Mercedes", "Microsoft", "Movicel", "Ngola", "Nike", "Nocal",
+    "Nokia", "Omo", "Pepsi", "Puma", "Renault", "Samsung", "Sony", "Toyota",
+    "Unitel", "Volkswagen", "Zara",
+  ],
+  Fruta: [
+    "Abacate", "Abacaxi", "Ameixa", "Banana", "Caju", "Cereja", "Coco",
+    "Figo", "Gajaja", "Goiaba", "Graviola", "Jaca", "Laranja", "Lima",
+    "Limão", "Maboque", "Maçã", "Mamão", "Manga", "Maracujá", "Melancia",
+    "Melão", "Morango", "Múcua", "Nêspera", "Papaia", "Pera", "Pêssego",
+    "Pitanga", "Romã", "Tamarindo", "Tangerina", "Uva",
+  ],
+  Cor: [
+    "Amarelo", "Azul", "Bege", "Branco", "Castanho", "Cinzento", "Dourado",
+    "Encarnado", "Laranja", "Lilás", "Magenta", "Preto", "Prateado", "Rosa",
+    "Roxo", "Turquesa", "Verde", "Vermelho", "Violeta",
+  ],
+  // Angolan provinces, including those created by the 2024 reform.
+  Província: [
+    "Bengo", "Benguela", "Bié", "Cabinda", "Cuando", "Cuando Cubango",
+    "Cuanza Norte", "Cuanza Sul", "Cubango", "Cunene", "Huambo", "Huíla",
+    "Icolo e Bengo", "Luanda", "Lunda Norte", "Lunda Sul", "Malanje",
+    "Moxico", "Moxico Leste", "Namibe", "Uíge", "Zaire",
+  ],
 };
+
+/** Known answers for a category that start with the letter (for hints). */
+export function knownWordsFor(category: string, letter: string) {
+  return (CATEGORY_WORDS[category] ?? []).filter((word) =>
+    startsWithLetter(word, letter),
+  );
+}
 
 export function normalizeAnswer(answer: string) {
   return answer

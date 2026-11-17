@@ -8,10 +8,13 @@ import {
   Trophy,
   UsersRound,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
 import { AnswerChallengeCard } from "@/components/game/answer-challenge-card";
+import { BestAnswers } from "@/components/game/best-answers";
+import { ReactionBar } from "@/components/game/reaction-bar";
 import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ import {
   finishGame,
   prepareNextRound,
 } from "@/lib/game/storage";
+import { AUTO_ADVANCE_SECONDS } from "@/lib/game/constants";
 import { getCommanderForRound } from "@/lib/game/engine";
 import { getPlayerTotal } from "@/lib/game/scoring";
 import type {
@@ -104,6 +108,15 @@ export function ResultsRoom({
     }
   }
 
+  const autoAdvanceIn = useAutoAdvance(result.votingComplete, () => {
+    if (isController) void continueGame();
+  });
+  const autoAdvanceLabel = result.votingComplete
+    ? t(isLastRound ? "results.autoFinal" : "results.autoNext", {
+        count: autoAdvanceIn,
+      })
+    : null;
+
   async function vote(challengeId: string, choice: "approve" | "reject") {
     try {
       await castAnswerVote(room.code, challengeId, choice);
@@ -121,6 +134,7 @@ export function ResultsRoom({
 
   return (
     <main className={styles.resultsPage}>
+      <ReactionBar players={room.players} roomCode={room.code} session={session} />
       <header className={styles.resultsHeader}>
         <Logo />
         <div className={styles.roomIdentity}>
@@ -318,6 +332,9 @@ export function ResultsRoom({
                 : isLastRound
                   ? t("results.finalRanking")
                   : t("results.nextLetter")}
+              {autoAdvanceLabel ? (
+                <small className={styles.autoAdvance}>· {autoAdvanceIn}s</small>
+              ) : null}
             </Button>
           ) : (
             <div className={styles.waitingHost}>
@@ -327,12 +344,53 @@ export function ResultsRoom({
                   ? t("results.nextCommander", { name: nextCommander.name })
                   : t("results.nextCommanderFallback")
                 : t("results.voting")}
+              {autoAdvanceLabel ? (
+                <small className={styles.autoAdvance}>{autoAdvanceLabel}</small>
+              ) : null}
             </div>
           )}
+
+          <BestAnswers
+            answers={round.answers}
+            categories={room.settings.categories}
+            letter={round.letter}
+          />
         </aside>
       </div>
     </main>
   );
+}
+
+/**
+ * Counts down once voting is complete and then calls `onDone` a single time.
+ * Each client keeps its own clock; only the controller acts on it.
+ */
+function useAutoAdvance(active: boolean, onDone: () => void) {
+  const [secondsLeft, setSecondsLeft] = useState(AUTO_ADVANCE_SECONDS);
+  const onDoneRef = useRef(onDone);
+
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
+  useEffect(() => {
+    if (!active) return;
+    const startedAt = Date.now();
+    const id = window.setInterval(() => {
+      const left = Math.max(
+        0,
+        AUTO_ADVANCE_SECONDS - Math.floor((Date.now() - startedAt) / 1000),
+      );
+      setSecondsLeft(left);
+      if (left === 0) {
+        window.clearInterval(id);
+        onDoneRef.current();
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [active]);
+
+  return secondsLeft;
 }
 
 function capitalize(value: string) {

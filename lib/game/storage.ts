@@ -186,6 +186,35 @@ export async function requestVoiceAccess(code: string): Promise<VoiceAccess> {
   return { url: data.url, token: data.token };
 }
 
+export type RoomReaction = {
+  id: string;
+  playerId: string;
+  emoji: string;
+  createdAt: number;
+};
+
+export async function sendRoomReaction(code: string, emoji: string) {
+  const normalizedCode = normalizeRoomCode(code);
+  const response = await fetch(`/api/rooms/${normalizedCode}/reactions`, {
+    method: "POST",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ actor: getActor(normalizedCode), emoji }),
+  });
+  if (!response.ok) throw new GameApiError("Reacção não enviada.", response.status);
+  return ((await response.json()) as { reaction: RoomReaction }).reaction;
+}
+
+export async function readRoomReactions(code: string, since: number) {
+  const normalizedCode = normalizeRoomCode(code);
+  const response = await fetch(
+    `/api/rooms/${normalizedCode}/reactions?since=${since}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) throw new GameApiError("Reacções indisponíveis.", response.status);
+  return (await response.json()) as { reactions: RoomReaction[]; serverNow: number };
+}
+
 export async function readRoom(code: string) {
   const normalizedCode = normalizeRoomCode(code);
   const session = readPlayerSession(normalizedCode);

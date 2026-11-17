@@ -33,7 +33,7 @@ export function RoundRoom({
   const [answers, setAnswers] = useState<RoundAnswers>(
     round.answers[session.id] ?? {},
   );
-  const [now, setNow] = useState(round.startedAt);
+  const [now, setNow] = useState(() => Date.now());
   const [isStopping, setIsStopping] = useState(false);
   const lastSavedAnswersRef = useRef(JSON.stringify(round.answers[session.id] ?? {}));
 
@@ -42,9 +42,12 @@ export function RoundRoom({
     return () => window.clearInterval(interval);
   }, []);
 
-  const remaining = Math.max(
-    0,
-    round.duration - Math.floor((now - round.startedAt) / 1000),
+  // The server starts the clock a few seconds after the letter is chosen.
+  const countdown = Math.ceil((round.startedAt - now) / 1000);
+  const countingDown = countdown > 0;
+  const remaining = Math.min(
+    round.duration,
+    Math.max(0, round.duration - Math.floor((now - round.startedAt) / 1000)),
   );
   const progress = (remaining / round.duration) * 100;
   const answeredCount = useMemo(
@@ -136,6 +139,12 @@ export function RoundRoom({
 
   return (
     <main className={styles.roundPage}>
+      {countingDown ? (
+        <div className={styles.roundCountdown} aria-live="assertive">
+          <span>{t("round.getReady")}</span>
+          <strong key={countdown}>{countdown}</strong>
+        </div>
+      ) : null}
       <header className={styles.roundHeader}>
         <Logo light />
         <div className={styles.roundRoomCode}>

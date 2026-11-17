@@ -8,6 +8,7 @@
 .gamePage {
   padding: 1.25rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 5% 5%, rgb(var(--accent-rgb) / 18%), transparent 22rem),
     radial-gradient(circle at 95% 100%, rgb(var(--primary-rgb) / 10%), transparent 32rem),
     var(--background);
@@ -473,7 +474,7 @@
 
 .durationOptions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.35rem;
 }
 
@@ -776,6 +777,7 @@
   padding: 1.25rem 1.25rem 5rem;
   overflow: hidden;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 90% 15%, rgb(var(--accent-rgb) / 15%), transparent 24rem),
     var(--petroleum);
   color: white;
@@ -784,6 +786,7 @@
 .commanderPage {
   padding: 1.25rem 1.25rem 5rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 50% 12%, rgb(var(--accent-rgb) / 20%), transparent 25rem),
     var(--petroleum);
   color: white;
@@ -875,6 +878,87 @@
 .commanderRule svg {
   width: 1rem;
   color: var(--amber);
+}
+
+.roundCountdown {
+  position: fixed;
+  z-index: 250;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  background:
+    var(--theme-pattern),
+    radial-gradient(circle at 50% 45%, rgb(var(--accent-rgb) / 25%), transparent 22rem),
+    color-mix(in oklab, var(--petroleum) 92%, black);
+  color: #ffffff;
+}
+
+.roundCountdown span {
+  color: var(--amber);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.roundCountdown strong {
+  color: var(--amber);
+  font-size: clamp(8rem, 40vw, 14rem);
+  font-weight: 950;
+  line-height: 1;
+  text-shadow:
+    0 0.4rem 0 var(--amber-deep),
+    0 0 3rem rgb(var(--accent-rgb) / 60%);
+  animation: countdownPop 900ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes countdownPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roundCountdown strong {
+    animation: none;
+  }
+}
+
+.autoAdvance {
+  margin-left: 0.35rem;
+  font-size: 0.8em;
+  font-weight: 800;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.randomLetterButton {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 1.2rem;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--amber);
+  box-shadow: 0 0.3rem 0 var(--amber-deep);
+  color: var(--petroleum);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.randomLetterButton:hover {
+  background: var(--amber-light);
+}
+
+.randomLetterButton svg {
+  width: 1.15rem;
 }
 
 .letterGrid {
@@ -1261,6 +1345,7 @@
   min-height: 100vh;
   padding: 1.25rem 1.25rem 5rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 8% 7%, rgb(var(--accent-rgb) / 18%), transparent 22rem),
     var(--background);
   color: var(--petroleum);
@@ -1755,6 +1840,7 @@
   min-height: 100vh;
   padding: 1.25rem 1.25rem 5rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 50% 20%, rgb(var(--accent-rgb) / 20%), transparent 25rem),
     var(--petroleum);
   color: white;
@@ -2675,4 +2761,9 @@
     grid-column: 2;
     justify-content: start;
   }
+}
+
+/* Room for the fixed emoji reaction bar at the bottom of the results. */
+.resultsPage {
+  padding-bottom: 6rem;
 }
