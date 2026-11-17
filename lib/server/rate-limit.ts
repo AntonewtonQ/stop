@@ -70,4 +70,8 @@ export const RATE_LIMITS = {
   // Keyed by player id. Answers autosave while typing, hence the budget.
   roomAction: { name: "room-action", limit: 240, windowMs: MINUTE },
   voiceToken: { name: "voice-token", limit: 20, windowMs: MINUTE }, // per player
+  dailyRead: { name: "daily-read", limit: 120, windowMs: MINUTE },
+  dailyPlay: { name: "daily-play", limit: 20, windowMs: MINUTE }, // per device
+  reactionsRead: { name: "reactions-read", limit: 240, windowMs: MINUTE },
+  reactionsWrite: { name: "reactions-write", limit: 30, windowMs: MINUTE }, // per player
 } satisfies Record<string, RateLimitRule>;

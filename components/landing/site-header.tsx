@@ -19,6 +19,7 @@ export function SiteHeader() {
       <nav className={styles.nav} aria-label={t("landing.navAria")}>
         <a href="#pontuacao">{t("landing.scoreNav")}</a>
         <a href="#como-jogar">{t("landing.howNav")}</a>
+        <Link href="/desafio">{t("daily.navLabel")}</Link>
         <Link href="/ranking">{t("landing.rankingNav")}</Link>
       </nav>
 

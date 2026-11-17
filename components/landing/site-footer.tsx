@@ -16,6 +16,7 @@ export function SiteFooter() {
       <Logo compact />
       <div className={styles.footerCopy}>
         <p>{t("landing.footer")}</p>
+        <Link href="/desafio">{t("daily.navLabel")}</Link>
         <Link href="/regras">{t("landing.rulesNav")}</Link>
         <Link href="/dicas">{t("landing.tipsNav")}</Link>
         <Link href="/palavras">{t("landing.wordsNav")}</Link>

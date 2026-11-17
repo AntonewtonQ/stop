@@ -1,6 +1,7 @@
 import { AdSlot } from "@/components/ads/ad-slot";
 import { ADSENSE_SLOTS } from "@/components/ads/adsense-config";
 import { AdSenseScript } from "@/components/ads/adsense-script";
+import { DailyBanner } from "@/components/daily/daily-banner";
 import { FeatureStrip } from "@/components/landing/feature-strip";
 import { HeroSection } from "@/components/landing/hero-section";
 import { HowToSection } from "@/components/landing/how-to-section";
@@ -39,6 +40,7 @@ export default function Home() {
       <SiteHeader />
       <HeroSection />
       <FeatureStrip />
+      <DailyBanner />
       <AdSlot slot={ADSENSE_SLOTS.homeMiddle} />
       <ScoringSection />
       <HowToSection />

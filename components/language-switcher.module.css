@@ -55,6 +55,11 @@
   cursor: pointer;
 }
 
+/* Daily challenge: no sound toggle, so sit just above the sticky STOP bar. */
+.roomSwitcher.dailySwitcher {
+  bottom: 5.4rem;
+}
+
 @media (max-width: 640px) {
   .switcher {
     right: 0.8rem;
@@ -69,6 +74,10 @@
 
   .roomSwitcher {
     bottom: 7.8rem;
+  }
+
+  .roomSwitcher.dailySwitcher {
+    bottom: 5.2rem;
   }
 }
 

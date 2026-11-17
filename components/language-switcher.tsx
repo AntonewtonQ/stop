@@ -12,9 +12,14 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
   // Inside a room the bottom edge holds the STOP bar, so the switcher becomes
   // a compact round button stacked above the sound toggle.
-  const inRoom = pathname.startsWith("/sala/");
+  const inDaily = pathname === "/desafio";
+  const inRoom = pathname.startsWith("/sala/") || inDaily;
   const variant =
-    pathname === "/" ? styles.landingSwitcher : inRoom ? styles.roomSwitcher : "";
+    pathname === "/"
+      ? styles.landingSwitcher
+      : inRoom
+        ? `${styles.roomSwitcher} ${inDaily ? styles.dailySwitcher : ""}`
+        : "";
 
   return (
     <label className={`${styles.switcher} ${variant}`}>

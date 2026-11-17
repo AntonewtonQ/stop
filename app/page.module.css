@@ -1,6 +1,7 @@
 .page {
   overflow-x: clip;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 7% 11%, rgb(var(--accent-rgb) / 18%), transparent 20rem),
     linear-gradient(180deg, #fffefa 0%, #f8faf9 52%, #fffefa 100%);
   color: var(--petroleum);
