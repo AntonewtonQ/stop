@@ -2,6 +2,7 @@
   min-height: 100vh;
   padding: 1.25rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 85% 8%, rgb(var(--accent-rgb) / 20%), transparent 20rem),
     linear-gradient(180deg, #fffefa 0%, #f7f3ed 100%);
   color: var(--petroleum);

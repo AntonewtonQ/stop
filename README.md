@@ -94,6 +94,19 @@ expandido em `lib/game/word-validation.ts`.
 13. A partida termina depois de completar o número de rodadas definido.
 14. O anfitrião pode iniciar uma revanche com os mesmos jogadores.
 
+## Desafio do dia, semana temática e Kuduro
+
+- `/desafio`: uma letra e 5 categorias iguais para todos, 60 segundos, uma
+  tentativa por dispositivo e por dia (sem login). Pontuação calculada no
+  servidor: +10 confirmada, +5 por confirmar, bónus de velocidade só com tudo
+  confirmado. Ranking do dia, sequência de dias, partilha estilo Wordle.
+- Semana temática: a categoria da semana entra em todos os desafios e vale a
+  dobrar; Top da semana com distintivos Top 3/10/50.
+- "As tuas letras": melhor pontuação por letra e estatuto Expert.
+- Multijogador: letra aleatória, 120 s, contagem 3-2-1, melhores respostas,
+  reacções com emojis e avanço automático após as votações.
+- Tema por defeito: Kuduro (cores da bandeira e padrão inspirado em sona).
+
 ## Chat de voz
 
 As salas têm chat de voz opcional (botão «Entrar na voz»), servido pela

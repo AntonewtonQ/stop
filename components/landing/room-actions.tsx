@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { History, Plus, UserRound } from "lucide-react";
+import { ChevronDown, History, Plus, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { AvatarPicker } from "@/components/game/avatar-picker";
 import { GameLoading } from "@/components/game/game-loading";
+import { PlayerAvatar } from "@/components/game/player-avatar";
 import { ProfileColorPicker } from "@/components/game/profile-color-picker";
 import { ThemePicker } from "@/components/game/theme-picker";
 import { trackGameEvent } from "@/lib/analytics/game-events";
@@ -204,14 +205,6 @@ export function RoomActions() {
         </div>
       </label>
 
-      <AvatarPicker
-        value={avatarId}
-        color={profileColor}
-        onChange={setAvatarId}
-      />
-      <ProfileColorPicker value={profileColor} onChange={setProfileColor} />
-      <ThemePicker />
-
       <div className={styles.mainAction}>
         <Button
           className={styles.createButton}
@@ -223,6 +216,28 @@ export function RoomActions() {
           {t("entry.createRoom")}
         </Button>
       </div>
+
+      <details className={styles.customize}>
+        <summary>
+          <PlayerAvatar
+            avatarId={avatarId}
+            className={styles.customizeAvatar}
+            color={profileColor}
+          />
+          <span>{t("entry.customize")}</span>
+          <small>{t("entry.customizeHint")}</small>
+          <ChevronDown aria-hidden="true" className={styles.customizeChevron} />
+        </summary>
+        <div className={styles.customizeBody}>
+          <AvatarPicker
+            value={avatarId}
+            color={profileColor}
+            onChange={setAvatarId}
+          />
+          <ProfileColorPicker value={profileColor} onChange={setProfileColor} />
+          <ThemePicker />
+        </div>
+      </details>
 
       {recentSession && (
         <Button

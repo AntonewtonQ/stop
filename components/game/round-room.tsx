@@ -33,18 +33,23 @@ export function RoundRoom({
   const [answers, setAnswers] = useState<RoundAnswers>(
     round.answers[session.id] ?? {},
   );
-  const [now, setNow] = useState(round.startedAt);
+  const [now, setNow] = useState(() => Date.now());
   const [isStopping, setIsStopping] = useState(false);
   const lastSavedAnswersRef = useRef(JSON.stringify(round.answers[session.id] ?? {}));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const categories = room.settings.categories;
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(interval);
   }, []);
 
-  const remaining = Math.max(
-    0,
-    round.duration - Math.floor((now - round.startedAt) / 1000),
+  // The server starts the clock a few seconds after the letter is chosen.
+  const countdown = Math.ceil((round.startedAt - now) / 1000);
+  const countingDown = countdown > 0;
+  const remaining = Math.min(
+    round.duration,
+    Math.max(0, round.duration - Math.floor((now - round.startedAt) / 1000)),
   );
   const progress = (remaining / round.duration) * 100;
   const answeredCount = useMemo(
@@ -89,6 +94,30 @@ export function RoundRoom({
       });
     }
   }, [remaining, room.code]);
+
+  function answerState(category: string) {
+    const answer = answers[category]?.trim() ?? "";
+    if (!answer) return "empty";
+    return answer.charAt(0).toUpperCase() === round.letter ? "valid" : "invalid";
+  }
+
+  /** Enter jumps to the next empty field; when everything is filled, close the keyboard. */
+  function focusNextEmpty(index: number) {
+    for (let step = 1; step < categories.length; step += 1) {
+      const next = (index + step) % categories.length;
+      if (!answers[categories[next]]?.trim()) {
+        inputRefs.current[next]?.focus();
+        return;
+      }
+    }
+    inputRefs.current[index]?.blur();
+  }
+
+  function focusCategory(index: number) {
+    const input = inputRefs.current[index];
+    input?.focus({ preventScroll: true });
+    input?.closest("label")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   function updateAnswer(category: string, answer: string) {
     setAnswers((currentAnswers) => ({
@@ -136,6 +165,12 @@ export function RoundRoom({
 
   return (
     <main className={styles.roundPage}>
+      {countingDown ? (
+        <div className={styles.roundCountdown} aria-live="assertive">
+          <span>{t("round.getReady")}</span>
+          <strong key={countdown}>{countdown}</strong>
+        </div>
+      ) : null}
       <header className={styles.roundHeader}>
         <Logo light />
         <div className={styles.roundRoomCode}>
@@ -234,15 +269,27 @@ export function RoundRoom({
           </div>
         </div>
 
+        <nav className={styles.answerChips} aria-label={t("round.categoriesNav")}>
+          {categories.map((category, index) => (
+            <button
+              data-state={answerState(category)}
+              key={category}
+              onClick={() => focusCategory(index)}
+              type="button"
+            >
+              {categoryLabel(category)}
+            </button>
+          ))}
+        </nav>
+
         <div className={styles.roundAnswers}>
-          {room.settings.categories.map((category, index) => {
+          {categories.map((category, index) => {
             const answer = answers[category] ?? "";
-            const startsCorrectly =
-              answer.trim().length > 0 &&
-              answer.trim().charAt(0).toUpperCase() === round.letter;
+            const state = answerState(category);
+            const startsCorrectly = state === "valid";
 
             return (
-              <label className={styles.roundAnswer} key={category}>
+              <label className={styles.roundAnswer} data-state={state} key={category}>
                 <span className={styles.answerNumber}>
                   {(index + 1).toString().padStart(2, "0")}
                 </span>
@@ -255,10 +302,23 @@ export function RoundRoom({
                   </small>
                 </div>
                 <Input
+                  ref={(element) => {
+                    inputRefs.current[index] = element;
+                  }}
                   value={answer}
                   onChange={(event) => updateAnswer(category, event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    focusNextEmpty(index);
+                  }}
                   placeholder={`${round.letter}...`}
                   autoFocus={index === 0}
+                  autoCapitalize="words"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  enterKeyHint={index === categories.length - 1 ? "done" : "next"}
+                  spellCheck={false}
                 />
                 {startsCorrectly && <CheckCircle2 className={styles.validAnswer} />}
               </label>
@@ -267,7 +327,7 @@ export function RoundRoom({
         </div>
 
         <Button
-          className={styles.stopRoundButton}
+          className={`${styles.stopRoundButton} ${canStop ? styles.stopReady : ""}`}
           disabled={!canStop || isStopping}
           onClick={submitAnswers}
         >
@@ -276,7 +336,10 @@ export function RoundRoom({
             ? t("round.stopping")
             : canStop
               ? t("round.stop")
-              : t("round.completeToStop")}
+              : t("round.missingToStop", {
+                  count: categories.filter((category) => !answers[category]?.trim())
+                    .length,
+                })}
         </Button>
         <div className={styles.commanderClockNotice}>
           <Clock3 />

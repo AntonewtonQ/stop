@@ -1,13 +1,13 @@
 "use client";
 
-import { Crown, Play, UsersRound } from "lucide-react";
+import { Crown, Dices, Play, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/logo";
 import { PlayerAvatar } from "@/components/game/player-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PLAYABLE_LETTERS } from "@/lib/game/constants";
+import { PLAYABLE_LETTERS, RANDOM_LETTER } from "@/lib/game/constants";
 import { chooseRoundLetter } from "@/lib/game/storage";
 import type { PlayerSession, Room } from "@/lib/game/types";
 import { useLanguage } from "@/lib/i18n/language-provider";
@@ -32,8 +32,10 @@ export function LetterSelectionRoom({
   async function selectLetter(letter: string) {
     if (!isCommander || usedLetters.has(letter)) return;
     try {
-      await chooseRoundLetter(room.code, letter);
-      toast.success(t("letter.chosen", { letter }));
+      const updated = await chooseRoundLetter(room.code, letter);
+      toast.success(
+        t("letter.chosen", { letter: updated.round?.letter ?? letter }),
+      );
     } catch (error) {
       toast.error(t("letter.chooseFailed"), {
         description: errorMessage(error),
@@ -94,6 +96,17 @@ export function LetterSelectionRoom({
             {t("letter.eachCommands")}
           </div>
         </div>
+
+        {isCommander ? (
+          <Button
+            className={styles.randomLetterButton}
+            onClick={() => selectLetter(RANDOM_LETTER)}
+            type="button"
+          >
+            <Dices />
+            {t("letter.random")}
+          </Button>
+        ) : null}
 
         <div className={styles.letterGrid}>
           {PLAYABLE_LETTERS.map((letter) => {

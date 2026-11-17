@@ -7,6 +7,11 @@ export const CATEGORY_OPTIONS = [
   "Cidade",
   "Música",
   "Filme",
+  "Objecto",
+  "Marca",
+  "Fruta",
+  "Cor",
+  "Província",
 ] as const;
 
 export const DEFAULT_CATEGORIES = [
@@ -22,7 +27,14 @@ export const MAX_CATEGORIES = 10;
 export const MIN_CATEGORY_LENGTH = 2;
 export const MAX_CATEGORY_LENGTH = 24;
 
-export const ROUND_DURATION_OPTIONS = [30, 45, 60, 90] as const;
+export const ROUND_DURATION_OPTIONS = [30, 45, 60, 90, 120] as const;
+
+/** Countdown between the letter being chosen and the clock starting. */
+export const ROUND_COUNTDOWN_MS = 3_000;
+/** Sent instead of a letter when the commander asks for a random one. */
+export const RANDOM_LETTER = "random";
+/** Seconds before the next round/final ranking opens on its own. */
+export const AUTO_ADVANCE_SECONDS = 15;
 
 export const PRESENCE_HEARTBEAT_INTERVAL = 10_000;
 export const PRESENCE_OFFLINE_AFTER = 35_000;

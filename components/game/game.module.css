@@ -8,6 +8,7 @@
 .gamePage {
   padding: 1.25rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 5% 5%, rgb(var(--accent-rgb) / 18%), transparent 22rem),
     radial-gradient(circle at 95% 100%, rgb(var(--primary-rgb) / 10%), transparent 32rem),
     var(--background);
@@ -473,7 +474,7 @@
 
 .durationOptions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.35rem;
 }
 
@@ -776,6 +777,7 @@
   padding: 1.25rem 1.25rem 5rem;
   overflow: hidden;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 90% 15%, rgb(var(--accent-rgb) / 15%), transparent 24rem),
     var(--petroleum);
   color: white;
@@ -784,6 +786,7 @@
 .commanderPage {
   padding: 1.25rem 1.25rem 5rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 50% 12%, rgb(var(--accent-rgb) / 20%), transparent 25rem),
     var(--petroleum);
   color: white;
@@ -875,6 +878,87 @@
 .commanderRule svg {
   width: 1rem;
   color: var(--amber);
+}
+
+.roundCountdown {
+  position: fixed;
+  z-index: 250;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  background:
+    var(--theme-pattern),
+    radial-gradient(circle at 50% 45%, rgb(var(--accent-rgb) / 25%), transparent 22rem),
+    color-mix(in oklab, var(--petroleum) 92%, black);
+  color: #ffffff;
+}
+
+.roundCountdown span {
+  color: var(--amber);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.roundCountdown strong {
+  color: var(--amber);
+  font-size: clamp(8rem, 40vw, 14rem);
+  font-weight: 950;
+  line-height: 1;
+  text-shadow:
+    0 0.4rem 0 var(--amber-deep),
+    0 0 3rem rgb(var(--accent-rgb) / 60%);
+  animation: countdownPop 900ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes countdownPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roundCountdown strong {
+    animation: none;
+  }
+}
+
+.autoAdvance {
+  margin-left: 0.35rem;
+  font-size: 0.8em;
+  font-weight: 800;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.randomLetterButton {
+  display: flex;
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 1.2rem;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  background: var(--amber);
+  box-shadow: 0 0.3rem 0 var(--amber-deep);
+  color: var(--petroleum);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.randomLetterButton:hover {
+  background: var(--amber-light);
+}
+
+.randomLetterButton svg {
+  width: 1.15rem;
 }
 
 .letterGrid {
@@ -1261,6 +1345,7 @@
   min-height: 100vh;
   padding: 1.25rem 1.25rem 5rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 8% 7%, rgb(var(--accent-rgb) / 18%), transparent 22rem),
     var(--background);
   color: var(--petroleum);
@@ -1755,6 +1840,7 @@
   min-height: 100vh;
   padding: 1.25rem 1.25rem 5rem;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 50% 20%, rgb(var(--accent-rgb) / 20%), transparent 25rem),
     var(--petroleum);
   color: white;
@@ -2674,5 +2760,234 @@
   .playerPresence {
     grid-column: 2;
     justify-content: start;
+  }
+}
+
+/* Room for the fixed emoji reaction bar at the bottom of the results. */
+.resultsPage {
+  padding-bottom: 6rem;
+}
+
+/* ---------- Round answers: bigger, clearer, more reactive ---------- */
+/* clip (not hidden) keeps the category bar sticky while still cutting
+   horizontal overflow. */
+.roundPage {
+  overflow: visible;
+  overflow-x: clip;
+}
+
+.answerChips {
+  position: sticky;
+  z-index: 5;
+  top: 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+  padding: 0.4rem;
+  overflow-x: auto;
+  border: 1px solid rgb(var(--primary-rgb) / 10%);
+  border-radius: 999px;
+  background: var(--background);
+  box-shadow: 0 0.5rem 1.4rem rgb(var(--primary-rgb) / 10%);
+  scrollbar-width: none;
+}
+
+.answerChips::-webkit-scrollbar {
+  display: none;
+}
+
+.answerChips button {
+  flex: none;
+  padding: 0.4rem 0.8rem;
+  border: 1.5px solid rgb(var(--primary-rgb) / 16%);
+  border-radius: 999px;
+  background: white;
+  color: var(--petroleum);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.answerChips button[data-state="valid"] {
+  border-color: #2aa876;
+  background: #2aa876;
+  color: white;
+}
+
+.answerChips button[data-state="valid"]::before {
+  content: "✓ ";
+}
+
+.answerChips button[data-state="invalid"] {
+  border-color: #e5484d;
+  background: #fff1f1;
+  color: #c0262d;
+}
+
+.roundAnswer {
+  grid-template-columns: auto minmax(8rem, 0.45fr) minmax(0, 1fr) auto;
+  border: 2px solid rgb(var(--primary-rgb) / 9%);
+  scroll-margin: 5rem 0 7rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.roundAnswer strong {
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.roundAnswer small {
+  font-size: 0.72rem;
+}
+
+.roundAnswer input {
+  min-height: 3.1rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.roundAnswer:focus-within {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 22%);
+  transform: translateY(-1px);
+}
+
+.roundAnswer:focus-within .answerNumber {
+  background: var(--amber);
+  color: var(--petroleum);
+}
+
+.roundAnswer[data-state="valid"] {
+  border-color: rgb(42 168 118 / 60%);
+  background: rgb(42 168 118 / 7%);
+}
+
+.roundAnswer[data-state="valid"] .answerNumber {
+  background: #2aa876;
+  color: white;
+}
+
+.roundAnswer[data-state="invalid"] {
+  border-color: #e5484d;
+  background: #fff5f5;
+  animation: answerShake 320ms ease;
+}
+
+.roundAnswer[data-state="invalid"] small {
+  color: #c0262d;
+  font-weight: 800;
+}
+
+.validAnswer {
+  width: 1.4rem;
+  height: 1.4rem;
+  animation: answerPop 300ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.stopReady {
+  animation: stopPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes answerShake {
+  0%,
+  100% {
+    translate: 0;
+  }
+  25% {
+    translate: -5px;
+  }
+  75% {
+    translate: 5px;
+  }
+}
+
+@keyframes answerPop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes stopPulse {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.025;
+  }
+}
+
+@media (max-width: 640px) {
+  .answerBoardHeader h1 {
+    font-size: 1.45rem;
+  }
+
+  .answerChips {
+    top: 0.4rem;
+    border-radius: 0.95rem;
+  }
+
+  .roundAnswer {
+    grid-template-columns: auto 1fr;
+  }
+
+  .roundAnswer strong {
+    font-size: 1.08rem;
+  }
+
+  .roundAnswer[data-state="invalid"] small {
+    display: block;
+  }
+
+  .roundAnswer input {
+    min-height: 3.5rem;
+    font-size: 1.2rem;
+  }
+
+  .validAnswer {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Who is ready: one swipeable row instead of a tall list. */
+  .roundActivityHeader {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .roundActivityList {
+    display: flex;
+    max-height: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .roundActivityPlayer {
+    flex: none;
+    min-width: 8.5rem;
+    padding: 0.4rem 0.55rem;
+  }
+
+  .roundActivityAvatar {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roundAnswer[data-state="invalid"],
+  .validAnswer,
+  .stopReady {
+    animation: none;
   }
 }

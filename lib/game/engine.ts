@@ -4,6 +4,8 @@ import {
   MIN_CATEGORIES,
   MIN_ROUNDS_TO_PLAY,
   PLAYABLE_LETTERS,
+  RANDOM_LETTER,
+  ROUND_COUNTDOWN_MS,
   ROUND_DURATION_OPTIONS,
   getSafeCategories,
   normalizeCategories,
@@ -315,8 +317,14 @@ export function chooseRoundLetter(
   commanderId: string,
   letter: string,
 ) {
-  const normalizedLetter = letter.trim().toUpperCase();
   const usedLetters = room.history.map((round) => round.letter);
+  const availableLetters = PLAYABLE_LETTERS.filter(
+    (candidate) => !usedLetters.includes(candidate),
+  );
+  const normalizedLetter =
+    letter === RANDOM_LETTER
+      ? (availableLetters[Math.floor(Math.random() * availableLetters.length)] ?? "")
+      : letter.trim().toUpperCase();
   const canChoose =
     room.status === "letter-selection" &&
     room.round?.commanderId === commanderId &&
@@ -333,7 +341,8 @@ export function chooseRoundLetter(
     round: {
       ...room.round,
       letter: normalizedLetter,
-      startedAt: Date.now(),
+      // Everyone sees a 3-2-1 countdown before the clock starts.
+      startedAt: Date.now() + ROUND_COUNTDOWN_MS,
     },
   };
 }

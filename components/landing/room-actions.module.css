@@ -213,3 +213,59 @@
     width: 100%;
   }
 }
+
+/* Avatar, colour and theme live in a collapsible panel so "Criar uma sala"
+   stays right below the name field on phones. */
+.customize {
+  margin-top: 1.35rem;
+  border: 1px solid rgb(var(--primary-rgb) / 12%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 62%);
+}
+
+.customize summary {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  color: var(--petroleum);
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.customize summary::-webkit-details-marker {
+  display: none;
+}
+
+.customize summary small {
+  margin-left: auto;
+  color: var(--brand-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.customizeAvatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: none;
+}
+
+.customizeChevron {
+  width: 1.1rem;
+  flex: none;
+  transition: transform 160ms ease;
+}
+
+.customize[open] .customizeChevron {
+  transform: rotate(180deg);
+}
+
+.customizeBody {
+  padding: 0.25rem 0.85rem 0.9rem;
+}
+
+.customize + .resumeButton {
+  margin-top: 1rem;
+}

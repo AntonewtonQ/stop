@@ -15,6 +15,7 @@
   --warm-white: #f4f2ec;
   --brand-muted: #637784;
   --background: #fffefa;
+  --theme-pattern: none;
   --foreground: var(--petroleum);
   --card: #ffffff;
   --card-foreground: var(--petroleum);
@@ -46,6 +47,39 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+/*
+ * Kuduro: Angolan flag palette (black, yellow, red) with a background pattern
+ * inspired by sona sand drawings from eastern Angola. Red is the "deep"
+ * accent, so buttons and big letters get a red 3D edge under the yellow.
+ */
+[data-theme="kuduro"] {
+  --petroleum: #17110f;
+  --petroleum-soft: #2b1d19;
+  --primary-rgb: 23 17 15;
+  --amber: #ffc20e;
+  --amber-light: #ffd54a;
+  --amber-deep: #d21034;
+  --accent-rgb: 255 194 14;
+  --warm-white: #f7efe4;
+  --brand-muted: #6e5f58;
+  --background: #fffaf2;
+  /* Line drawing of the Cokwe "Pensador" (Thinker), tiled. */
+  --theme-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='220' viewBox='0 0 180 220'%3E%3Cg stroke='%23c48a00' stroke-opacity='.24' stroke-width='1.5' vector-effect='non-scaling-stroke'%3E%3Cg transform='translate(14 10)'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath vector-effect='non-scaling-stroke' d='M22 88 C8 80 2 62 7 46 C11 34 17 25 23 19 C18 12 19 3 27 1.2 C34 0 40 3 42.5 9 L46.5 18 L44 19.8 L45.8 22.4 L43 23.8 L45 25.4 L42.4 27 L42 29 C41 31 39.5 31.5 38 31 L45.5 46 C48.5 50 48.5 55 46.5 59 C44.5 68 43 78 42.5 85 L48 88'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M25.5 21.5 C31 29 36 39 40.5 50 L47.6 53'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M29.5 11 C33 17 35.5 24 38 31'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M33 40 C22 44 15 58 19 72 C22 80 30 82 35.5 76 C40 68 40 52 37 44 C36 41 35 40 33 40 Z'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M26 5 l1.2 4 M29 3.6 l1.2 4 M32 3 l1.2 4 M35 3.3 l1.2 3.8'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M40 13.2 h2.4'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M2 88 H53 V98 H2 Z'/%3E%3C/g%3E%3C/g%3E%3Cg transform='translate(172 112) scale(-.95 .95)'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath vector-effect='non-scaling-stroke' d='M22 88 C8 80 2 62 7 46 C11 34 17 25 23 19 C18 12 19 3 27 1.2 C34 0 40 3 42.5 9 L46.5 18 L44 19.8 L45.8 22.4 L43 23.8 L45 25.4 L42.4 27 L42 29 C41 31 39.5 31.5 38 31 L45.5 46 C48.5 50 48.5 55 46.5 59 C44.5 68 43 78 42.5 85 L48 88'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M25.5 21.5 C31 29 36 39 40.5 50 L47.6 53'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M29.5 11 C33 17 35.5 24 38 31'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M33 40 C22 44 15 58 19 72 C22 80 30 82 35.5 76 C40 68 40 52 37 44 C36 41 35 40 33 40 Z'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M26 5 l1.2 4 M29 3.6 l1.2 4 M32 3 l1.2 4 M35 3.3 l1.2 3.8'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M40 13.2 h2.4'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M2 88 H53 V98 H2 Z'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3Cg fill='%23e0a100' fill-opacity='.3'%3E%3Ccircle cx='130' cy='40' r='1.8'/%3E%3Ccircle cx='40' cy='170' r='1.8'/%3E%3Ccircle cx='88' cy='108' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Flag stripe across the top of every screen. */
+[data-theme="kuduro"] body::before {
+  position: fixed;
+  z-index: 300;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(180deg, #d21034 0 50%, #17110f 50% 100%);
+  content: "";
+  pointer-events: none;
 }
 
 [data-theme="atlantic"] {

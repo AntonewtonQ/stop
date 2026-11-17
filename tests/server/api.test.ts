@@ -6,6 +6,13 @@ import { POST as actionRoute } from "@/app/api/rooms/[code]/actions/route";
 import { GET as eventsRoute } from "@/app/api/rooms/[code]/events/route";
 import { POST as joinRoute } from "@/app/api/rooms/[code]/join/route";
 import { POST as voiceRoute } from "@/app/api/rooms/[code]/voice/route";
+import {
+  GET as reactionsListRoute,
+  POST as reactionsRoute,
+} from "@/app/api/rooms/[code]/reactions/route";
+import { GET as dailyRoute } from "@/app/api/desafio/route";
+import { POST as dailyStartRoute } from "@/app/api/desafio/start/route";
+import { POST as dailyFinishRoute } from "@/app/api/desafio/finish/route";
 import { POST as presenceRoute } from "@/app/api/rooms/[code]/presence/route";
 import { POST as createRoute } from "@/app/api/rooms/route";
 import { GET as healthRoute } from "@/app/api/health/route";
@@ -21,6 +28,7 @@ import type {
 } from "@/lib/admin/types";
 import { getDatabase } from "@/lib/server/database-sqlite";
 import { resetRateLimits } from "@/lib/server/rate-limit";
+import { deleteDailyAttemptsBefore } from "@/lib/server/daily-repository";
 import { clearTestDatabase, makeSession } from "../helpers/game";
 
 type RouteResponse = { room?: Room; error?: string };
@@ -46,8 +54,9 @@ function actor(session: PlayerSession) {
 }
 
 describe("Route Handlers", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     clearTestDatabase();
+    await deleteDailyAttemptsBefore("9999-12-31");
     resetRateLimits();
   });
 
@@ -596,5 +605,163 @@ describe("Route Handlers", () => {
         clearVoice();
       }
     });
+  });
+
+  describe("desafio diário", () => {
+    const key = "device-key-0123456789abcdef";
+    const otherKey = "device-key-fedcba9876543210";
+
+    async function overview(playerKey?: string) {
+      const response = await dailyRoute(
+        new Request("http://jogastop.test/api/desafio", {
+          headers: playerKey ? { "x-jogastop-daily-key": playerKey } : {},
+        }),
+      );
+      return (await response.json()) as {
+        challenge: { letter?: string; categories: string[] };
+        leaderboard: { name: string; score: number }[];
+        players: number;
+        me: { status: string } | null;
+      };
+    }
+
+    it("esconde a letra até começar e só aceita uma tentativa por dia", async () => {
+      const before = await overview(key);
+      expect(before.challenge.letter).toBeUndefined();
+      expect(before.me).toBeNull();
+
+      const start = await dailyStartRoute(
+        jsonRequest("http://jogastop.test/api/desafio/start", {
+          playerKey: key,
+          name: "Ana",
+        }),
+      );
+      const started = (await start.json()) as {
+        challenge: { letter: string; categories: string[] };
+        me: { status: string; attemptId: string };
+      };
+      expect(started.challenge.letter).toMatch(/^[A-Z]$/);
+      expect(started.me.status).toBe("playing");
+
+      const answers = Object.fromEntries(
+        started.challenge.categories.map((category) => [
+          category,
+          `${started.challenge.letter}aaaa`,
+        ]),
+      );
+      const finish = await dailyFinishRoute(
+        jsonRequest("http://jogastop.test/api/desafio/finish", {
+          playerKey: key,
+          attemptId: started.me.attemptId,
+          answers,
+        }),
+      );
+      const finished = (await finish.json()) as {
+        me: { status: string; rank: number; streak: number; result: { base: number } };
+      };
+      expect(finished.me.status).toBe("finished");
+      // 5 × "por confirmar" (+5), the category of the week counts double.
+      expect(finished.me.result.base).toBe(30);
+      // Submitted during the countdown: counted as the full minute.
+      expect(
+        (finished.me.result as unknown as { elapsedMs: number }).elapsedMs,
+      ).toBe(60_000);
+      expect(finished.me.rank).toBe(1);
+      expect(finished.me.streak).toBe(1);
+
+      // A second start returns the same finished attempt instead of a new one.
+      const again = await dailyStartRoute(
+        jsonRequest("http://jogastop.test/api/desafio/start", {
+          playerKey: key,
+          name: "Ana",
+        }),
+      );
+      expect(((await again.json()) as { me: { status: string } }).me.status).toBe(
+        "finished",
+      );
+
+      const after = await overview();
+      expect(after.players).toBe(1);
+      expect(after.leaderboard[0]).toMatchObject({ name: "Ana" });
+
+      const mine = (await (
+        await dailyRoute(
+          new Request("http://jogastop.test/api/desafio", {
+            headers: { "x-jogastop-daily-key": key },
+          }),
+        )
+      ).json()) as {
+        week: { leaderboard: { name: string; total: number }[]; me: { rank: number } };
+        profile: { daysPlayed: number; letters: Record<string, number> };
+      };
+      expect(mine.week.leaderboard[0]).toMatchObject({ name: "Ana", total: 30 });
+      expect(mine.week.me.rank).toBe(1);
+      expect(mine.profile.daysPlayed).toBe(1);
+      expect(Object.values(mine.profile.letters)).toEqual([30]);
+    });
+
+    it("recusa terminar a tentativa de outro dispositivo", async () => {
+      const start = await dailyStartRoute(
+        jsonRequest("http://jogastop.test/api/desafio/start", {
+          playerKey: key,
+          name: "Ana",
+        }),
+      );
+      const { me } = (await start.json()) as { me: { attemptId: string } };
+
+      const response = await dailyFinishRoute(
+        jsonRequest("http://jogastop.test/api/desafio/finish", {
+          playerKey: otherKey,
+          attemptId: me.attemptId,
+          answers: {},
+        }),
+      );
+      expect(response.status).toBe(404);
+    });
+  });
+
+  it("partilha reacções com emojis só de jogadores da sala", async () => {
+    const code = "REA01";
+    const host = makeSession("Ana", code);
+    await createRoute(jsonRequest("http://jogastop.test/api/rooms", { code, host }));
+    const before = Date.now() - 1;
+
+    const invalid = await reactionsRoute(
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/reactions`, {
+        actor: actor(host),
+        emoji: "🍕",
+      }),
+      context(code),
+    );
+    expect(invalid.status).toBe(400);
+
+    const stranger = await reactionsRoute(
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/reactions`, {
+        actor: { id: host.id, token: "wrong-token" },
+        emoji: "🔥",
+      }),
+      context(code),
+    );
+    expect(stranger.status).toBe(401);
+
+    const created = await reactionsRoute(
+      jsonRequest(`http://jogastop.test/api/rooms/${code}/reactions`, {
+        actor: actor(host),
+        emoji: "🔥",
+      }),
+      context(code),
+    );
+    expect(created.status).toBe(201);
+
+    const list = await reactionsListRoute(
+      new Request(`http://jogastop.test/api/rooms/${code}/reactions?since=${before}`),
+      context(code),
+    );
+    const data = (await list.json()) as {
+      reactions: { playerId: string; emoji: string }[];
+    };
+    expect(data.reactions).toEqual([
+      expect.objectContaining({ playerId: host.id, emoji: "🔥" }),
+    ]);
   });
 });

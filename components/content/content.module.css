@@ -2,6 +2,7 @@
   min-height: 100vh;
   overflow-x: clip;
   background:
+    var(--theme-pattern),
     radial-gradient(circle at 8% 6%, rgb(var(--accent-rgb) / 18%), transparent 22rem),
     linear-gradient(180deg, #fffefa 0%, #f7faf9 100%);
   color: var(--petroleum);

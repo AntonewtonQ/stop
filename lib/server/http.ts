@@ -58,6 +58,22 @@ export function parseActor(value: unknown): Actor {
   return { id: actor.id, token: actor.token };
 }
 
+/** Anonymous per-device key for the daily challenge (UUID from localStorage). */
+export function parseDailyPlayerKey(value: unknown) {
+  if (typeof value !== "string" || !/^[A-Za-z0-9-]{16,64}$/.test(value)) {
+    throw new RoomRepositoryError("Não conseguimos identificar este dispositivo.", 400);
+  }
+  return value;
+}
+
+export function parsePlayerName(value: unknown) {
+  const name = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+  if (name.length < 2 || Array.from(name).length > MAX_NAME_LENGTH) {
+    throw new RoomRepositoryError("Confirma o teu nome e tenta novamente.", 400);
+  }
+  return name;
+}
+
 export function parsePlayerSession(
   value: unknown,
   roomCode: string,

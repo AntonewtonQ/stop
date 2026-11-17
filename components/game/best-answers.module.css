@@ -1,0 +1,86 @@
+.panel {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  padding: 1.1rem;
+  border: 1px solid rgb(var(--accent-rgb) / 35%);
+  border-radius: 1.2rem;
+  background: rgb(var(--accent-rgb) / 9%);
+  color: var(--petroleum);
+}
+
+.panel header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.panel header svg {
+  width: 2.2rem;
+  height: 2.2rem;
+  flex: none;
+  padding: 0.5rem;
+  border-radius: 0.8rem;
+  background: var(--amber);
+  color: var(--petroleum);
+}
+
+.panel header strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.panel header span {
+  color: var(--brand-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.panel dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.panel dl > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.panel dt {
+  color: var(--brand-muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panel dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.panel dd span {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--amber-deep);
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.more svg {
+  width: 1rem;
+}

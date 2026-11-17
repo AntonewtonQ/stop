@@ -33,7 +33,7 @@ const pt: PrivacyPolicyCopy = {
   title: "Política de Privacidade do jogastop",
   intro:
     "Como Antonewton Quima e Adilson Fernandes tratam os dados do jogastop no site, na PWA instalada pelo navegador e na aplicação nativa para Android e iOS. As funcionalidades e os serviços de terceiros não são iguais em todas as plataformas.",
-  updated: "Última actualização: 12 de Novembro de 2026",
+  updated: "Última actualização: 16 de Novembro de 2026",
   backHome: "Voltar ao jogo",
   overviewLabel: "Em resumo",
   overview: [
@@ -115,7 +115,8 @@ const pt: PrivacyPolicyCopy = {
       body: [
         "O código ou link permite consultar informações da sala, incluindo nomes, avatares, presença, progresso e pontuação. Não trates a sala como um espaço confidencial. As respostas da rodada em curso não são mostradas aos outros enquanto o relógio decorre; depois ficam disponíveis para resultados e votação. Os votos e quem já votou são visíveis nessa fase.",
         "O ranking semanal no site é público e inclui nomes escolhidos, pontos, vitórias e partidas concluídas, entre outras estatísticas de jogo. Usa os resultados ainda conservados de partidas concluídas na janela dos últimos sete dias e agrupa nomes iguais; não comprova a identidade de uma pessoa.",
-        "Chat de voz (site/PWA): é opcional e só começa quando carregas em «Entrar na voz». O navegador pede acesso ao microfone e podes silenciá-lo ou sair a qualquer momento. O áudio é transmitido em tempo real aos jogadores da mesma sala através da LiveKit, que funciona como servidor de áudio; não gravamos nem guardamos as conversas. Para emitir o acesso, a LiveKit recebe o identificador de jogador, o nome escolhido e o código da sala. Qualquer pessoa na sala pode ouvir o que dizes.",
+        "Desafio do dia (site/PWA): para guardar a tua tentativa e calcular a sequência de dias, o navegador cria um identificador aleatório que é guardado no servidor apenas em forma cifrada (hash). Guardamos o nome que escreves, as respostas, a pontuação e o tempo. O nome, a pontuação e o tempo aparecem no ranking público do dia. Estas tentativas são apagadas automaticamente após 120 dias.",
+        "Reacções com emojis no ecrã de resultados ficam visíveis para a sala e são apagadas ao fim de 24 horas. Chat de voz (site/PWA): é opcional e só começa quando carregas em «Entrar na voz». O navegador pede acesso ao microfone e podes silenciá-lo ou sair a qualquer momento. O áudio é transmitido em tempo real aos jogadores da mesma sala através da LiveKit, que funciona como servidor de áudio; não gravamos nem guardamos as conversas. Para emitir o acesso, a LiveKit recebe o identificador de jogador, o nome escolhido e o código da sala. Qualquer pessoa na sala pode ouvir o que dizes.",
         "Só quando accionas uma partilha enviamos o convite ou resumo para a aplicação escolhida. O convite inclui o código/link da sala; o cartão de resultados, quando disponível, pode incluir nomes e pontuações. WhatsApp e outras apps tratam o que partilhas segundo as suas próprias políticas.",
       ],
     },
@@ -169,7 +170,7 @@ const en: PrivacyPolicyCopy = {
   title: "jogastop Privacy Policy",
   intro:
     "How Antonewton Quima and Adilson Fernandes handle jogastop data on the website, the browser-installed PWA and the native Android and iOS app. Features and third-party services differ across these platforms.",
-  updated: "Last updated: 12 November 2026",
+  updated: "Last updated: 16 November 2026",
   backHome: "Back to the game",
   overviewLabel: "At a glance",
   overview: [
@@ -251,7 +252,8 @@ const en: PrivacyPolicyCopy = {
       body: [
         "A room code or link allows access to room information, including names, avatars, presence, progress and scores. Do not treat a room as a confidential space. Answers in the current round are hidden from others while the timer runs; afterwards they become available for results and voting. Votes and who has voted are visible at that stage.",
         "The website's weekly leaderboard is public and includes chosen names, points, wins and completed games, among other game statistics. It uses retained results of completed games within the last seven days and groups matching names; it does not verify a person's identity.",
-        "Voice chat (website/PWA): it is optional and only starts when you tap \"Join voice\". Your browser asks for microphone access, and you can mute or leave at any time. Audio is streamed in real time to players in the same room through LiveKit, which acts as the audio server; we do not record or store conversations. To grant access, LiveKit receives your player identifier, chosen name and room code. Anyone in the room can hear what you say.",
+        "Daily challenge (website/PWA): to store your attempt and count your streak, the browser creates a random identifier that is stored on the server only as a hash. We keep the name you enter, your answers, score and time. Your name, score and time appear on the public daily leaderboard. These attempts are deleted automatically after 120 days.",
+        "Emoji reactions on the results screen are visible to the room and deleted after 24 hours. Voice chat (website/PWA): it is optional and only starts when you tap \"Join voice\". Your browser asks for microphone access, and you can mute or leave at any time. Audio is streamed in real time to players in the same room through LiveKit, which acts as the audio server; we do not record or store conversations. To grant access, LiveKit receives your player identifier, chosen name and room code. Anyone in the room can hear what you say.",
         "Only when you initiate sharing do we send the invitation or summary to your chosen app. Invitations include the room code/link; result cards, where available, may include names and scores. WhatsApp and other apps handle what you share under their own policies.",
       ],
     },
@@ -305,7 +307,7 @@ const fr: PrivacyPolicyCopy = {
   title: "Politique de confidentialité de jogastop",
   intro:
     "Comment Antonewton Quima et Adilson Fernandes traitent les données de jogastop sur le site, la PWA installée depuis le navigateur et l'application native Android et iOS. Les fonctionnalités et services tiers diffèrent selon la plateforme.",
-  updated: "Dernière mise à jour : 12 novembre 2026",
+  updated: "Dernière mise à jour : 16 novembre 2026",
   backHome: "Retour au jeu",
   overviewLabel: "En résumé",
   overview: [
@@ -387,7 +389,8 @@ const fr: PrivacyPolicyCopy = {
       body: [
         "Un code ou lien de salle permet de consulter ses informations, notamment les noms, avatars, présences, progressions et scores. Ne considère pas la salle comme un espace confidentiel. Les réponses de la manche en cours sont masquées aux autres pendant le chronomètre ; elles deviennent ensuite disponibles pour les résultats et votes. Les votes et leurs auteurs sont visibles à ce stade.",
         "Le classement hebdomadaire du site est public et comprend les noms choisis, points, victoires et parties terminées, entre autres statistiques de jeu. Il utilise les résultats encore conservés de parties terminées sur les sept derniers jours et regroupe les noms identiques ; il ne vérifie pas l'identité d'une personne.",
-        "Chat vocal (site/PWA) : il est facultatif et ne démarre que lorsque tu appuies sur « Rejoindre le vocal ». Le navigateur demande l'accès au micro, et tu peux le couper ou quitter à tout moment. L'audio est transmis en temps réel aux joueurs de la même salle via LiveKit, qui sert de serveur audio ; nous n'enregistrons ni ne conservons les conversations. Pour autoriser l'accès, LiveKit reçoit ton identifiant de joueur, le nom choisi et le code de la salle. Toute personne dans la salle peut entendre ce que tu dis.",
+        "Défi du jour (site/PWA) : pour enregistrer ta tentative et compter ta série, le navigateur crée un identifiant aléatoire stocké sur le serveur uniquement sous forme chiffrée (hash). Nous conservons le nom saisi, tes réponses, ton score et ton temps. Ton nom, ton score et ton temps apparaissent dans le classement public du jour. Ces tentatives sont supprimées automatiquement après 120 jours.",
+        "Les réactions emoji sur l'écran des résultats sont visibles par la salle et supprimées après 24 heures. Chat vocal (site/PWA) : il est facultatif et ne démarre que lorsque tu appuies sur « Rejoindre le vocal ». Le navigateur demande l'accès au micro, et tu peux le couper ou quitter à tout moment. L'audio est transmis en temps réel aux joueurs de la même salle via LiveKit, qui sert de serveur audio ; nous n'enregistrons ni ne conservons les conversations. Pour autoriser l'accès, LiveKit reçoit ton identifiant de joueur, le nom choisi et le code de la salle. Toute personne dans la salle peut entendre ce que tu dis.",
         "Nous envoyons une invitation ou un résumé à l'app choisie uniquement lorsque tu déclenches le partage. L'invitation contient le code/lien de salle ; la carte de résultats, lorsqu'elle est disponible, peut contenir des noms et scores. WhatsApp et les autres apps traitent ce que tu partages selon leurs propres politiques.",
       ],
     },

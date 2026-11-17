@@ -8,6 +8,7 @@ import { Logo } from "@/components/brand/logo";
 import styles from "./content.module.css";
 
 export const CONTENT_LINKS = [
+  { href: "/desafio", label: "Desafio do dia" },
   { href: "/regras", label: "Regras" },
   { href: "/dicas", label: "Dicas" },
   { href: "/palavras", label: "Palavras por letra" },
@@ -42,7 +43,7 @@ export function ContentShell({
           <Logo />
         </Link>
         <nav className={styles.nav} aria-label="Guias do jogo">
-          {CONTENT_LINKS.slice(0, 3).map((link) => (
+          {CONTENT_LINKS.slice(0, 4).map((link) => (
             <Link key={link.href} href={link.href}>
               {link.label}
             </Link>
