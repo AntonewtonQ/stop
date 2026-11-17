@@ -15,6 +15,7 @@
   --warm-white: #f4f2ec;
   --brand-muted: #637784;
   --background: #fffefa;
+  --theme-pattern: none;
   --foreground: var(--petroleum);
   --card: #ffffff;
   --card-foreground: var(--petroleum);
@@ -46,6 +47,38 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+/*
+ * Kuduro: Angolan flag palette (black, yellow, red) with a background pattern
+ * inspired by sona sand drawings from eastern Angola. Red is the "deep"
+ * accent, so buttons and big letters get a red 3D edge under the yellow.
+ */
+[data-theme="kuduro"] {
+  --petroleum: #17110f;
+  --petroleum-soft: #2b1d19;
+  --primary-rgb: 23 17 15;
+  --amber: #ffc20e;
+  --amber-light: #ffd54a;
+  --amber-deep: #d21034;
+  --accent-rgb: 255 194 14;
+  --warm-white: #f7efe4;
+  --brand-muted: #6e5f58;
+  --background: #fffaf2;
+  --theme-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23d21034' stroke-opacity='.1' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M14 4c8 0 10 10 14 10s6-10 14-10 10 6 10 10-10 6-10 14 10 10 10 14-6 10-10 10-6-10-14-10-6 10-14 10S4 46 4 42s10-6 10-14S4 18 4 14s2-10 10-10z'/%3E%3C/g%3E%3Cg fill='%23d21034' fill-opacity='.16'%3E%3Ccircle cx='14' cy='14' r='1.6'/%3E%3Ccircle cx='42' cy='14' r='1.6'/%3E%3Ccircle cx='14' cy='42' r='1.6'/%3E%3Ccircle cx='42' cy='42' r='1.6'/%3E%3Ccircle cx='28' cy='28' r='1.6'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Flag stripe across the top of every screen. */
+[data-theme="kuduro"] body::before {
+  position: fixed;
+  z-index: 300;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(180deg, #d21034 0 50%, #17110f 50% 100%);
+  content: "";
+  pointer-events: none;
 }
 
 [data-theme="atlantic"] {

@@ -23,7 +23,7 @@
 
 .picker > div {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.45rem;
 }
 
@@ -75,6 +75,14 @@
   background: #f0b24a;
 }
 
+.picker button[data-theme-preview="kuduro"] i:first-child {
+  background: linear-gradient(180deg, #d21034 0 50%, #17110f 50% 100%);
+}
+
+.picker button[data-theme-preview="kuduro"] i:last-child {
+  background: #ffc20e;
+}
+
 .picker button[data-theme-preview="atlantic"] i:first-child {
   background: #06384b;
 }
@@ -97,6 +105,12 @@
 
 .picker button[data-theme-preview="neon"] i:last-child {
   background: #9b80f7;
+}
+
+@media (max-width: 560px) {
+  .picker > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 420px) {
